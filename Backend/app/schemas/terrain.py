@@ -13,6 +13,11 @@ class TerrainDatasetInfo(BaseModel):
     vertical_uncertainty_m: float
     slope_method: str
     roughness_baseline_m: float
+    citation: Optional[str] = None
+    observation_count: Optional[int] = None
+    slope_uncertainty_deg: Optional[float] = None
+    effective_resolution_m: Optional[float] = None
+    is_measured_data: bool = True
 
 
 class TerrainResponse(BaseModel):
@@ -29,4 +34,7 @@ class TerrainResponse(BaseModel):
     solar_illumination_pct: Optional[float] = Field(None, description="Estimated annual solar illumination percentage")
     landing_hazard_classification: str = Field(..., description="Preliminary classification: 'safe', 'marginal', 'hazardous', or 'nodata'")
     dataset_info: TerrainDatasetInfo = Field(..., description="Provenance information of underlying measurements")
+    source_tier: Optional[str] = Field(None, description="Active data tier (e.g. Tier 1 80m, Tier 2 5m)")
+    uncertainty_elevation_m: Optional[float] = Field(None, description="Vertical elevation uncertainty standard error in meters")
+    uncertainty_slope_deg: Optional[float] = Field(None, description="Slope uncertainty in degrees")
     notes: Optional[str] = Field(None, description="Additional scientific commentary or uncertainty caveat")

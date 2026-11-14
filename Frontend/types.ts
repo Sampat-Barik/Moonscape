@@ -79,7 +79,15 @@ export interface TerrainResponse {
     vertical_uncertainty_m: number;
     slope_method: string;
     roughness_baseline_m: number;
+    citation?: string | null;
+    observation_count?: number | null;
+    slope_uncertainty_deg?: number | null;
+    effective_resolution_m?: number | null;
+    is_measured_data?: boolean;
   };
+  source_tier?: string | null;
+  uncertainty_elevation_m?: number | null;
+  uncertainty_slope_deg?: number | null;
   notes: string | null;
 }
 
@@ -271,4 +279,82 @@ export interface ReportGenerateResponse {
   content: string;
   structured_summary: Record<string, any>;
   disclaimer: string;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2: NASA Lunar Data Management Types
+// ---------------------------------------------------------------------------
+
+export interface DatasetItem {
+  id: string;
+  name: string;
+  source_provider: string;
+  product_id: string;
+  filename: string;
+  size_mb: number;
+  spatial_resolution_m: number;
+  units: string;
+  tier: "local_required" | "local_optional" | "remote_metadata" | "remote_window" | "remote_full_file" | "not_supported";
+  byte_range_supported: boolean;
+  status: "not_installed" | "remote_available" | "download_queued" | "downloading" | "downloaded" | "validating" | "available" | "partial" | "failed" | "invalid" | "unavailable";
+  validation_detail?: string | null;
+  is_installed: boolean;
+  bounds: {
+    min_lat: number;
+    max_lat: number;
+    min_lon: number;
+    max_lon: number;
+  };
+}
+
+export interface DatasetProfile {
+  name: string;
+  description: string;
+  total_size_mb: number;
+  datasets: string[];
+}
+
+export interface DatasetCatalogResponse {
+  total_datasets: number;
+  installed_count: number;
+  default_profile: string;
+  profiles: Record<string, DatasetProfile>;
+  datasets: DatasetItem[];
+}
+
+export interface CoverageLayer {
+  source_id: string;
+  name: string;
+  tier: string;
+  covers: boolean;
+  is_installed: boolean;
+  resolution_m: number;
+  status?: string | null;
+  detail?: string | null;
+  measurement_type?: string | null;
+  covering_candidate_sites?: string[] | null;
+  covering_nac_dtms?: string[] | null;
+}
+
+export interface DataCoverageResponse {
+  valid_coordinate: boolean;
+  latitude: number;
+  longitude: number;
+  in_south_pole_zone: boolean;
+  best_installed_resolution_m: number | null;
+  total_covering_sources: number;
+  installed_covering_sources: number;
+  layers: CoverageLayer[];
+}
+
+export interface DownloadTaskResponse {
+  task_id: string;
+  dataset_id: string;
+  filename: string;
+  status: "queued" | "downloading" | "validating" | "completed" | "cancelled" | "failed";
+  bytes_downloaded: number;
+  total_bytes: number;
+  progress_pct: number;
+  speed_mbps: number;
+  error_message?: string | null;
 }

@@ -23,3 +23,11 @@ htmlcov/
 .idea/
 Thumbs.db
 Desktop.ini
+
+# Large Lunar Rasters & Temporary Download Artifacts
+*.tif
+*.TIF
+*.part
+Backend/data/lunar/cache/
+Backend/data/lunar/temporary/
+!Backend/data/lunar/**/*.gitkeep

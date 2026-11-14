@@ -18,7 +18,7 @@ def latlon_to_polar_stereo(
         colatitude = 90° + latitude (0 at South Pole, π/2 at equator)
         r = 2 * R * tan(colatitude / 2)
         x = r * sin(longitude)
-        y = -r * cos(longitude)
+        y = r * cos(longitude)
 
     Args:
         lat_deg: Latitude in degrees (-90.0 at South Pole to +90.0 at North Pole).
@@ -33,7 +33,7 @@ def latlon_to_polar_stereo(
     colat_rad = (math.pi / 2.0) + lat_rad
     r = 2.0 * radius_m * math.tan(colat_rad / 2.0)
     x = r * math.sin(lon_rad)
-    y = -r * math.cos(lon_rad)
+    y = r * math.cos(lon_rad)
     return x, y
 
 
@@ -48,7 +48,7 @@ def polar_stereo_to_latlon(
         r = sqrt(x^2 + y^2)
         colatitude = 2 * arctan(r / (2 * R))
         latitude = colatitude - π/2
-        longitude = arctan2(x, -y)
+        longitude = arctan2(x, y)
 
     Args:
         x: Easting in meters.
@@ -66,7 +66,7 @@ def polar_stereo_to_latlon(
     lat_rad = colat_rad - (math.pi / 2.0)
     lat_deg = math.degrees(lat_rad)
 
-    lon_rad = math.atan2(x, -y)
+    lon_rad = math.atan2(x, y)
     lon_deg = math.degrees(lon_rad)
     if lon_deg < 0.0:
         lon_deg += 360.0

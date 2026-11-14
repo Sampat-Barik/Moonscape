@@ -12,6 +12,8 @@ from app.core.logging import logger, setup_logging
 from app.routes import (
     ai,
     analysis,
+    data_catalog,
+    data_downloads,
     hazards,
     health,
     map,
@@ -22,6 +24,7 @@ from app.routes import (
 )
 from app.services.dem_service import dem_service
 from app.services.site_service import site_service
+from Backend.app.services.data_management.dataset_registry import dataset_registry
 
 
 @asynccontextmanager
@@ -42,6 +45,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             "DEM dataset not found at %s. Some terrain endpoints may return degraded responses.",
             settings.DEM_DATA_PATH,
         )
+
+    # Verify NASA lunar dataset registry
+    installed_datasets = dataset_registry.get_installed_datasets()
+    logger.info("NASA Lunar Registry initialized: %d verified datasets available locally", len(installed_datasets))
 
     yield
 
@@ -87,6 +94,8 @@ app.include_router(hazards.router, prefix=api_prefix)
 app.include_router(scoring.router, prefix=api_prefix)
 app.include_router(ai.router, prefix=api_prefix)
 app.include_router(reports.router, prefix=api_prefix)
+app.include_router(data_catalog.router, prefix=api_prefix)
+app.include_router(data_downloads.router, prefix=api_prefix)
 
 
 # ---------------------------------------------------------------------------

@@ -314,3 +314,114 @@ Compiles evaluation data into exportable formats (`json`, `markdown`, or `html`)
   "structured_summary": { ... }
 }
 ```
+
+---
+
+## 10. NASA Lunar Dataset Catalog & Coverage (Phase 2)
+
+### `GET /api/data/catalog`
+Lists all registered NASA lunar datasets, download profiles (`profile_a`, `profile_b`, `profile_c`), and current installation statuses.
+
+**Response (200 OK):**
+```json
+{
+  "total_datasets": 11,
+  "installed_count": 1,
+  "default_profile": "profile_b",
+  "profiles": {
+    "profile_a": {
+      "name": "Minimum Working Installation",
+      "total_size_mb": 521.10,
+      "datasets": ["pgda90_ldem", "pgda90_ldsm", "pgda90_ldec"]
+    },
+    "profile_b": {
+      "name": "Recommended Installation",
+      "total_size_mb": 1241.23,
+      "datasets": ["pgda90_ldem", "pgda90_ldsm", "pgda90_ldec", "pgda90_ldem_err", "pgda90_ldem_effres", "pgda90_ldsm_err"]
+    }
+  },
+  "datasets": [
+    {
+      "id": "pgda90_ldem",
+      "name": "LOLA South Pole 80m Elevation DEM",
+      "source_provider": "NASA GSFC / LOLA Science Team",
+      "product_id": "LDEM_80S_80MPP_ADJ",
+      "filename": "LDEM_80S_80MPP_ADJ.TIF",
+      "size_mb": 180.40,
+      "spatial_resolution_m": 80.0,
+      "units": "meters",
+      "tier": "local_required",
+      "byte_range_supported": true,
+      "status": "available",
+      "is_installed": true,
+      "bounds": { "min_lat": -90.0, "max_lat": -80.0, "min_lon": -180.0, "max_lon": 360.0 }
+    }
+  ]
+}
+```
+
+### `GET /api/data/status`
+Returns real-time disk presence and GeoTIFF validation details for all datasets.
+
+### `GET /api/data/coverage?lat={latitude}&lon={longitude}`
+Evaluates spatial coverage across all NASA tiers for the given lunar coordinate.
+
+**Query Parameters:**
+- `lat`: Latitude in degrees (-90.0 to 90.0)
+- `lon`: Longitude in degrees (-180.0 to 360.0)
+
+**Response (200 OK):**
+```json
+{
+  "valid_coordinate": true,
+  "latitude": -89.5,
+  "longitude": 220.0,
+  "in_south_pole_zone": true,
+  "best_installed_resolution_m": 5.0,
+  "total_covering_sources": 5,
+  "installed_covering_sources": 2,
+  "layers": [
+    {
+      "source_id": "pgda_product78",
+      "name": "NASA PGDA Product 78 (LOLA 5m/pixel High-Resolution Candidate Site DEM)",
+      "tier": "Tier 2: High-Resolution Regional",
+      "covers": true,
+      "is_installed": true,
+      "resolution_m": 5.0,
+      "status": "available",
+      "detail": "Site 01 Shackleton Connecting Ridge"
+    }
+  ]
+}
+```
+
+---
+
+## 11. NASA Data Acquisition & Download Management (Phase 2)
+
+### `POST /api/data/download/{dataset_id}`
+Triggers background streaming download with byte-range resume and disk headroom validation.
+
+**Response (200 OK):**
+```json
+{
+  "task_id": "DL-A1B2C3D4",
+  "dataset_id": "pgda90_ldem",
+  "filename": "LDEM_80S_80MPP_ADJ.TIF",
+  "status": "downloading",
+  "bytes_downloaded": 10485760,
+  "total_bytes": 189158392,
+  "progress_pct": 5.5,
+  "speed_mbps": 4.25,
+  "error_message": null
+}
+```
+
+### `POST /api/data/download/profile/{profile_name}`
+Enqueues all datasets in a preset profile (`profile_a`, `profile_b`, `profile_c`).
+
+### `GET /api/data/downloads/{task_id}`
+Queries live progress, speed in MB/s, and completion status.
+
+### `POST /api/data/downloads/{task_id}/cancel`
+Cancels an active download stream.
