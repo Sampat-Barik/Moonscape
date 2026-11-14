@@ -43,3 +43,12 @@ Backend/data/lunar/temporary/
 !Backend/data/models/.gitkeep
 !Backend/data/models/*.json
 
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env.local
+.env.*.local
+
+
