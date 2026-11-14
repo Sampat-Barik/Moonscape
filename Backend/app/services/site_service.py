@@ -12,6 +12,8 @@ from app.schemas.site import (
     SiteCompareResponse,
     SiteComparisonItem,
 )
+from Backend.app.services.ml.suitability_model_service import suitability_model_service
+from maths.scoring import evaluate_hard_constraints
 
 
 class SiteService:
@@ -55,6 +57,7 @@ class SiteService:
         self,
         site_ids: List[str],
         custom_weights: Optional[Dict[str, float]] = None,
+        mission_profile: str = "artemis_hls",
     ) -> SiteCompareResponse:
         """Performs a multi-criteria comparative evaluation among candidate sites."""
         weights = {
@@ -122,6 +125,34 @@ class SiteService:
             elif site.earth_visibility_pct is not None and site.earth_visibility_pct < 70.0:
                 vulnerabilities.append("Intermittent direct-to-Earth communication coverage")
 
+            # Check hard mission engineering constraints and ML predictions
+            measurements = {
+                "slope_deg": site.mean_slope_deg,
+                "elevation_m": site.elevation_m,
+                "illumination_pct": site.illumination_pct,
+                "earth_visibility_pct": site.earth_visibility_pct,
+            }
+            is_violated, violations = evaluate_hard_constraints(
+                measurements,
+                profile_id=mission_profile,
+            )
+            for v in violations:
+                vulnerabilities.append(f"Hard constraint violation: {v}")
+
+            try:
+                ml_pred = suitability_model_service.predict_suitability(
+                    measurements,
+                    mission_profile=mission_profile,
+                    run_monte_carlo=True,
+                )
+                ml_score = ml_pred.ml_suitability_score
+                unc_std = ml_pred.uncertainty_score_std
+                conf_int = ml_pred.confidence_interval_95
+            except Exception:
+                ml_score = None
+                unc_std = None
+                conf_int = None
+
             compared_items.append(
                 SiteComparisonItem(
                     site_id=site.site_id,
@@ -136,11 +167,18 @@ class SiteService:
                     safety_rank=1,  # Will sort and rank below
                     key_strengths=strengths,
                     key_vulnerabilities=vulnerabilities,
+                    ml_model_score=ml_score,
+                    hard_constraint_status="violated" if is_violated else "passed",
+                    uncertainty_score_std=unc_std,
+                    confidence_interval_95=conf_int,
                 )
             )
 
-        # Sort descending by composite score
-        compared_items.sort(key=lambda x: x.suitability_score, reverse=True)
+        # Sort descending by composite score (unviolated sites prioritized)
+        compared_items.sort(
+            key=lambda x: (x.hard_constraint_status == "passed", x.suitability_score),
+            reverse=True,
+        )
         for idx, item in enumerate(compared_items, start=1):
             item.safety_rank = idx
 
@@ -148,7 +186,7 @@ class SiteService:
         top_name = compared_items[0].name if compared_items else "None"
 
         summary = (
-            f"Comparative analysis evaluates {len(compared_items)} candidates. "
+            f"Comparative analysis evaluates {len(compared_items)} candidates for profile '{mission_profile}'. "
             f"'{top_name}' ranks highest with a composite score of "
             f"{compared_items[0].suitability_score if compared_items else 0.0}/100, "
             f"demonstrating the optimal balance between topographic landing safety, "
@@ -160,6 +198,7 @@ class SiteService:
             top_recommended_site_id=top_site,
             tradeoff_summary=summary,
             criteria_weights=weights,
+            mission_profile=mission_profile,
             disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
         )
 

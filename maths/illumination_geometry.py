@@ -214,3 +214,77 @@ def estimate_surface_temperature_kelvin(
     t_rad = (flux / (LUNAR_INFRARED_EMISSIVITY * STEFAN_BOLTZMANN)) ** 0.25
     # Cap to reasonable lunar polar range [40 K, 250 K]
     return float(round(max(40.0, min(260.0, t_rad)), 1))
+
+
+def find_next_sunset_and_sunrise(
+    lat_deg: float,
+    lon_deg: float,
+    start_dt: datetime,
+    horizon_elevation_deg: float = 0.0,
+    max_search_days: float = 35.0,
+) -> Tuple[Optional[str], Optional[str], Optional[float]]:
+    """Calculates the UTC timestamp of the next sunset and next sunrise at a lunar coordinate.
+
+    A sunset occurs when the solar upper limb (solar_elevation + SOLAR_SEMI_DIAMETER_DEG)
+    drops below the local horizon.
+    A sunrise occurs when the solar upper limb rises above the local horizon.
+
+    Returns:
+        (next_sunset_iso, next_sunrise_iso, duration_until_sunset_hours)
+    """
+    from datetime import timedelta
+
+    step_hours = 2.0
+    total_steps = int((max_search_days * 24.0) / step_hours)
+
+    def is_sun_above_horizon(t_eval: datetime) -> bool:
+        sub_lat, sub_lon, _ = calculate_solar_subsolar_coordinates(t_eval)
+        elev, _ = calculate_solar_elevation_and_azimuth(lat_deg, lon_deg, sub_lat, sub_lon)
+        return (elev + SOLAR_SEMI_DIAMETER_DEG) > horizon_elevation_deg
+
+    initial_state = is_sun_above_horizon(start_dt)
+    prev_state = initial_state
+    prev_t = start_dt
+
+    next_sunset_dt: Optional[datetime] = None
+    next_sunrise_dt: Optional[datetime] = None
+
+    for i in range(1, total_steps + 1):
+        curr_t = start_dt + timedelta(hours=i * step_hours)
+        curr_state = is_sun_above_horizon(curr_t)
+
+        if prev_state and not curr_state and next_sunset_dt is None:
+            # Sunset detected between prev_t and curr_t -> refine via bisection
+            t_low, t_high = prev_t, curr_t
+            for _ in range(8):  # 8 iterations refines 2 hours down to ~28 seconds
+                t_mid = t_low + (t_high - t_low) / 2
+                if is_sun_above_horizon(t_mid):
+                    t_low = t_mid
+                else:
+                    t_high = t_mid
+            next_sunset_dt = t_mid
+
+        elif not prev_state and curr_state and next_sunrise_dt is None:
+            # Sunrise detected between prev_t and curr_t -> refine via bisection
+            t_low, t_high = prev_t, curr_t
+            for _ in range(8):
+                t_mid = t_low + (t_high - t_low) / 2
+                if not is_sun_above_horizon(t_mid):
+                    t_low = t_mid
+                else:
+                    t_high = t_mid
+            next_sunrise_dt = t_mid
+
+        if next_sunset_dt is not None and next_sunrise_dt is not None:
+            break
+
+        prev_state = curr_state
+        prev_t = curr_t
+
+    sunset_iso = next_sunset_dt.isoformat() if next_sunset_dt else None
+    sunrise_iso = next_sunrise_dt.isoformat() if next_sunrise_dt else None
+    hours_to_sunset = None
+    if next_sunset_dt:
+        hours_to_sunset = round((next_sunset_dt - start_dt).total_seconds() / 3600.0, 1)
+
+    return sunset_iso, sunrise_iso, hours_to_sunset

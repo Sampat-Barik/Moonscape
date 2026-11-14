@@ -1,6 +1,6 @@
 """Topographic mathematics: Horn's slope algorithm, surface aspect, and RMS roughness."""
 
-from typing import Dict, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from scipy.ndimage import convolve, uniform_filter
 
@@ -59,7 +59,105 @@ def rms_surface_roughness(elevation: np.ndarray, kernel_size: int = 3) -> np.nda
     """
     local_mean = uniform_filter(elevation, size=kernel_size, mode="reflect")
     residuals = elevation - local_mean
-    return np.sqrt(uniform_filter(residuals**2, size=kernel_size, mode="reflect"))
+    return np.sqrt(np.maximum(0.0, uniform_filter(residuals**2, size=kernel_size, mode="reflect")))
+
+
+def calculate_multi_baseline_roughness(
+    elevation: np.ndarray,
+    dx_meters: float,
+    valid_mask: Optional[np.ndarray] = None,
+    candidate_baselines_m: Optional[Tuple[float, ...]] = (15.0, 60.0, 100.0, 240.0, 480.0, 1600.0),
+) -> Dict[str, Dict[str, Any]]:
+    """Evaluates multi-baseline RMS surface roughness following Barker et al. (2016) / NASA PGDA 90 methodology.
+
+    Lunar surface roughness is inherently scale-dependent; shorter baselines capture micro-roughness
+    relevant to lander footpads and belly clearance, while longer baselines measure macroscopic slope variations.
+
+    Args:
+        elevation: 2D array of elevation values in meters.
+        dx_meters: Spatial pixel resolution in meters.
+        valid_mask: Optional boolean array marking non-nodata pixels within the physical analysis disc.
+        candidate_baselines_m: Tuple of target physical baseline lengths in meters.
+
+    Returns:
+        Dictionary keyed by baseline label (e.g. '15m', '60m', '240m') with:
+            - 'resolvable': bool
+            - 'kernel_size': int (if resolvable)
+            - 'actual_baseline_m': float (if resolvable)
+            - 'mean_m': float (if resolvable and valid data exists)
+            - 'max_m': float
+            - 'min_m': float
+            - 'status': description string
+    """
+    if candidate_baselines_m is None:
+        candidate_baselines_m = (15.0, 60.0, 100.0, 240.0, 480.0, 1600.0)
+
+    rows, cols = elevation.shape
+    min_dim = min(rows, cols)
+    results: Dict[str, Dict[str, Any]] = {}
+
+    if valid_mask is None:
+        valid_mask = (~np.isnan(elevation)) & (elevation > -30000.0)
+
+    # Pre-clean nodata for filtering
+    cleaned = elevation.copy()
+    if np.any(valid_mask):
+        reg_mean = float(np.mean(cleaned[valid_mask]))
+        cleaned[~valid_mask] = reg_mean
+    else:
+        reg_mean = 0.0
+
+    for target_m in candidate_baselines_m:
+        label = f"{int(target_m)}m" if target_m >= 1.0 else f"{target_m:.1f}m"
+
+        # Check Nyquist and minimum 3x3 kernel rule
+        k_est = int(round(target_m / dx_meters))
+        if k_est < 3:
+            results[label] = {
+                "resolvable": False,
+                "target_baseline_m": target_m,
+                "status": f"Unresolvable (DEM resolution {dx_meters:.1f}m exceeds Nyquist limit for {target_m}m baseline; minimum kernel requires dx <= {target_m/3.0:.1f}m)",
+            }
+            continue
+
+        if k_est >= min_dim:
+            results[label] = {
+                "resolvable": False,
+                "target_baseline_m": target_m,
+                "status": f"Unresolvable (Baseline {target_m}m requires kernel {k_est}x{k_est} which exceeds window bounds {rows}x{cols})",
+            }
+            continue
+
+        # Force kernel to be odd for symmetric centered window
+        kernel_size = k_est if (k_est % 2 != 0) else (k_est + 1)
+        actual_baseline = round(kernel_size * dx_meters, 1)
+
+        rough_map = rms_surface_roughness(cleaned, kernel_size=kernel_size)
+        valid_vals = rough_map[valid_mask]
+
+        if valid_vals.size > 0:
+            results[label] = {
+                "resolvable": True,
+                "target_baseline_m": target_m,
+                "actual_baseline_m": actual_baseline,
+                "kernel_size": kernel_size,
+                "mean_m": round(float(np.mean(valid_vals)), 3),
+                "max_m": round(float(np.max(valid_vals)), 3),
+                "min_m": round(float(np.min(valid_vals)), 3),
+                "std_dev_m": round(float(np.std(valid_vals)), 3),
+                "status": "computed",
+            }
+        else:
+            results[label] = {
+                "resolvable": True,
+                "target_baseline_m": target_m,
+                "actual_baseline_m": actual_baseline,
+                "kernel_size": kernel_size,
+                "mean_m": None,
+                "status": "no_valid_pixels",
+            }
+
+    return results
 
 
 def slope_distribution_breakdown(

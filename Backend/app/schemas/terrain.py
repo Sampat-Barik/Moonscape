@@ -64,6 +64,9 @@ class RoughnessSummary(BaseModel):
     kernel_size: int = Field(3, description="Moving window kernel dimension (e.g. 3x3)")
     baseline_m: float = Field(..., description="Physical spatial baseline in meters = kernel_size * dx")
     units: str = "meters"
+    multi_baseline: Optional[Dict[str, Any]] = Field(
+        None, description="Scale-dependent RMS roughness evaluated across multiple physical baselines (Barker et al. 2016)"
+    )
 
 
 class TerrainResponse(BaseModel):

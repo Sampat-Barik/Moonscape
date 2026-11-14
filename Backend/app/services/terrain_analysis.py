@@ -7,8 +7,10 @@ Performs geodetically traceable calculations for:
 4. Physical Spatial Windowing: Strictly bounded by physical radius in meters on the lunar sphere.
 """
 
+from collections import OrderedDict
 from dataclasses import asdict, dataclass
 import math
+import threading
 from typing import Any, Dict, Optional, Tuple
 from affine import Affine
 import numpy as np
@@ -23,7 +25,11 @@ from Backend.app.core.constants import (
 )
 from Backend.app.services.nasa_data import NASASpatialWindow, nasa_data_manager
 from maths.geodesy import DEFAULT_MOON_RADIUS_M
-from maths.topography import horn_slope_and_aspect, slope_distribution_breakdown
+from maths.topography import (
+    calculate_multi_baseline_roughness,
+    horn_slope_and_aspect,
+    slope_distribution_breakdown,
+)
 
 
 @dataclass
@@ -76,6 +82,7 @@ class RoughnessMetrics:
     kernel_size: int
     baseline_meters: float
     units: str = "meters"
+    multi_baseline: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -110,6 +117,10 @@ class TerrainAnalysisResult:
 
 class TerrainAnalysisEngine:
     """Scientific compute engine for lunar terrain elevation, slope, and roughness."""
+
+    _analysis_cache: OrderedDict[str, "TerrainAnalysisResult"] = OrderedDict()
+    _cache_capacity: int = 128
+    _cache_lock = threading.Lock()
 
     # -------------------------------------------------------------------------
     # Pure Numerical & Algorithmic Methods (Testable on Synthetic Arrays)
@@ -354,6 +365,12 @@ class TerrainAnalysisEngine:
         mean_r = float(np.mean(valid_roughness))
         std_r = float(np.std(valid_roughness))
 
+        multi_base = calculate_multi_baseline_roughness(
+            cleaned_elev,
+            dx_meters=dx_meters,
+            valid_mask=valid_mask,
+        )
+
         return RoughnessMetrics(
             point_roughness_m=pt_roughness if pt_roughness is not None else round(mean_r, 2),
             min_roughness_m=round(min_r, 2),
@@ -364,6 +381,7 @@ class TerrainAnalysisEngine:
             kernel_size=kernel_size,
             baseline_meters=baseline_m,
             units="meters",
+            multi_baseline=multi_base,
         )
 
     # -------------------------------------------------------------------------
@@ -379,6 +397,13 @@ class TerrainAnalysisEngine:
         roughness_kernel_size: int = 3,
     ) -> Optional[TerrainAnalysisResult]:
         """Performs full scientific terrain analysis over physical distance radius."""
+        cache_key = f"{lat_deg:.4f}:{lon_deg:.4f}:{int(radius_meters)}:{roughness_kernel_size}"
+        with cls._cache_lock:
+            if cache_key in cls._analysis_cache:
+                cached_res = cls._analysis_cache[cache_key]
+                cls._analysis_cache.move_to_end(cache_key)
+                return cached_res
+
         window: Optional[NASASpatialWindow] = nasa_data_manager.get_spatial_window(
             lat_deg=lat_deg,
             lon_deg=lon_deg,
@@ -477,9 +502,10 @@ class TerrainAnalysisEngine:
             "slope_method": slope_metrics.method,
             "roughness_method": roughness_metrics.method,
             "roughness_baseline_m": roughness_metrics.baseline_meters,
+            "roughness_multi_baseline": roughness_metrics.multi_baseline,
         }
 
-        return TerrainAnalysisResult(
+        result = TerrainAnalysisResult(
             latitude=lat_deg,
             longitude=lon_deg,
             radius_meters=radius_meters,
@@ -495,6 +521,13 @@ class TerrainAnalysisEngine:
             metadata=metadata,
             disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
         )
+
+        with cls._cache_lock:
+            if len(cls._analysis_cache) >= cls._cache_capacity:
+                cls._analysis_cache.popitem(last=False)
+            cls._analysis_cache[cache_key] = result
+
+        return result
 
 
 terrain_analysis_engine = TerrainAnalysisEngine()

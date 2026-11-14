@@ -7,6 +7,11 @@ from app.schemas.site import (
     SiteCompareRequest,
     SiteCompareResponse,
 )
+from app.schemas.site_detection import (
+    DetectLandingSitesRequest,
+    DetectLandingSitesResponse,
+)
+from app.services.landing_site_detection import landing_site_detection_service
 from app.services.site_service import site_service
 
 router = APIRouter(prefix="", tags=["Sites"])
@@ -35,7 +40,17 @@ def compare_sites(payload: SiteCompareRequest) -> SiteCompareResponse:
     return site_service.compare_sites(
         site_ids=payload.site_ids,
         custom_weights=payload.weights,
+        mission_profile=payload.mission_profile or "artemis_hls",
     )
+
+
+@router.post("/sites/detect", response_model=DetectLandingSitesResponse, summary="Detect contiguous safe landing zones from real DEM")
+def detect_sites(payload: DetectLandingSitesRequest) -> DetectLandingSitesResponse:
+    """Scans real NASA elevation rasters, identifies contiguous patches meeting slope and roughness limits,
+
+    and returns candidate landing zones with sufficient footprint diameter.
+    """
+    return landing_site_detection_service.detect_candidate_sites(payload)
 
 
 @router.get("/sites/{site_id}", response_model=CandidateSite, summary="Get metadata for a specific candidate site")

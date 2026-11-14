@@ -36,6 +36,7 @@ class SiteCompareRequest(BaseModel):
         None,
         description="Optional custom weights for scoring criteria (slope, illumination, communication, science)",
     )
+    mission_profile: Optional[str] = Field("artemis_hls", description="Mission profile ('artemis_hls', 'clps_cargo', 'polar_rover', 'base_camp')")
 
     @field_validator("site_ids")
     @classmethod
@@ -60,6 +61,10 @@ class SiteComparisonItem(BaseModel):
     safety_rank: int = Field(..., ge=1, description="Rank ordered by safety suitability")
     key_strengths: List[str]
     key_vulnerabilities: List[str]
+    ml_model_score: Optional[float] = Field(None, description="ML surrogate model suitability score (0-100)")
+    hard_constraint_status: str = Field("passed", description="'passed' or 'violated'")
+    uncertainty_score_std: Optional[float] = Field(None, description="Score uncertainty standard error under perturbation")
+    confidence_interval_95: Optional[List[float]] = Field(None, description="95% confidence interval [min, max]")
 
 
 class SiteCompareResponse(BaseModel):
@@ -70,5 +75,6 @@ class SiteCompareResponse(BaseModel):
     tradeoff_summary: str
     criteria_weights: Dict[str, float]
     disclaimer: str
+    mission_profile: Optional[str] = Field("artemis_hls", description="Active mission profile")
     criteria_version: Optional[str] = Field("2.0-phase6", description="Evaluation criteria and algorithm version")
     warnings: List[str] = Field(default_factory=list, description="Comparative warnings and data disparity notes")

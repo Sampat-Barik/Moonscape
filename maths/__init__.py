@@ -9,6 +9,7 @@ from maths.geodesy import (
 from maths.topography import (
     horn_slope_and_aspect,
     rms_surface_roughness,
+    calculate_multi_baseline_roughness,
     slope_distribution_breakdown,
 )
 from maths.curvature import (
@@ -25,6 +26,8 @@ from maths.scoring import (
     evaluate_elevation_score,
     weighted_composite_score,
     compute_suitability_with_coverage,
+    evaluate_hard_constraints,
+    MISSION_PROFILES,
 )
 from maths.illumination_geometry import (
     calculate_solar_subsolar_coordinates,
@@ -42,6 +45,7 @@ __all__ = [
     "euclidean_distance_2d",
     "horn_slope_and_aspect",
     "rms_surface_roughness",
+    "calculate_multi_baseline_roughness",
     "slope_distribution_breakdown",
     "laplacian_curvature",
     "detect_crater_basins",

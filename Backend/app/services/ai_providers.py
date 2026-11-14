@@ -289,12 +289,67 @@ class MockDeterministicProvider(BaseAIProvider):
         if "Crater Hazards" in prompt or "missing" in prompt.lower():
             limitations.append("High-resolution optical crater and boulder hazard counts are uncalibrated or pending orbital ground-truth validation.")
 
+        # Extract user query if present
+        query_match = re.search(r"SPECIFIC USER INQUIRY:\s*(.+)", prompt, re.IGNORECASE)
+        user_query = query_match.group(1).strip() if query_match else ""
+
+        # Default general synthesis
         explanation = (
             f"Preliminary scientific screening of candidate landing coordinates indicates an evaluated suitability score of "
             f"{overall_score if overall_score is not None else 'N/A'}/100. "
             f"The site's primary operational advantage is {'its benign slope profile' if mean_slope and mean_slope <= 8.0 else 'its solar availability'}, "
             f"while mission planners must account for {'micro-topographic relief' if roughness and roughness > 0.3 else 'elongated polar shadowing'}."
         )
+
+        # Grounded Answers to Specific Scientific Inquiries
+        q_lower = user_query.lower()
+        if "hazard" in q_lower:
+            slope_txt = f"{mean_slope:.1f}°" if mean_slope is not None else "unmeasured"
+            rough_txt = f"{roughness:.2f}m RMS" if roughness is not None else "unmeasured"
+            explanation = (
+                f"Physical hazards evaluated at this location include: (1) Topographic slope averaging {slope_txt} "
+                f"(critical stability limit >15.0° triggers dynamic tip-over risk), (2) Surface micro-roughness of {rough_txt} "
+                f"which impacts lander footpad differential height and engine nozzle ground clearance, (3) Polar shadowing "
+                f"with {illum if illum is not None else 'unmeasured'}% cumulative sunlight creating deep thermal sinks, and "
+                f"(4) Sub-pixel boulder hazards smaller than LOLA's 20m spatial resolution requiring terminal lidar sensing."
+            )
+        elif "earth" in q_lower or "visible" in q_lower or "comm" in q_lower or "blackout" in q_lower:
+            explanation = (
+                "Direct line-of-sight communication to Earth from lunar polar latitudes is governed by lunar orbital libration "
+                "(which produces an apparent ±8° wobble of Earth in the lunar sky) and local terrain horizon occlusion. "
+                "When Earth's elevation angle dips below the elevation angle of surrounding crater rims or highland massifs, "
+                "direct radio line-of-sight is blocked. These periodic blackout windows require scheduling direct downlink "
+                "during peak positive libration or relaying through orbital communication spacecraft (e.g. Lunar Gateway)."
+            )
+        elif "month" in q_lower or "later" in q_lower or "season" in q_lower or "time" in q_lower:
+            explanation = (
+                "A mission start shifted by one month alters solar illumination geometry through the Moon's 18.6-year draconic "
+                "precession cycle and seasonal sub-solar latitude variations (ranging ±1.54°). Because the Sun grazes the lunar South "
+                "Pole at angles typically between 0.5° and 1.5° above the horizon, even a 0.5° seasonal variation changes shadow lengths "
+                "by hundreds of meters, altering continuous sunlight duration, battery sizing margins, and local surface temperatures."
+            )
+        elif "uncertain" in q_lower:
+            explanation = (
+                "Primary measurement uncertainties at this site include: (1) LOLA laser altimeter vertical accuracy standard error "
+                "of approximately ±1.5 m, (2) Topographic gradient uncertainty of ±1.2° resulting from track interpolation across 10-25m "
+                "laser shot baselines, (3) Surface roughness estimates constrained by regional Nyquist frequencies, and (4) Secondary "
+                "radiative scattering uncertainties in deep crater cold traps where temperatures drop to 40 K."
+            )
+        elif "additional" in q_lower or "improve" in q_lower or "data" in q_lower or "validate" in q_lower:
+            explanation = (
+                "To advance this candidate beyond preliminary computational screening toward flight landing clearance, the following "
+                "measurements are required: (1) Targeted LROC Narrow Angle Camera (NAC) stereo photogrammetric DTMs at 0.5m to 2.0m resolution "
+                "to resolve meter-scale rocks and rim slopes, (2) Diviner multi-channel infrared radiometer thermal emission observations "
+                "to map surface regolith thermal inertia, and (3) Mini-RF bistatic radar backscatter measurements to assess subsurface "
+                "dielectric constants and potential volatile ice deposits."
+            )
+        elif "rank" in q_lower or "compare" in q_lower or "above" in q_lower or "why is" in q_lower:
+            explanation = (
+                f"Candidate site ranking is governed by multi-criteria decision analysis prioritizing topographic landing safety "
+                f"(slopes and roughness account for 50-55% of the total weight) alongside solar illumination availability (20-25%). "
+                f"A site ranked higher exhibits gentler mean slopes (< 5°), lower RMS surface roughness, and a larger contiguous "
+                f"touchdown footprint (>= 100m diameter for Artemis HLS), directly minimizing static and dynamic tip-over hazards."
+            )
 
         return {
             "explanation": explanation,

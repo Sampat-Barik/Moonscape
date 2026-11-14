@@ -1,6 +1,6 @@
 """API endpoints for NASA dataset catalog discovery, disk status, and coordinate coverage."""
 
-from typing import Dict, List
+from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException, Query
 
 from Backend.app.config.dataset_settings import dataset_settings
@@ -103,3 +103,17 @@ def get_spatial_coverage(
     """Evaluates spatial coverage across all NASA tiers for the coordinate."""
     report = coverage_manager.get_coverage_report(lat, lon)
     return DataCoverageResponse(**report)
+
+
+@router.get("/lroc/footprints", summary="Discover intersecting NASA LROC NAC targeted stereo DTM footprints")
+def discover_lroc_nac_footprints(
+    lat: float = Query(..., ge=-90.0, le=-80.0, description="Center latitude in degrees (-90 to -80)"),
+    lon: float = Query(..., ge=-180.0, le=360.0, description="Center longitude in degrees (-180 to 360)"),
+    radius: float = Query(5000.0, ge=100.0, le=50000.0, description="Search radius in meters (100m to 50km)"),
+) -> Dict[str, Any]:
+    """Performs spatial footprint intersection for high-resolution (0.5 - 2.0 m/pixel) LROC NAC DTMs.
+
+    Delineates optical boulder/crater visual detections from LOLA laser altimetry slopes.
+    """
+    from Backend.app.services.data_sources.lroc_nac import lroc_nac
+    return lroc_nac.discover_footprints(center_lat=lat, center_lon=lon, search_radius_meters=radius)

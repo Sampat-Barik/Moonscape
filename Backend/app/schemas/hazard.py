@@ -1,7 +1,7 @@
 """Schemas for crater, boulder, and topographic hazard detection and ML inference."""
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 
 class BoundingBox(BaseModel):
@@ -74,6 +74,26 @@ class HazardPredictRequest(BaseModel):
     confidence_threshold: Optional[float] = Field(
         0.50, ge=0.0, le=1.0, description="Minimum confidence threshold for hazard detection"
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_aliases(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "latitude" in data and "center_lat" not in data:
+                data["center_lat"] = data["latitude"]
+            elif "lat" in data and "center_lat" not in data:
+                data["center_lat"] = data["lat"]
+
+            if "longitude" in data and "center_lon" not in data:
+                data["center_lon"] = data["longitude"]
+            elif "lon" in data and "center_lon" not in data:
+                data["center_lon"] = data["lon"]
+
+            if "radius_m" in data and "radius_meters" not in data:
+                data["radius_meters"] = data["radius_m"]
+            elif "radius" in data and "radius_meters" not in data:
+                data["radius_meters"] = data["radius"]
+        return data
 
     model_config = ConfigDict(extra="ignore")
 

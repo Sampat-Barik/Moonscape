@@ -22,6 +22,23 @@ class AIExplainRequest(BaseModel):
     )
     user_query: Optional[str] = Field(None, description="Specific scientific inquiry or query from mission planner")
 
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_aliases(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "query" in data and "user_query" not in data:
+                data["user_query"] = data["query"]
+            elif "prompt" in data and "user_query" not in data:
+                data["user_query"] = data["prompt"]
+            elif "question" in data and "user_query" not in data:
+                data["user_query"] = data["question"]
+
+            if "lat" in data and "latitude" not in data:
+                data["latitude"] = data["lat"]
+            if "lon" in data and "longitude" not in data:
+                data["longitude"] = data["lon"]
+        return data
+
 
 class AIExplainResponse(BaseModel):
     """Scientifically grounded, transparent narrative explanation response."""

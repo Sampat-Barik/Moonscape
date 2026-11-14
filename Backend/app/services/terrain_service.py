@@ -153,6 +153,7 @@ class TerrainService:
             kernel_size=res.roughness.kernel_size,
             baseline_m=res.roughness.baseline_meters,
             units=res.roughness.units,
+            multi_baseline=res.roughness.multi_baseline,
         )
 
         dataset_info = TerrainDatasetInfo(
@@ -327,6 +328,7 @@ class TerrainService:
             roughness_max_m=res.roughness.max_roughness_m,
             roughness_baseline_m=res.roughness.baseline_meters,
             roughness_method=res.roughness.method,
+            roughness_multi_baseline=res.roughness.multi_baseline,
             slope_method=res.slope.method,
             safe_touchdown_fraction_pct=safe_fraction_pct,
             preliminary_feasibility=feasibility,

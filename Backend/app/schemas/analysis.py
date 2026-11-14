@@ -1,7 +1,7 @@
 """Schemas for landing zone spatial analysis pipelines and lunar illumination modeling."""
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.schemas.scoring import ScoreResponse
 
@@ -17,6 +17,26 @@ class AnalysisRunRequest(BaseModel):
     roughness_kernel_size: int = Field(3, ge=3, le=15, description="Moving window kernel size for RMS roughness (default 3x3)")
     epoch_iso: Optional[str] = Field(None, description="Optional UTC ISO-8601 timestamp for instantaneous solar geometry (e.g. '2026-10-15T12:00:00Z')")
     time_period: Optional[str] = Field("annual_cycle", description="Target illumination evaluation period: 'instantaneous', 'annual_cycle', 'precession_18yr'")
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_aliases(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "latitude" in data and "center_lat" not in data:
+                data["center_lat"] = data["latitude"]
+            elif "lat" in data and "center_lat" not in data:
+                data["center_lat"] = data["lat"]
+
+            if "longitude" in data and "center_lon" not in data:
+                data["center_lon"] = data["longitude"]
+            elif "lon" in data and "center_lon" not in data:
+                data["center_lon"] = data["lon"]
+
+            if "radius_m" in data and "radius_meters" not in data:
+                data["radius_meters"] = data["radius_m"]
+            elif "radius" in data and "radius_meters" not in data:
+                data["radius_meters"] = data["radius"]
+        return data
 
 
 class TopographicStats(BaseModel):
@@ -52,6 +72,15 @@ class IlluminationSummary(BaseModel):
     is_permanently_shadowed_region: bool = Field(False, description="Whether location is a candidate or verified Permanently Shadowed Region (PSR)")
     estimated_surface_temp_k: Optional[float] = Field(None, description="Estimated surface brightness temperature (Kelvin). Note: Thermal, not direct sunlight")
     sunlight_continuous_hours_max: Optional[float] = Field(None, description="Estimated peak continuous sunlight duration in hours")
+    next_sunset_iso: Optional[str] = Field(None, description="UTC timestamp of the next sunset event")
+    next_sunrise_iso: Optional[str] = Field(None, description="UTC timestamp of the next sunrise event")
+    sunlight_duration_remaining_hours: Optional[float] = Field(None, description="Hours of continuous daylight remaining until next sunset")
+    earth_visibility_pct: Optional[float] = Field(None, description="Direct Earth line-of-sight communication visibility percentage")
+    earth_elevation_deg: Optional[float] = Field(None, description="Topocentric Earth elevation angle above local horizon (degrees)")
+    earth_azimuth_deg: Optional[float] = Field(None, description="Topocentric Earth azimuth clockwise from true North (degrees)")
+    earth_visibility_fraction: Optional[float] = Field(None, description="Visible fraction of the Earth's disc [0.0 to 1.0]")
+    communication_link_status: Optional[str] = Field(None, description="'operational', 'marginal', or 'blackout'")
+    communication_link_rationale: Optional[str] = Field(None, description="Physical and RF link justification")
     methodology: str = Field(..., description="Computational or observational derivation method")
     source_attribution: str = Field(..., description="NASA LRO instrument or ephemeris source")
     scientific_caveats: List[str] = Field(default_factory=list, description="Assumptions, limitations, and domain boundaries")
@@ -74,6 +103,9 @@ class AnalysisRunResponse(BaseModel):
     roughness_max_m: Optional[float] = None
     roughness_baseline_m: Optional[float] = None
     roughness_method: Optional[str] = None
+    roughness_multi_baseline: Optional[Dict[str, Any]] = Field(
+        None, description="Multi-scale roughness breakdown across physical baseline lengths"
+    )
     slope_method: Optional[str] = None
     safe_touchdown_fraction_pct: float = Field(
         ...,

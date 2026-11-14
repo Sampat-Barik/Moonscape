@@ -4,7 +4,157 @@ Contains normalization functions, penalty curves, and transparent weighted scori
 for lunar landing site preliminary suitability screening.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+
+# Configurable Lunar Landing Mission Profiles
+MISSION_PROFILES: Dict[str, Dict[str, Any]] = {
+    "artemis_hls": {
+        "id": "artemis_hls",
+        "name": "Artemis Human Landing System (HLS)",
+        "description": "Crewed lunar polar landing with strict slope stability and footprint margins.",
+        "max_slope_deg": 10.0,
+        "max_p95_slope_deg": 8.0,
+        "max_roughness_m": 0.40,
+        "min_contiguous_diameter_m": 100.0,
+        "min_cumulative_sunlight_pct": 50.0,
+        "max_continuous_darkness_hours": 72.0,
+        "min_earth_visibility_pct": 50.0,
+        "weights": {
+            "slope": 0.35,
+            "roughness": 0.20,
+            "illumination": 0.20,
+            "crater_hazard": 0.10,
+            "rock_hazard": 0.05,
+            "elevation": 0.10,
+        },
+    },
+    "clps_cargo": {
+        "id": "clps_cargo",
+        "name": "Commercial Lunar Payload Services (CLPS Cargo)",
+        "description": "Uncrewed medium robotic lander payload delivery (e.g. Nova-C, Blue Ghost).",
+        "max_slope_deg": 12.0,
+        "max_p95_slope_deg": 10.0,
+        "max_roughness_m": 0.60,
+        "min_contiguous_diameter_m": 40.0,
+        "min_cumulative_sunlight_pct": 40.0,
+        "max_continuous_darkness_hours": 120.0,
+        "min_earth_visibility_pct": 30.0,
+        "weights": {
+            "slope": 0.30,
+            "roughness": 0.20,
+            "illumination": 0.20,
+            "crater_hazard": 0.15,
+            "rock_hazard": 0.10,
+            "elevation": 0.05,
+        },
+    },
+    "polar_rover": {
+        "id": "polar_rover",
+        "name": "Polar Volatiles Scout / Rover",
+        "description": "Traversability-focused robotic mission targeting volatile concentration zones (VIPER-class).",
+        "max_slope_deg": 8.0,
+        "max_p95_slope_deg": 6.0,
+        "max_roughness_m": 0.35,
+        "min_contiguous_diameter_m": 40.0,
+        "min_cumulative_sunlight_pct": 35.0,
+        "max_continuous_darkness_hours": 150.0,
+        "min_earth_visibility_pct": 60.0,
+        "weights": {
+            "slope": 0.35,
+            "roughness": 0.25,
+            "illumination": 0.15,
+            "crater_hazard": 0.10,
+            "rock_hazard": 0.10,
+            "elevation": 0.05,
+        },
+    },
+    "base_camp": {
+        "id": "base_camp",
+        "name": "Permanent Lunar Base Camp Staging",
+        "description": "Long-duration surface habitat and power station requiring peak solar harvesting.",
+        "max_slope_deg": 8.0,
+        "max_p95_slope_deg": 6.0,
+        "max_roughness_m": 0.30,
+        "min_contiguous_diameter_m": 150.0,
+        "min_cumulative_sunlight_pct": 70.0,
+        "max_continuous_darkness_hours": 48.0,
+        "min_earth_visibility_pct": 70.0,
+        "weights": {
+            "slope": 0.25,
+            "roughness": 0.15,
+            "illumination": 0.30,
+            "crater_hazard": 0.10,
+            "rock_hazard": 0.05,
+            "elevation": 0.15,
+        },
+    },
+}
+
+
+def evaluate_hard_constraints(
+    measurements: Dict[str, Any],
+    profile_id: str = "artemis_hls",
+    custom_constraints: Optional[Dict[str, float]] = None,
+) -> Tuple[bool, List[str]]:
+    """Evaluates whether candidate site violates hard mission engineering constraints.
+
+    Crucial Planetary Rule:
+        Hard exclusions precede soft scoring. A site that violates an engineering limit
+        is strictly marked as disqualified and must not rank highly due to strong sunlight.
+
+    Returns:
+        (is_violated: bool, violations: List[str])
+    """
+    profile = MISSION_PROFILES.get(profile_id, MISSION_PROFILES["artemis_hls"])
+    limits = dict(profile)
+    if custom_constraints:
+        limits.update(custom_constraints)
+
+    violations: List[str] = []
+
+    # 1. Slope Check (Safety-Critical)
+    slope = measurements.get("slope_deg")
+    max_slope = measurements.get("max_slope_deg")
+    p95_slope = measurements.get("p95_slope_deg")
+
+    if slope is None and max_slope is None:
+        violations.append("Missing essential topographic slope data; touchdown safety cannot be evaluated.")
+    else:
+        # Check against absolute physical tip-over limit (15.0 deg)
+        if slope is not None and slope > 15.0:
+            violations.append(f"Mean slope ({slope:.1f}°) exceeds universal Apollo/Artemis tip-over limit (15.0°).")
+        if max_slope is not None and max_slope > limits.get("max_slope_deg", 12.0):
+            violations.append(f"Peak localized slope ({max_slope:.1f}°) exceeds mission constraint ({limits['max_slope_deg']:.1f}°).")
+        if p95_slope is not None and p95_slope > limits.get("max_p95_slope_deg", 10.0):
+            violations.append(f"95th percentile slope ({p95_slope:.1f}°) exceeds mission constraint ({limits['max_p95_slope_deg']:.1f}°).")
+
+    # 2. Contiguous Landing Footprint
+    diameter = measurements.get("contiguous_diameter_m")
+    req_diam = limits.get("min_contiguous_diameter_m", 40.0)
+    if diameter is not None and diameter < req_diam:
+        violations.append(f"Contiguous safe landing diameter ({diameter:.1f}m) is smaller than required mission footprint ({req_diam:.1f}m).")
+
+    # 3. Surface Roughness / Undercarriage Clearance
+    roughness = measurements.get("roughness_m")
+    max_rough = limits.get("max_roughness_m", 0.60)
+    if roughness is not None and roughness > max_rough:
+        violations.append(f"Surface roughness ({roughness:.2f}m) exceeds lander undercarriage clearance margin ({max_rough:.2f}m).")
+
+    # 4. Long-Duration Darkness (Power / Battery Sizing)
+    max_dark_h = measurements.get("max_continuous_dark_h")
+    limit_dark = limits.get("max_continuous_darkness_hours")
+    if max_dark_h is not None and limit_dark is not None and max_dark_h > limit_dark:
+        violations.append(f"Maximum continuous darkness ({max_dark_h:.1f}h) exceeds battery survival limit ({limit_dark:.1f}h).")
+
+    # 5. Direct Earth Visibility (Communication Margin)
+    comms = measurements.get("earth_visibility_pct")
+    min_comm = limits.get("min_earth_visibility_pct")
+    if comms is not None and min_comm is not None and comms < min_comm:
+        violations.append(f"Direct Earth visibility ({comms:.1f}%) is below minimum mission communication requirement ({min_comm:.1f}%).")
+
+    is_violated = len(violations) > 0
+    return is_violated, violations
 
 
 def piecewise_linear_penalty(

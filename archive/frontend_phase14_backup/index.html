@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moonscape — Lunar South Pole Landing Site Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-group">
+      <h1>MOONSCAPE</h1>
+      <p>NASA Lunar South Pole Landing-Site Analysis Platform</p>
+    </div>
+    <div class="health-badge" id="healthBadge">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="healthText">Connecting to backend...</span>
+    </div>
+  </header>
+
+  <div class="grid-layout">
+    
+    <!-- LEFT PANEL: SITE SELECTION & CONTROLS -->
+    <aside>
+      <!-- Demo Scenarios Card -->
+      <div class="card" style="border-left: 3px solid var(--accent-cyan);">
+        <h2>Demo Test Scenarios</h2>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+          Verified lunar scenarios for automated validation and live technical demo:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <button class="btn-scenario" id="btnScenario1" title="Shackleton Connecting Ridge: Gentle slopes, high illumination">
+            🟢 <b>Scenario 1: Favorable Site</b><br>
+            <span style="font-size: 10px; color: var(--text-muted);">Shackleton Ridge (-89.44°, 222.50°) | Score ~88</span>
+          </button>
+          <button class="btn-scenario" id="btnScenario2" title="Faustini Inner Wall: Critical slope (>15°) tip-over hazard">
+            🔴 <b>Scenario 2: Hazard Disqualified</b><br>
+            <span style="font-size: 10px; color: var(--text-muted);">Crater Wall (-89.75°, 120.00°) | Slope > 20° Violates Limit</span>
+          </button>
+          <button class="btn-scenario" id="btnScenario3" title="Beyond 80°S: North of polar operational coverage boundary">
+            🟡 <b>Scenario 3: Coverage Boundary</b><br>
+            <span style="font-size: 10px; color: var(--text-muted);">Outside Polar Coverage (-78.50°, 45.00°) | Insufficient Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Candidate Sites Card -->
+      <div class="card">
+        <h2>Target Candidate Site</h2>
+        <div class="form-group">
+          <label for="siteSelect">Pre-registered Artemis III Sites</label>
+          <select id="siteSelect">
+            <option value="">-- Choose Candidate Site --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lunar Coordinates Card -->
+      <div class="card">
+        <h2>Lunar Coordinates</h2>
+        <div id="coverageBadge" style="font-size: 11px; padding: 6px 10px; border-radius: 6px; background: var(--bg-secondary); border: 1px solid var(--border-color); margin-bottom: 12px;">
+          <span style="color: var(--accent-cyan); font-weight: 600;">Dataset Coverage:</span> <span id="coverageText">LOLA Regional DEM Available</span>
+        </div>
+
+        <div class="form-group">
+          <label for="latInput">Latitude (° South: -90.0 to -80.0)</label>
+          <input type="number" id="latInput" step="0.01" min="-90.0" max="-80.0" value="-89.44">
+        </div>
+        <div class="form-group">
+          <label for="lonInput">Longitude (° East: 0.0 to 360.0)</label>
+          <input type="number" id="lonInput" step="0.01" min="-180.0" max="360.0" value="222.50">
+        </div>
+        <div class="form-group">
+          <label for="radiusInput">Analysis Radius (meters)</label>
+          <input type="number" id="radiusInput" min="100" max="10000" step="100" value="1000">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 14px;">
+          <button class="btn-secondary" id="btnSamplePoint" style="flex: 1;">Sample Point</button>
+          <button class="btn-primary" id="btnRunAnalysis" style="flex: 2;">Run Full Analysis</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button class="btn-secondary" id="btnDetectSites" style="flex: 1;" title="Auto-detect contiguous landing zones">Detect Zones</button>
+          <button class="btn-secondary" id="btnSimulateVisibility" style="flex: 1;" title="Simulate Sun/Earth visibility orbit">Simulate Orbit</button>
+        </div>
+      </div>
+
+      <!-- Mission Profile & Temporal Parameters -->
+      <div class="card">
+        <h2>Mission Profile & Orbit</h2>
+        <div class="form-group">
+          <label for="missionProfileSelect">Spacecraft Mission Architecture</label>
+          <select id="missionProfileSelect">
+            <option value="artemis_hls" selected>Artemis HLS (Crewed Lander)</option>
+            <option value="clps_cargo">CLPS Cargo (Robotic Deliveries)</option>
+            <option value="polar_rover">Polar Rover (Volatiles Scout)</option>
+            <option value="base_camp">Base Camp (Surface Habitat)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="epochInput">Mission Start Epoch (UTC)</label>
+          <input type="datetime-local" id="epochInput" value="2026-07-01T00:00">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div class="form-group" style="flex: 1;">
+            <label for="durationInput">Duration (days)</label>
+            <input type="number" id="durationInput" min="1" max="28" value="14">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="stepSelect">Step Size</label>
+            <select id="stepSelect">
+              <option value="1.0">1 hour</option>
+              <option value="2.0" selected>2 hours</option>
+              <option value="4.0">4 hours</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Candidate Sites Comparison -->
+      <div class="card">
+        <h2>Multi-Site Comparison</h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Compare registered candidate sites across slopes, illumination, communications, and science.
+        </p>
+        <button class="btn-secondary" id="btnCompareSites" style="width: 100%;">Compare Top Artemis Sites</button>
+        <div id="compareResults" style="margin-top: 12px; font-size: 13px;"></div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: SCIENTIFIC RESULTS DASHBOARD -->
+    <main>
+      <!-- Results Container -->
+      <div id="resultsContainer">
+
+        <!-- Lunar South Pole GIS Map Card (Always visible) -->
+        <div class="card" id="mapCard">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h2 style="margin-bottom: 0;">Lunar South Pole Polar Map (ESRI:104903)</h2>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label for="mapLayerSelect" style="font-size: 11px; margin-bottom: 0; color: var(--text-muted);">Overlay:</label>
+              <select id="mapLayerSelect" style="padding: 2px 8px; font-size: 11px; width: auto;">
+                <option value="lola_elevation">LOLA Elevation (m)</option>
+                <option value="lola_slope">Topographic Slope (°)</option>
+                <option value="solar_illumination">Solar Illumination (%)</option>
+              </select>
+            </div>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+            Stereographic projection (80°S outer boundary to 90°S Pole). Click on map to select coordinates. Yellow markers: Artemis candidate sites. Cyan crosshair: active query target.
+          </p>
+          <div style="display: flex; justify-content: center; position: relative;">
+            <canvas id="lunarMapCanvas" width="440" height="440" style="background: #020617; border-radius: 50%; border: 2px solid var(--border-color); cursor: crosshair;"></canvas>
+            <div id="mapTooltip" style="display: none; position: absolute; pointer-events: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-cyan); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #fff; z-index: 10;"></div>
+          </div>
+        </div>
+
+        <!-- Default State Welcome Card -->
+        <div class="card" id="welcomeCard">
+          <h2>Welcome to Moonscape</h2>
+          <p style="color: var(--text-muted); font-size: 14px;">
+            Select an Artemis III candidate landing site from the left panel or enter arbitrary lunar South Pole coordinates, then click <b>Run Full Analysis</b> to evaluate topographic slopes, surface roughness, solar illumination, touchdown hazards, and transparent suitability scores.
+          </p>
+        </div>
+
+        <!-- Analysis Results Card (Hidden until analysis runs) -->
+        <div class="card" id="analysisCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 id="analysisTitle" style="margin-bottom: 0;">Landing Zone Analysis</h2>
+            <span id="analysisIdBadge" style="font-size: 11px; background: var(--bg-input); padding: 4px 8px; border-radius: 4px; font-family: monospace;">ANL-001</span>
+          </div>
+
+          <!-- Topographic Metrics -->
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Mean Elevation</div>
+              <div class="value" id="valElevation">-- m</div>
+              <div class="sub" id="subElevationRelief">Relief: -- m</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Mean Slope</div>
+              <div class="value" id="valSlope">--°</div>
+              <div class="sub" id="subSlopeMax">Peak: --°</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">RMS Roughness</div>
+              <div class="value" id="valRoughness">-- m</div>
+              <div class="sub" id="subRoughnessBaseline">15m baseline</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Safe Touchdown Area</div>
+              <div class="value" id="valSafeFraction">--%</div>
+              <div class="sub" id="subFeasibility">Feasibility: Favorable</div>
+            </div>
+          </div>
+
+          <!-- Slope Distribution Bar -->
+          <label>Horn (1981) Slope Distribution Breakdown</label>
+          <div class="slope-bar">
+            <div class="seg-ideal" id="barIdeal" style="width: 60%;" title="Ideal <= 5°"></div>
+            <div class="seg-accept" id="barAccept" style="width: 25%;" title="Acceptable 5-10°"></div>
+            <div class="seg-marginal" id="barMarginal" style="width: 10%;" title="Marginal 10-15°"></div>
+            <div class="seg-critical" id="barCritical" style="width: 5%;" title="Critical > 15°"></div>
+          </div>
+          <div class="bar-legend">
+            <span>Ideal (&le;5°): <b id="lblIdeal">0%</b></span>
+            <span>Acceptable (5-10°): <b id="lblAccept">0%</b></span>
+            <span>Marginal (10-15°): <b id="lblMarginal">0%</b></span>
+            <span>Critical (&gt;15°): <b id="lblCritical">0%</b></span>
+          </div>
+
+          <!-- Instrument Uncertainty & Quality Box -->
+          <div style="background: var(--bg-secondary); border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border-color); margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; flex-wrap: wrap; gap: 6px;">
+              <span><b>LOLA Vertical Accuracy:</b> <span id="valVertUncertainty" style="color: var(--accent-cyan);">±1.5 m (LRO 1-Sigma)</span></span>
+              <span><b>Gradient Precision:</b> <span id="valSlopeUncertainty" style="color: var(--accent-cyan);">±1.2° (Track Divergence)</span></span>
+              <span><b>Dataset Source:</b> <span id="valDatasetAttribution">NASA LRO LOLA DEM (20m/px)</span></span>
+            </div>
+          </div>
+
+          <!-- Illumination & Thermal Section -->
+          <h2 style="margin-top: 20px;">Solar Illumination & Polar Environment</h2>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Cumulative Sunlight</div>
+              <div class="value" id="valCumIllum">--%</div>
+              <div class="sub">Draconic precession cycle</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Instantaneous Sunlit</div>
+              <div class="value" id="valInstIllum">--%</div>
+              <div class="sub" id="subPsr">PSR: NO</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Surface Temperature</div>
+              <div class="value" id="valTemp">-- K</div>
+              <div class="sub">Secondary radiative balance</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Touchdown Hazards Card -->
+        <div class="card" id="hazardsCard" style="display: none;">
+          <h2>Touchdown Hazard Detection (Optical & Morphological)</h2>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Hazard Status</div>
+              <div class="value" id="valHazardStatus" style="font-size: 16px;">--</div>
+              <div class="sub" id="valHazardModel">Model: LOLA Morphological</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Craters Detected</div>
+              <div class="value" id="valCraterCount">--</div>
+              <div class="sub">Landing footprint</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Rocks / Boulders</div>
+              <div class="value" id="valRockCount">--</div>
+              <div class="sub">Belly-pan clearance hazard</div>
+            </div>
+          </div>
+          <div id="hazardNotice" style="font-size: 12px; color: var(--accent-gold); margin-top: 8px;"></div>
+        </div>
+
+        <!-- Detected Contiguous Landing Zones Card -->
+        <div class="card" id="detectionCard" style="display: none;">
+          <h2>Detected Contiguous Landing Zones (Real DEM Search)</h2>
+          <p id="detectionSummary" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></p>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Zone ID</th>
+                  <th>Centroid (Lat, Lon)</th>
+                  <th>Area</th>
+                  <th>Diameter</th>
+                  <th>Mean Slope</th>
+                  <th>Roughness</th>
+                  <th>MCDA Score</th>
+                  <th>ML Score</th>
+                  <th>Gating</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="detectionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Visibility Simulation Card -->
+        <div class="card" id="simulationCard" style="display: none;">
+          <h2>Time-Based Sun & Earth Visibility Simulation</h2>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Total Daylight</div>
+              <div class="value" id="valSimDaylight">-- h</div>
+              <div class="sub" id="subSimDaylightPct">--% of duration</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Direct Earth Comm</div>
+              <div class="value" id="valSimComm">-- h</div>
+              <div class="sub" id="subSimCommPct">--% of duration</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Max Continuous Dark</div>
+              <div class="value" id="valSimDark">-- h</div>
+              <div class="sub">Battery sizing duration</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Max Comm Blackout</div>
+              <div class="value" id="valSimBlackout">-- h</div>
+              <div class="sub">Autonomous operation window</div>
+            </div>
+          </div>
+
+          <!-- Time-Series Sunlight & Earth Visibility Chart -->
+          <h3 style="font-size: 13px; color: var(--accent-cyan); margin: 16px 0 8px 0;">Sunlight & Earth Line-of-Sight Time Series</h3>
+          <div id="timelineContainer" style="background: var(--bg-secondary); border-radius: 8px; padding: 12px; border: 1px solid var(--border-color);">
+            <svg id="visibilityTimelineSvg" width="100%" height="160" viewBox="0 0 800 160" preserveAspectRatio="none" style="display: block;"></svg>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; flex-wrap: wrap; gap: 6px;">
+              <span><span style="color: #f59e0b;">●</span> Solar Elevation (Gold: Sunlit, Navy: Night)</span>
+              <span><span style="color: #38bdf8;">●</span> Earth Elevation (Cyan: Direct Line-of-Sight, Red: Blackout)</span>
+              <span><span style="color: #10b981;">■</span> Combined Ops Window (Both Sun & Earth)</span>
+            </div>
+          </div>
+          <div id="simCaveat" style="font-size: 11px; color: var(--text-muted); margin-top: 8px;"></div>
+        </div>
+
+        <!-- Suitability Scoring Card -->
+        <div class="card" id="suitabilityCard" style="display: none;">
+          <h2>Multi-Criteria Decision Analysis (MCDA v2.0-phase6)</h2>
+          <div class="suitability-banner" id="suitabilityBanner">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted);">Overall Suitability Score</span>
+                <div style="font-size: 28px; font-weight: 800;" id="valSuitabilityScore">--/100</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted);">Preliminary Category</span>
+                <div style="font-size: 18px; font-weight: 700;" id="valSuitabilityCategory">Higher preliminary suitability</div>
+                <span style="font-size: 11px; color: var(--text-muted);" id="valScoreCoverage">Coverage: 100%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ML Surrogate & Engineering Gating Bar -->
+          <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0;">
+            <div class="metric-item">
+              <span class="metric-label">ML Surrogate Score</span>
+              <div class="metric-value" id="valMlScore" style="font-size: 16px;">--</div>
+              <span class="metric-sub" id="valMlModelVersion" style="font-size: 10px;">RF v1.0.0</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Engineering Gating</span>
+              <div class="metric-value" id="valHardConstraintStatus" style="font-size: 14px; text-transform: uppercase;">PASSED</div>
+              <span class="metric-sub" id="valMissionProfile" style="font-size: 10px;">Artemis HLS</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">95% Confidence (MC)</span>
+              <div class="metric-value" id="valConfidenceInterval" style="font-size: 14px;">--</div>
+              <span class="metric-sub" id="valScoreUncertainty" style="font-size: 10px;">± -- pts</span>
+            </div>
+          </div>
+
+          <!-- Factor Breakdown Table -->
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Criterion</th>
+                  <th>Raw Value</th>
+                  <th>Subscore</th>
+                  <th>Weight</th>
+                  <th>Contribution</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="subscoreTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AI Scientific Explainer Card -->
+        <div class="card" id="aiCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2>AI Scientific Explainer</h2>
+            <button class="btn-primary" id="btnRequestAi" style="width: auto; padding: 6px 14px; font-size: 12px;">
+              Explain Analysis
+            </button>
+          </div>
+          <div id="aiLoading" style="display: none; padding: 12px; text-align: center; color: var(--text-muted);">
+            <div class="loading-spinner"></div> Synthesizing physical measurements...
+          </div>
+          <div id="aiContent" style="display: none;">
+            <div class="ai-narrative" id="aiExplanation"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <label style="color: var(--accent-green);">Favourable Operational Factors</label>
+                <ul class="bullet-list" id="aiPositiveFactors"></ul>
+              </div>
+              <div>
+                <label style="color: var(--accent-gold);">Identified Operational Risks</label>
+                <ul class="bullet-list risks" id="aiRiskFactors"></ul>
+              </div>
+            </div>
+            <div style="margin-top: 14px;">
+              <label>Preliminary Conclusion</label>
+              <p id="aiConclusion" style="font-size: 13px; font-style: italic; color: var(--accent-cyan);"></p>
+            </div>
+          </div>
+
+          <!-- Interactive Scientific Inquiry Input -->
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+            <label for="aiCustomPrompt" style="font-weight: 600; font-size: 12px; color: var(--accent-cyan);">Ask Moonscape AI (Planetary Grounded Assistant)</label>
+            <div style="display: flex; gap: 8px; margin-top: 6px;">
+              <input type="text" id="aiCustomPrompt" placeholder="Ask e.g. Which hazards affect this coordinate?" style="flex: 1; font-size: 12px;">
+              <button class="btn-primary" id="btnSubmitAiQuery" style="width: auto; padding: 0 16px; font-size: 12px;">Ask</button>
+            </div>
+            <!-- Preset question pills -->
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;" id="aiPresetPills">
+              <button class="preset-pill" data-query="Which hazards affect this coordinate?">⚠️ Hazards at this Site</button>
+              <button class="preset-pill" data-query="Why is Earth not visible at this time?">📡 Earth Visibility & Comms</button>
+              <button class="preset-pill" data-query="What happens if the mission starts one month later?">📅 1 Month Later Shift</button>
+              <button class="preset-pill" data-query="Which measurements are uncertain?">🔬 Measurement Uncertainties</button>
+              <button class="preset-pill" data-query="What additional data would improve this assessment?">🛰️ Next Required Data</button>
+              <button class="preset-pill" data-query="Why is Site A ranked above Site B?">⚖️ Ranking Rationale</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Generation Card -->
+        <div class="card" id="reportCard" style="display: none;">
+          <h2>Scientific Mission Report Generator</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+            Compile the complete 19-element scientific assessment into a publication-quality JSON report or a downloadable multi-page PDF.
+          </p>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-primary" id="btnDownloadPdf" style="flex: 1;">
+              📄 Download Scientific PDF Report
+            </button>
+            <button class="btn-secondary" id="btnViewJsonReport" style="flex: 1;">
+              🔍 View JSON Report
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- SCIENTIFIC DISCLAIMER FOOTER -->
+  <footer class="disclaimer-footer">
+    <p id="disclaimerText">
+      DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

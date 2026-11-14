@@ -15,6 +15,12 @@ from app.schemas.analysis import IlluminationSummary
 from app.services.dem_service import dem_service
 from app.services.site_service import site_service
 from maths.geodesy import haversine_lunar_distance, latlon_to_polar_stereo
+from maths.earth_visibility import (
+    calculate_earth_elevation_and_azimuth,
+    calculate_earth_visibility_fraction,
+    calculate_subearth_coordinates,
+    evaluate_communication_link,
+)
 from maths.illumination_geometry import (
     LUNAR_RADIUS_METERS,
     SOLAR_SEMI_DIAMETER_DEG,
@@ -23,6 +29,7 @@ from maths.illumination_geometry import (
     calculate_sun_visibility_fraction,
     calculate_topographic_horizon_angle,
     estimate_surface_temperature_kelvin,
+    find_next_sunset_and_sunrise,
     parse_utc_timestamp,
 )
 
@@ -302,12 +309,49 @@ class IlluminationService:
             is_psr=is_psr,
         )
 
+        # 6. Next Sunset / Sunrise Temporal Horizons
+        dt_eval = parse_utc_timestamp(epoch_iso)
+        sunset_iso, sunrise_iso, hours_to_sunset = find_next_sunset_and_sunrise(
+            lat_deg=lat_deg,
+            lon_deg=lon_deg,
+            start_dt=dt_eval,
+            horizon_elevation_deg=horizon_deg,
+            max_search_days=35.0,
+        )
+
+        # 7. Planetary Earth Visibility & Communication Line-of-Sight
+        sub_earth_lat, sub_earth_lon, earth_dist_km = calculate_subearth_coordinates(dt_eval)
+        earth_elev, earth_az = calculate_earth_elevation_and_azimuth(
+            lat_deg=lat_deg,
+            lon_deg=lon_deg,
+            subearth_lat_deg=sub_earth_lat,
+            subearth_lon_deg=sub_earth_lon,
+        )
+
+        earth_horizon_deg = 0.0
+        earth_vis_frac = 0.0
+        if has_dem:
+            earth_vis_frac, earth_horizon_deg, _ = self.trace_dem_horizon_and_shadow(
+                lat_deg=lat_deg,
+                lon_deg=lon_deg,
+                solar_elev_deg=earth_elev,
+                solar_az_deg=earth_az,
+                elev_data=elev_data,
+                res_m=res,
+            )
+        else:
+            earth_vis_frac = 1.0 if earth_elev > 0.0 else 0.0
+
+        is_comm_op, comm_rationale = evaluate_communication_link(earth_elev, earth_vis_frac)
+        comm_status = "operational" if is_comm_op else ("marginal" if earth_vis_frac > 0.0 else "blackout")
+
         # Feasibility status
         status = "available" if (has_dem or cumulative_pct is not None) else "degraded"
 
         methodology = (
-            "Dual-component scientific illumination: (1) Instantaneous analytical solar ephemeris (JPL DE421 / Meeus) "
-            "with local DEM horizon ray-tracing, combined with (2) Peer-reviewed LOLA multi-year precession cumulative ground truth."
+            "Multi-component scientific illumination and communications: (1) Instantaneous analytical solar ephemeris "
+            "(JPL DE421 / Meeus) with local DEM horizon ray-tracing, (2) Peer-reviewed LOLA multi-year precession "
+            "cumulative ground truth, and (3) Planetary Earth libration and topocentric line-of-sight RF corridor analysis."
         )
 
         return IlluminationSummary(
@@ -320,6 +364,15 @@ class IlluminationService:
             is_permanently_shadowed_region=is_psr,
             estimated_surface_temp_k=temp_k,
             sunlight_continuous_hours_max=continuous_sun_hours,
+            next_sunset_iso=sunset_iso,
+            next_sunrise_iso=sunrise_iso,
+            sunlight_duration_remaining_hours=hours_to_sunset,
+            earth_visibility_pct=round(earth_vis_frac * 100.0, 1),
+            earth_elevation_deg=round(earth_elev, 2),
+            earth_azimuth_deg=round(earth_az, 1),
+            earth_visibility_fraction=round(earth_vis_frac, 3),
+            communication_link_status=comm_status,
+            communication_link_rationale=comm_rationale,
             methodology=methodology,
             source_attribution="NASA LRO LOLA / Diviner / JPL DE421 Ephemeris",
             scientific_caveats=caveats,

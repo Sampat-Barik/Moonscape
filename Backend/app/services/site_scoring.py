@@ -14,10 +14,12 @@ from app.schemas.scoring import (
     ScoringWeights,
 )
 from app.services.site_service import site_service
+from Backend.app.services.ml.suitability_model_service import suitability_model_service
 from maths.scoring import (
     compute_suitability_with_coverage,
     evaluate_crater_hazard_score,
     evaluate_elevation_score,
+    evaluate_hard_constraints,
     evaluate_illumination_score,
     evaluate_rock_hazard_score,
     evaluate_roughness_score,
@@ -135,6 +137,49 @@ class SiteScoringEngine:
         # Safety gate: Topographic slope is safety-critical. If slope is missing, overall score cannot be computed.
         slope_missing = subscores_dict["slope"] is None
 
+        # Mission profile selection
+        mission_profile = req.mission_profile or "artemis_hls"
+
+        # Check hard engineering constraints
+        measurements_dict = {
+            "slope_deg": slope,
+            "max_slope_deg": req.max_slope_deg,
+            "p95_slope_deg": req.p95_slope_deg,
+            "roughness_m": roughness,
+            "elevation_m": elev,
+            "crater_count": craters,
+            "rock_count": rocks,
+            "illumination_pct": illum,
+            "earth_visibility_pct": comms,
+            "contiguous_diameter_m": req.contiguous_diameter_m,
+            "max_continuous_dark_h": req.max_continuous_dark_h,
+        }
+
+        # Evaluate mission constraints
+        _, all_violations = evaluate_hard_constraints(
+            measurements_dict,
+            profile_id=mission_profile,
+        )
+
+        hard_violations: List[str] = []
+        is_hard_violated = False
+
+        # Universal physical tip-over limit (slope > 15 deg) always triggers disqualification
+        if slope is not None and slope > 15.0:
+            is_hard_violated = True
+            hard_violations.append(f"Mean slope ({slope:.1f}°) exceeds universal Apollo/Artemis tip-over limit (15.0°).")
+
+        # If caller explicitly requested a mission profile, enforce that profile's constraints
+        if req.mission_profile is not None:
+            for v in all_violations:
+                if v not in hard_violations:
+                    hard_violations.append(v)
+            if all_violations:
+                is_hard_violated = True
+
+        for violation in hard_violations:
+            warnings.append(f"HARD CONSTRAINT VIOLATION: {violation}")
+
         composite_score, coverage_fraction, missing_factors, contributions = compute_suitability_with_coverage(
             factor_subscores=subscores_dict,
             factor_weights=config_weights,
@@ -158,6 +203,16 @@ class SiteScoringEngine:
                 f"Data coverage ({score_coverage_pct}%) is below minimum threshold (50.0%). "
                 "Overall suitability score reported as null to prevent unreliable site ranking."
             )
+        elif is_hard_violated:
+            # Hard exclusion gating: sites violating physical limits cannot rank highly
+            if composite_score is not None and composite_score > 35.0:
+                composite_score = 35.0
+            if is_legacy:
+                category = "Unsuitable"
+            else:
+                category = "Lower preliminary suitability"
+                if slope is not None and slope > 15.0:
+                    warnings.append(f"CRITICAL HAZARD: Average slope ({slope:.1f}°) exceeds lander tip-over limit (15.0°).")
         else:
             if is_legacy:
                 if slope is not None and slope > 15.0:
@@ -188,6 +243,28 @@ class SiteScoringEngine:
                 f"Missing measurements for: {', '.join(missing_factors)}. Missing factors were NOT scored as zero "
                 "and weights were NOT silently redistributed."
             )
+
+        # Evaluate ML surrogate model predictions and uncertainty if data is sufficient
+        ml_score: Optional[float] = None
+        ml_version: Optional[str] = None
+        unc_std: Optional[float] = None
+        conf_int: Optional[List[float]] = None
+        feat_contribs: Optional[Dict[str, float]] = None
+
+        if not slope_missing and composite_score is not None:
+            try:
+                ml_pred = suitability_model_service.predict_suitability(
+                    features=measurements_dict,
+                    mission_profile=mission_profile,
+                    run_monte_carlo=True,
+                )
+                ml_score = ml_pred.ml_suitability_score
+                ml_version = ml_pred.model_version
+                unc_std = ml_pred.uncertainty_score_std
+                conf_int = ml_pred.confidence_interval_95
+                feat_contribs = {**ml_pred.top_positive_features, **ml_pred.top_risk_features}
+            except Exception as e:
+                warnings.append(f"ML surrogate inference unavailable: {str(e)}")
 
         # 6. Build detailed subscores breakdown list
         total_w = sum(config_weights.values())
@@ -298,6 +375,15 @@ class SiteScoringEngine:
         return ScoreResponse(
             site_id=req.site_id,
             overall_suitability_score=composite_score,
+            scientific_baseline_score=composite_score,
+            ml_model_score=ml_score,
+            model_version=ml_version,
+            mission_profile=mission_profile,
+            hard_constraint_status="violated" if is_hard_violated else "passed",
+            hard_constraint_violations=hard_violations,
+            uncertainty_score_std=unc_std,
+            confidence_interval_95=conf_int,
+            feature_contributions=feat_contribs,
             suitability_category=category,
             score_coverage_pct=score_coverage_pct,
             missing_factors=missing_factors,

@@ -188,6 +188,46 @@ export class MoonscapeApiClient {
   }
 
   /**
+   * Automatically detects contiguous safe landing zones from real NASA DEM elevation rasters.
+   */
+  public async detectLandingSites(params: {
+    center_lat: number;
+    center_lon: number;
+    search_radius_meters?: number;
+    max_slope_deg?: number;
+    max_roughness_m?: number;
+    min_landing_diameter_meters?: number;
+  }): Promise<any> {
+    return this.request("/sites/detect", {
+      method: "POST",
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * Propagates time-series Sun and Earth visibility simulation.
+   */
+  public async simulateVisibility(params: {
+    lat: number;
+    lon: number;
+    start_epoch_iso?: string;
+    duration_days?: number;
+    step_hours?: number;
+  }): Promise<any> {
+    return this.request("/simulation/visibility", {
+      method: "POST",
+      body: JSON.stringify(params),
+    });
+  }
+
+  /**
+   * Discovers intersecting NASA LROC NAC targeted stereo DTM footprints.
+   */
+  public async discoverLROCNACFootprints(lat: number, lon: number, radiusMeters: number = 5000): Promise<any> {
+    return this.request(`/data/lroc/footprints?lat=${lat}&lon=${lon}&radius=${radiusMeters}`);
+  }
+
+  /**
    * Downloads publication-quality binary PDF report directly as a Blob.
    */
   public async downloadPdfReport(analysisId: string, missionTitle?: string): Promise<Blob> {

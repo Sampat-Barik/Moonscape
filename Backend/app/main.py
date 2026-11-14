@@ -1,7 +1,15 @@
 """FastAPI application entry point for the Moonscape Lunar Landing-Site Analysis Platform."""
 
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
+
+# Ensure Backend directory is in sys.path regardless of launch cwd
+_backend_dir = Path(__file__).resolve().parent.parent
+if str(_backend_dir) not in sys.path:
+    sys.path.insert(0, str(_backend_dir))
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -19,6 +27,7 @@ from app.routes import (
     map,
     reports,
     scoring,
+    simulation,
     sites,
     terrain,
 )
@@ -102,8 +111,22 @@ app.include_router(hazards.router, prefix=api_prefix)
 app.include_router(scoring.router, prefix=api_prefix)
 app.include_router(ai.router, prefix=api_prefix)
 app.include_router(reports.router, prefix=api_prefix)
+app.include_router(simulation.router, prefix=api_prefix)
 app.include_router(data_catalog.router, prefix=api_prefix)
 app.include_router(data_downloads.router, prefix=api_prefix)
+
+# Direct alias for /api/coverage pointing to spatial dataset coverage
+from Backend.app.services.data_management.coverage_manager import coverage_manager
+from Backend.app.schemas.dataset_schemas import DataCoverageResponse
+from fastapi import Query
+
+@app.get(f"{api_prefix}/coverage", response_model=DataCoverageResponse, summary="Query spatial dataset coverage at a lunar coordinate (alias)")
+def get_spatial_coverage_alias(
+    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude in degrees (-90 to 90)"),
+    lon: float = Query(..., ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)"),
+) -> DataCoverageResponse:
+    report = coverage_manager.get_coverage_report(lat, lon)
+    return DataCoverageResponse(**report)
 
 
 # ---------------------------------------------------------------------------
