@@ -31,3 +31,15 @@ Desktop.ini
 Backend/data/lunar/cache/
 Backend/data/lunar/temporary/
 !Backend/data/lunar/**/*.gitkeep
+
+# Machine Learning Large Weights
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.h5
+*.bin
+*.weights
+!Backend/data/models/.gitkeep
+!Backend/data/models/*.json
+

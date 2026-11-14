@@ -186,12 +186,34 @@ export interface AnalysisRunResponse {
   disclaimer: string;
 }
 
+export interface BoundingBox {
+  ymin: number;
+  xmin: number;
+  ymax: number;
+  xmax: number;
+}
+
+export interface DetectionItem {
+  label: "crater" | "rock" | "boulder" | "escarpment";
+  confidence: number;
+  bounding_box?: BoundingBox | null;
+  center_pixel?: [number, number] | null;
+  pixel_diameter?: number | null;
+  estimated_size_m?: number | null;
+  severity?: "low" | "medium" | "high" | "critical";
+  mask_rle?: string | null;
+}
+
 export interface HazardPredictRequest {
-  center_lat: number;
-  center_lon: number;
+  center_lat?: number;
+  center_lon?: number;
   radius_meters?: number;
   min_crater_diameter_m?: number;
   boulder_detection_sensitivity?: number;
+  image_base64?: string;
+  image_path?: string;
+  spatial_resolution_mpp?: number;
+  confidence_threshold?: number;
 }
 
 export interface HazardItem {
@@ -205,19 +227,29 @@ export interface HazardItem {
 }
 
 export interface HazardPredictResponse {
-  hazard_assessment_id: string;
-  center_lat: number;
-  center_lon: number;
-  radius_meters: number;
-  total_hazards_detected: number;
-  craters_count: number;
-  boulders_count: number;
-  steep_slope_cells: number;
-  shadow_coverage_pct: number | null;
-  overall_hazard_level: "low" | "moderate" | "high" | "critical";
-  hazards: HazardItem[];
-  model_metadata: Record<string, any>;
-  disclaimer: string;
+  status: "success" | "not_available" | "error";
+  detections: DetectionItem[];
+  crater_count: number | null;
+  rock_count: number | null;
+  warnings: string[];
+  model_name?: string | null;
+  model_version?: string | null;
+  limitations?: string | null;
+
+  // Topographic DEM analysis fields (present on coordinate queries)
+  hazard_assessment_id?: string | null;
+  center_lat?: number | null;
+  center_lon?: number | null;
+  radius_meters?: number | null;
+  total_hazards_detected?: number | null;
+  craters_count?: number | null;
+  boulders_count?: number | null;
+  steep_slope_cells?: number | null;
+  shadow_coverage_pct?: number | null;
+  overall_hazard_level?: "low" | "moderate" | "high" | "critical" | null;
+  hazards?: HazardItem[];
+  model_metadata?: Record<string, any>;
+  disclaimer?: string | null;
 }
 
 export interface SiteCompareRequest {

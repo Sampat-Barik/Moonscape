@@ -15,11 +15,13 @@ from app.core.constants import (
 )
 from app.core.logging import logger
 from app.schemas.hazard import (
+    DetectionItem,
     HazardItem,
     HazardPredictRequest,
     HazardPredictResponse,
 )
 from app.services.dem_service import dem_service
+from app.services.hazard_detection import APOLLO_DOMAIN_LIMITATION, hazard_detection_service
 from app.services.terrain_service import terrain_service
 from maths.curvature import laplacian_curvature, detect_crater_basins
 
@@ -29,12 +31,16 @@ class HazardService:
 
     def predict_hazards(self, req: HazardPredictRequest) -> HazardPredictResponse:
         """Executes hazard detection pipeline for craters, boulders, and steep terrain."""
+        # If image payload is provided without coordinates, route directly to ML detection service
+        if (req.image_base64 is not None or req.image_path is not None) and (req.center_lat is None or req.center_lon is None):
+            return hazard_detection_service.predict(req)
+
         assessment_id = f"HAZ-{uuid.uuid4().hex[:8].upper()}"
 
         elev_data, transform, res = dem_service.read_window_around_point(
-            lat_deg=req.center_lat,
-            lon_deg=req.center_lon,
-            radius_m=req.radius_meters,
+            lat_deg=req.center_lat if req.center_lat is not None else -89.5,
+            lon_deg=req.center_lon if req.center_lon is not None else 0.0,
+            radius_m=req.radius_meters if req.radius_meters is not None else 1000.0,
         )
 
         model_eval_metadata = {
@@ -48,6 +54,14 @@ class HazardService:
 
         if elev_data is None or elev_data.size == 0:
             return HazardPredictResponse(
+                status="success",
+                detections=[],
+                crater_count=0,
+                rock_count=0,
+                warnings=["Elevation data window is empty or outside valid polar bounds."],
+                model_name="Morphological Curvature & Gradient Anomaly Detector v1.2",
+                model_version="1.2.0",
+                limitations=APOLLO_DOMAIN_LIMITATION,
                 hazard_assessment_id=assessment_id,
                 center_lat=req.center_lat,
                 center_lon=req.center_lon,
@@ -66,6 +80,14 @@ class HazardService:
         valid_mask = (elev_data != LOLA_NODATA_VALUE) & (elev_data > -30000) & (~np.isnan(elev_data))
         if np.sum(valid_mask) < 4:
             return HazardPredictResponse(
+                status="success",
+                detections=[],
+                crater_count=0,
+                rock_count=0,
+                warnings=["Insufficient valid elevation cells in requested window."],
+                model_name="Morphological Curvature & Gradient Anomaly Detector v1.2",
+                model_version="1.2.0",
+                limitations=APOLLO_DOMAIN_LIMITATION,
                 hazard_assessment_id=assessment_id,
                 center_lat=req.center_lat,
                 center_lon=req.center_lon,
@@ -90,6 +112,11 @@ class HazardService:
 
         detected_hazards: List[HazardItem] = []
         rows, cols = elev_data.shape
+        center_lat = req.center_lat if req.center_lat is not None else -89.5
+        center_lon = req.center_lon if req.center_lon is not None else 0.0
+        radius_m = req.radius_meters if req.radius_meters is not None else 1000.0
+        min_crater_dia = req.min_crater_diameter_m if req.min_crater_diameter_m is not None else 5.0
+        boulder_sens = req.boulder_detection_sensitivity if req.boulder_detection_sensitivity is not None else 0.7
 
         # 1. Crater detection: Significant positive Laplacian (concave upward depression)
         crater_mask = valid_mask & detect_crater_basins(curvature, threshold=15.0)
@@ -99,16 +126,15 @@ class HazardService:
         sampled_craters = crater_indices[:: max(1, len(crater_indices) // 5)] if len(crater_indices) > 0 else []
 
         for r, c in sampled_craters[:8]:  # Limit to key crater features
-            # Approximate lat/lon for cell
             offset_y = (rows // 2 - r) * dy
             offset_x = (c - cols // 2) * dx
             dist_from_center = math.sqrt(offset_x**2 + offset_y**2)
-            if dist_from_center > req.radius_meters:
+            if dist_from_center > radius_m:
                 continue
 
-            est_diameter = max(req.min_crater_diameter_m, float(np.abs(curvature[r, c]) * 1.8))
-            h_lat = round(req.center_lat + (offset_y / 111000.0), 4)
-            h_lon = round(req.center_lon + (offset_x / 111000.0), 4)
+            est_diameter = max(min_crater_dia, float(np.abs(curvature[r, c]) * 1.8))
+            h_lat = round(center_lat + (offset_y / 111000.0), 4)
+            h_lon = round(center_lon + (offset_x / 111000.0), 4)
 
             severity = "critical" if est_diameter > 25.0 else ("high" if est_diameter > 10.0 else "medium")
             confidence = min(0.96, max(0.65, float(curvature[r, c] / 50.0)))
@@ -126,7 +152,7 @@ class HazardService:
             )
 
         # 2. Boulder / Micro-relief risk from RMS roughness anomalies
-        roughness_threshold = 0.5 * (1.0 / req.boulder_detection_sensitivity)
+        roughness_threshold = 0.5 * (1.0 / boulder_sens)
         boulder_mask = valid_mask & (roughness > roughness_threshold)
         boulder_indices = np.argwhere(boulder_mask)
         sampled_boulders = boulder_indices[:: max(1, len(boulder_indices) // 5)] if len(boulder_indices) > 0 else []
@@ -135,15 +161,15 @@ class HazardService:
             offset_y = (rows // 2 - r) * dy
             offset_x = (c - cols // 2) * dx
             dist = math.sqrt(offset_x**2 + offset_y**2)
-            if dist > req.radius_meters:
+            if dist > radius_m:
                 continue
 
             b_height = round(float(roughness[r, c] * 0.8), 2)
             if b_height < BOULDER_HAZARD_THRESHOLD_M:
                 continue
 
-            h_lat = round(req.center_lat + (offset_y / 111000.0), 4)
-            h_lon = round(req.center_lon + (offset_x / 111000.0), 4)
+            h_lat = round(center_lat + (offset_y / 111000.0), 4)
+            h_lon = round(center_lon + (offset_x / 111000.0), 4)
 
             detected_hazards.append(
                 HazardItem(
@@ -165,8 +191,8 @@ class HazardService:
             for r, c in steep_indices[:4]:
                 offset_y = (rows // 2 - r) * dy
                 offset_x = (c - cols // 2) * dx
-                h_lat = round(req.center_lat + (offset_y / 111000.0), 4)
-                h_lon = round(req.center_lon + (offset_x / 111000.0), 4)
+                h_lat = round(center_lat + (offset_y / 111000.0), 4)
+                h_lon = round(center_lon + (offset_x / 111000.0), 4)
                 detected_hazards.append(
                     HazardItem(
                         hazard_type="escarpment",
@@ -181,7 +207,6 @@ class HazardService:
 
         # Shadow estimation based on polar depth
         valid_elev = elev_data[valid_mask]
-        mean_elev = float(np.mean(valid_elev))
         shadow_cells = np.sum(valid_mask & (elev_data < -2500.0))
         shadow_pct = round(float(shadow_cells / np.sum(valid_mask) * 100.0), 1)
 
@@ -198,7 +223,30 @@ class HazardService:
         else:
             overall_level = "low"
 
+        # Transform to DetectionItem structures for unified API response
+        ml_detections: List[DetectionItem] = []
+        for h in detected_hazards:
+            ml_detections.append(
+                DetectionItem(
+                    label=h.hazard_type,
+                    confidence=h.confidence_score,
+                    estimated_size_m=h.estimated_size_m,
+                    severity=h.severity,
+                    bounding_box=None,
+                    center_pixel=None,
+                    pixel_diameter=None,
+                )
+            )
+
         return HazardPredictResponse(
+            status="success",
+            detections=ml_detections,
+            crater_count=craters_count,
+            rock_count=boulders_count,
+            warnings=[],
+            model_name="Morphological Curvature & Gradient Anomaly Detector v1.2",
+            model_version="1.2.0",
+            limitations=APOLLO_DOMAIN_LIMITATION,
             hazard_assessment_id=assessment_id,
             center_lat=req.center_lat,
             center_lon=req.center_lon,

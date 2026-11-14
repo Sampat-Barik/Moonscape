@@ -1,0 +1,2 @@
+# This directory stores machine-learning models (e.g. .onnx, .pt, .pth) for lunar crater and rock hazard detection.
+# Model binary files should be ignored by git; keep this folder tracked.

@@ -277,9 +277,83 @@ Executes spatial analysis across a candidate landing zone bounded by a physical 
 
 ## 6. Touchdown Hazard Prediction
 ### `POST /api/hazards/predict`
-Detects and predicts surface touchdown hazards (craters, boulders, steep slopes, shadows).
+Detects and predicts surface touchdown hazards (craters, boulders, steep slopes, shadows) using either NASA LOLA DEM curvature algorithms or Deep Learning ML optical inference.
 
-**Request Body:**
+#### Mode A: Optical / SAR Image ML Inference (Phase 4)
+Supports base64-encoded lunar surface imagery or onboard image file paths.
+
+**Request Body (Image ML Query):**
+```json
+{
+  "image_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+  "spatial_resolution_mpp": 0.50,
+  "confidence_threshold": 0.50
+}
+```
+
+**Response (200 OK — Model Available):**
+```json
+{
+  "status": "success",
+  "detections": [
+    {
+      "label": "crater",
+      "confidence": 0.942,
+      "bounding_box": {
+        "ymin": 30.0,
+        "xmin": 30.0,
+        "ymax": 60.0,
+        "xmax": 60.0
+      },
+      "center_pixel": [45, 45],
+      "pixel_diameter": 30.0,
+      "estimated_size_m": 15.0,
+      "severity": "high",
+      "mask_rle": null
+    },
+    {
+      "label": "rock",
+      "confidence": 0.885,
+      "bounding_box": {
+        "ymin": 80.0,
+        "xmin": 80.0,
+        "ymax": 88.0,
+        "xmax": 88.0
+      },
+      "center_pixel": [84, 84],
+      "pixel_diameter": 8.0,
+      "estimated_size_m": 4.0,
+      "severity": "critical",
+      "mask_rle": null
+    }
+  ],
+  "crater_count": 1,
+  "rock_count": 1,
+  "warnings": [],
+  "model_name": "LOLA-LROC Polar Hazard Detector",
+  "model_version": "1.0.0",
+  "limitations": "CRITICAL SCIENTIFIC NOTICE: Models trained exclusively on Apollo surface photography (equatorial/mid-latitude, sun elevation > 15 deg) are INVALIDATED for orbital South Pole landing corridors due to extreme grazing-angle illumination (< 1.5 deg), severe elongated shadows, permanently shadowed regions (PSRs), and polar stereographic distortion. Current status: Ground-truth validation required against high-resolution LROC NAC and LOLA polar datasets."
+}
+```
+
+**Response (200 OK — Model Unconfigured / Unavailable):**
+When no ML model is installed in `Backend/data/models/`, the API returns a graceful operational fallback without crashing:
+```json
+{
+  "status": "not_available",
+  "detections": [],
+  "crater_count": null,
+  "rock_count": null,
+  "warnings": ["Hazard detection model is not configured."]
+}
+```
+
+> **Scientific Calibration Rule:** If `spatial_resolution_mpp` is omitted or uncalibrated, `estimated_size_m` is strictly `null` and an explicit warning is returned. Pixels are NEVER converted to meters without authentic spatial calibration.
+
+---
+
+#### Mode B: Coordinate-based Topographic DEM Analysis
+**Request Body (Coordinate Query):**
 ```json
 {
   "center_lat": -89.90,
@@ -293,11 +367,16 @@ Detects and predicts surface touchdown hazards (craters, boulders, steep slopes,
 **Response (200 OK):**
 ```json
 {
+  "status": "success",
   "hazard_assessment_id": "HAZ-E5F6G7H8",
+  "center_lat": -89.90,
+  "center_lon": 0.0,
+  "radius_meters": 2000.0,
   "total_hazards_detected": 4,
   "craters_count": 2,
   "boulders_count": 1,
   "steep_slope_cells": 1,
+  "shadow_coverage_pct": 0.0,
   "overall_hazard_level": "moderate",
   "hazards": [
     {
@@ -309,7 +388,24 @@ Detects and predicts surface touchdown hazards (craters, boulders, steep slopes,
       "confidence_score": 0.88,
       "source": "LOLA_DEM_curvature"
     }
-  ]
+  ],
+  "detections": [
+    {
+      "label": "crater",
+      "confidence": 0.88,
+      "estimated_size_m": 14.2,
+      "severity": "high"
+    }
+  ],
+  "crater_count": 2,
+  "rock_count": 1,
+  "warnings": [],
+  "model_metadata": {
+    "model_architecture": "Morphological Curvature & Gradient Anomaly Detector v1.2",
+    "evaluation_dataset": "NASA LRO LOLA South Pole Ground Truth Catalog",
+    "f1_score_crater_detection": 0.88
+  },
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions..."
 }
 ```
 

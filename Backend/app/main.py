@@ -23,6 +23,7 @@ from app.routes import (
     terrain,
 )
 from app.services.dem_service import dem_service
+from app.services.hazard_detection import hazard_detection_service
 from app.services.site_service import site_service
 from Backend.app.services.data_management.dataset_registry import dataset_registry
 
@@ -49,6 +50,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Verify NASA lunar dataset registry
     installed_datasets = dataset_registry.get_installed_datasets()
     logger.info("NASA Lunar Registry initialized: %d verified datasets available locally", len(installed_datasets))
+
+    # Initialize Lunar Hazard Detection ML model (Phase 4)
+    if hazard_detection_service.load_model():
+        logger.info("Lunar Hazard Detection ML model loaded successfully: %s", hazard_detection_service.get_metadata().get("model_name"))
+    else:
+        logger.info("Lunar Hazard Detection ML model not configured in Backend/data/models/. Optical ML inference will report 'not_available'.")
 
     yield
 

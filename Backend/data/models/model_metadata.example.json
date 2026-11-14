@@ -1,0 +1,32 @@
+{
+  "model_name": "LOLA-LROC Polar Hazard Detector",
+  "version": "1.0.0",
+  "framework": "ONNX",
+  "architecture": "MobileNetV3-FPN Detector",
+  "input_shape": [1, 1, 512, 512],
+  "input_channels": 1,
+  "color_mode": "grayscale",
+  "normalization": {
+    "type": "min_max",
+    "range": [0.0, 1.0],
+    "mean": [0.5],
+    "std": [0.5]
+  },
+  "classes": [
+    "crater",
+    "rock",
+    "boulder",
+    "escarpment"
+  ],
+  "default_confidence_threshold": 0.50,
+  "evaluation_metrics": {
+    "crater_f1_score": 0.89,
+    "rock_f1_score": 0.84,
+    "overall_map": 0.86,
+    "precision": 0.88,
+    "recall": 0.85
+  },
+  "training_dataset": "NASA LROC NAC South Pole Orthorectified Imagery & LOLA 5m DEM Curvature Catalog",
+  "validation_domain": "Orbital Lunar South Pole (Latitude -80 to -90 deg)",
+  "apollo_domain_gap_warning": "CRITICAL SCIENTIFIC LIMITATION: Models trained on Apollo surface astronaut photographs (equatorial/mid-latitude, sun elevation > 15 deg) are INVALIDATED for orbital South Pole conditions due to extreme grazing-angle solar illumination (< 1.5 deg), severe elongated shadowing, and polar stereographic cartographic distortion."
+}
