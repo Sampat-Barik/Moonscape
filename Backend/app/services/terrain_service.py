@@ -30,6 +30,7 @@ from app.schemas.terrain import (
     TerrainResponse,
 )
 from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from Backend.app.services.illumination import illumination_service
 from Backend.app.services.terrain_analysis import terrain_analysis_engine
 from maths.topography import (
     horn_slope_and_aspect,
@@ -206,6 +207,13 @@ class TerrainService:
         )
 
         if res is None or res.valid_pixels_in_disc == 0:
+            illum_summary = illumination_service.analyze_illumination(
+                lat_deg=req.center_lat,
+                lon_deg=req.center_lon,
+                radius_m=req.radius_meters,
+                epoch_iso=req.epoch_iso,
+                time_period=req.time_period or "annual_cycle",
+            )
             return AnalysisRunResponse(
                 analysis_id=analysis_id,
                 center_lat=req.center_lat,
@@ -227,6 +235,7 @@ class TerrainService:
                 preliminary_feasibility="insufficient_data",
                 dataset_metadata={"error": "Terrain data unavailable for requested coordinate."},
                 disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
+                illumination=illum_summary,
             )
 
         elev_stats = TopographicStats(
@@ -275,6 +284,14 @@ class TerrainService:
         metadata["max_acceptable_slope_deg"] = req.max_acceptable_slope_deg
         metadata["max_acceptable_roughness_m"] = req.max_acceptable_roughness_m
 
+        illum_summary = illumination_service.analyze_illumination(
+            lat_deg=req.center_lat,
+            lon_deg=req.center_lon,
+            radius_m=req.radius_meters,
+            epoch_iso=req.epoch_iso,
+            time_period=req.time_period or "annual_cycle",
+        )
+
         return AnalysisRunResponse(
             analysis_id=analysis_id,
             center_lat=req.center_lat,
@@ -295,6 +312,7 @@ class TerrainService:
             preliminary_feasibility=feasibility,
             dataset_metadata=metadata,
             disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
+            illumination=illum_summary,
         )
 
 

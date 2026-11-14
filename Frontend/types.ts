@@ -145,6 +145,23 @@ export interface AnalysisRunRequest {
   max_acceptable_slope_deg?: number;
   max_acceptable_roughness_m?: number;
   roughness_kernel_size?: number;
+  epoch_iso?: string;
+  time_period?: string;
+}
+
+export interface IlluminationSummary {
+  status: "available" | "degraded" | "unavailable";
+  solar_elevation_deg: number | null;
+  solar_azimuth_deg: number | null;
+  instantaneous_sunlit_fraction_pct: number | null;
+  cumulative_illumination_pct: number | null;
+  time_period_evaluated: string;
+  is_permanently_shadowed_region: boolean;
+  estimated_surface_temp_k: number | null;
+  sunlight_continuous_hours_max: number | null;
+  methodology: string;
+  source_attribution: string;
+  scientific_caveats: string[];
 }
 
 export interface TopographicStats {
@@ -184,6 +201,7 @@ export interface AnalysisRunResponse {
   preliminary_feasibility: "favorable" | "marginal" | "unfavorable" | "insufficient_data";
   dataset_metadata: Record<string, any>;
   disclaimer: string;
+  illumination?: IlluminationSummary | null;
 }
 
 export interface BoundingBox {

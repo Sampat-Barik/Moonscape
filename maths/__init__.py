@@ -21,6 +21,14 @@ from maths.scoring import (
     evaluate_roughness_score,
     weighted_composite_score,
 )
+from maths.illumination_geometry import (
+    calculate_solar_subsolar_coordinates,
+    calculate_solar_elevation_and_azimuth,
+    calculate_topographic_horizon_angle,
+    calculate_sun_visibility_fraction,
+    estimate_surface_temperature_kelvin,
+    parse_utc_timestamp,
+)
 
 __all__ = [
     "latlon_to_polar_stereo",
@@ -36,4 +44,10 @@ __all__ = [
     "evaluate_slope_score",
     "evaluate_roughness_score",
     "weighted_composite_score",
+    "calculate_solar_subsolar_coordinates",
+    "calculate_solar_elevation_and_azimuth",
+    "calculate_topographic_horizon_angle",
+    "calculate_sun_visibility_fraction",
+    "estimate_surface_temperature_kelvin",
+    "parse_utc_timestamp",
 ]

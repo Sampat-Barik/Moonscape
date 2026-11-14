@@ -207,7 +207,7 @@ Queries elevation, slope, surface roughness, relief variation, and preliminary l
 
 ## 5. Landing Zone Spatial Analysis
 ### `POST /api/analysis/run`
-Executes spatial analysis across a candidate landing zone bounded by a physical distance radius in meters.
+Executes spatial analysis across a candidate landing zone bounded by a physical distance radius in meters, including terrain slope distributions, surface roughness, and solar illumination conditions.
 
 **Request Body:**
 ```json
@@ -217,7 +217,9 @@ Executes spatial analysis across a candidate landing zone bounded by a physical 
   "radius_meters": 1000.0,
   "max_acceptable_slope_deg": 10.0,
   "max_acceptable_roughness_m": 0.5,
-  "roughness_kernel_size": 3
+  "roughness_kernel_size": 3,
+  "epoch_iso": "2026-11-15T12:00:00Z",
+  "time_period": "annual_cycle"
 }
 ```
 
@@ -269,7 +271,23 @@ Executes spatial analysis across a candidate landing zone bounded by a physical 
     "crs": "ESRI:104903 (Lunar South Polar Stereographic)",
     "is_measured_data": true
   },
-  "disclaimer": "PRELIMINARY SCIENTIFIC FEASIBILITY ONLY. NOT CERTIFIED LANDING SAFETY."
+  "disclaimer": "PRELIMINARY SCIENTIFIC FEASIBILITY ONLY. NOT CERTIFIED LANDING SAFETY.",
+  "illumination": {
+    "status": "available",
+    "solar_elevation_deg": 1.15,
+    "solar_azimuth_deg": 218.4,
+    "instantaneous_sunlit_fraction_pct": 100.0,
+    "cumulative_illumination_pct": 86.4,
+    "time_period_evaluated": "LRO LOLA multi-year draconic precession baseline (Barker et al. 2021) correlated to Shackleton Connecting Ridge",
+    "is_permanently_shadowed_region": false,
+    "estimated_surface_temp_k": 188.2,
+    "sunlight_continuous_hours_max": 612.3,
+    "methodology": "Dual-component scientific illumination: (1) Instantaneous analytical solar ephemeris with local DEM horizon ray-tracing, combined with (2) Peer-reviewed LOLA multi-year precession cumulative ground truth.",
+    "source_attribution": "NASA LRO LOLA / Diviner / JPL DE421 Ephemeris",
+    "scientific_caveats": [
+      "SCIENTIFIC NOTICE: Surface temperature (Kelvin) is a thermal brightness measurement governed by secondary radiative equilibrium and regolith thermal inertia. It is NOT a direct optical sunlight percentage measurement."
+    ]
+  }
 }
 ```
 
