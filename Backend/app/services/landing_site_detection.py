@@ -9,7 +9,7 @@ import math
 import uuid
 from typing import Dict, List, Optional, Tuple
 import numpy as np
-from scipy.ndimage import label
+from scipy.ndimage import find_objects, label
 
 from Backend.app.core.constants import (
     MOON_RADIUS_METERS,
@@ -115,21 +115,33 @@ class LandingSiteDetectionService:
         candidate_zones: List[DetectedLandingZone] = []
         transform = window.transform
 
+        # Vectorized component pixel counts and bounding object slices
+        counts = np.bincount(labeled_array.ravel())
+        slices = find_objects(labeled_array)
+
         for feat_id in range(1, num_features + 1):
-            component_mask = labeled_array == feat_id
-            pixel_count = int(np.sum(component_mask))
+            if feat_id >= len(counts):
+                continue
+            pixel_count = int(counts[feat_id])
             contiguous_area = pixel_count * cell_area_m2
 
-            # Reject candidate regions with insufficient contiguous area
+            # Fast rejection of candidate regions with insufficient contiguous area
             if contiguous_area < min_required_area_m2:
                 continue
 
-            effective_diam = 2.0 * math.sqrt(contiguous_area / math.pi)
+            sl = slices[feat_id - 1]
+            if sl is None:
+                continue
 
-            # Component pixels
-            comp_elevs = elev[component_mask]
-            comp_slopes = slopes[component_mask]
-            comp_roughness = roughness[component_mask]
+            sub_labeled = labeled_array[sl]
+            sub_mask = sub_labeled == feat_id
+
+            # Slice into localized sub-arrays to avoid whole-raster allocations
+            comp_elevs = elev[sl][sub_mask]
+            comp_slopes = slopes[sl][sub_mask]
+            comp_roughness = roughness[sl][sub_mask]
+
+            effective_diam = 2.0 * math.sqrt(contiguous_area / math.pi)
 
             mean_slope = float(np.mean(comp_slopes))
             max_slope = float(np.max(comp_slopes))
@@ -137,9 +149,9 @@ class LandingSiteDetectionService:
             mean_elev = float(np.mean(comp_elevs))
 
             # Centroid calculation in projected pixel coordinates
-            r_indices, c_indices = np.where(component_mask)
-            center_r = float(np.mean(r_indices))
-            center_c = float(np.mean(c_indices))
+            r_indices, c_indices = np.where(sub_mask)
+            center_r = float(sl[0].start + np.mean(r_indices))
+            center_c = float(sl[1].start + np.mean(c_indices))
 
             # Convert (col, row) to projected meters (x, y) using raster Affine transform
             proj_x = transform.c + center_c * transform.a + center_r * transform.b
@@ -149,7 +161,7 @@ class LandingSiteDetectionService:
             centroid_lat, centroid_lon = polar_stereo_to_latlon(proj_x, proj_y, radius_m=MOON_RADIUS_METERS)
 
             profile = req.mission_profile or "artemis_hls"
-            # Evaluate suitability score using MCDA scoring engine and ML surrogate
+            # Evaluate suitability score using MCDA scoring engine (fast inference without Monte Carlo loop)
             score_res = site_scoring_engine.evaluate_suitability(
                 ScoreRequest(
                     slope_deg=round(mean_slope, 2),
@@ -159,7 +171,8 @@ class LandingSiteDetectionService:
                     contiguous_diameter_m=round(effective_diam, 1),
                     illumination_pct=75.0,  # regional baseline
                     mission_profile=profile,
-                )
+                ),
+                run_monte_carlo=False,
             )
             suit_score = score_res.overall_suitability_score if score_res.overall_suitability_score is not None else 60.0
             ml_score = score_res.ml_model_score

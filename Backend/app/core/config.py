@@ -79,6 +79,8 @@ class Settings(BaseSettings):
         return self.SITES_DATA_PATH
 
     # Scientific Configuration Defaults
+    DATA_MODE: str = Field("live", description="'live' (verified NASA data priority) or 'demo' (synthetic fallback permitted)")
+    ALLOW_SYNTHETIC_FALLBACK: bool = Field(True, description="Whether to allow synthetic sample_dem.tif when verified NASA rasters are uninstalled")
     LUNAR_RADIUS_METERS: float = 1_737_400.0
     MAX_SAFE_SLOPE_DEG: float = 10.0
     CRITICAL_SLOPE_DEG: float = 15.0

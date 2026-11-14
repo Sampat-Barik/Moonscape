@@ -253,6 +253,11 @@ class IlluminationService:
                 res_m=res,
             )
             sunlit_fraction_pct = round(sun_visibility * 100.0, 1)
+            if res[0] > 10.0:
+                caveats.append(
+                    "Terrain horizon ray-tracing computed using calibrated baseline synthetic DEM. "
+                    "Acquire authentic NASA 80m/5m rasters for final flight mission validation."
+                )
         else:
             # Fallback when local DEM is uninstalled: approximate from unocculted spherical geometry
             sunlit_fraction_pct = 100.0 if solar_elev > 0.0 else 0.0

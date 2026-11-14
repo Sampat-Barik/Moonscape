@@ -84,6 +84,21 @@ def test_complete_frontend_backend_workflow(client: TestClient) -> None:
     hazard_data = hazard_res.json()
     assert "status" in hazard_data
 
+    # Step 10b: Direct suitability score via frontend coordinate payload
+    score_req = {
+        "latitude": shackleton["latitude"],
+        "longitude": shackleton["longitude"],
+        "radius_m": 50.0,
+    }
+    score_res = client.post("/api/score", json=score_req)
+    assert score_res.status_code == 200
+    score_data = score_res.json()
+    assert score_data["overall_suitability_score"] is not None
+    assert score_data["score"] == score_data["overall_suitability_score"]
+    assert score_data["label"] is not None
+    assert score_data["breakdown"] is not None
+    assert "slope" in score_data["breakdown"]
+
     # Step 11: Compare multiple candidate sites
     compare_req = {
         "site_ids": ["shackleton_connecting_ridge", "malapert_mountain"],

@@ -4,6 +4,8 @@ import { useApp } from "@/context/AppContext";
 import CoordinateSelector from "@/components/CoordinateSelector";
 import TerrainCard from "@/components/TerrainCard";
 import SuitabilityScore from "@/components/SuitabilityScore";
+import CandidateRegionsPanel from "@/components/CandidateRegionsPanel";
+import SimulationPanel from "@/components/SimulationPanel";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import { fmtCoord, pickBool, pickNumber, pickString } from "@/utils/format";
@@ -34,12 +36,21 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
     scoreStatus,
     scoreError,
     runHazards,
+    coverage,
+    detectStatus,
+    runDetectSites,
+    simulationStatus,
+    runSimulation,
   } = useApp();
 
-  // Whenever an analysis exists, request the preliminary score (POST /api/score).
+  // Whenever an analysis exists, ensure downstream workflows run automatically
   useEffect(() => {
-    if (analysis && scoreStatus === "idle") void runScore(selection);
-  }, [analysis, scoreStatus, runScore, selection]);
+    if (analysis) {
+      if (scoreStatus === "idle") void runScore(selection);
+      if (detectStatus === "idle") void runDetectSites(selection);
+      if (simulationStatus === "idle") void runSimulation();
+    }
+  }, [analysis, scoreStatus, detectStatus, simulationStatus, runScore, runDetectSites, runSimulation, selection]);
 
   // Score: prefer the /api/score response, fall back to a score embedded in the analysis.
   const embeddedScore = analysis
@@ -157,6 +168,25 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
       <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-divider pb-4 text-[13px] text-muted">
         <span className="font-mono text-cyan">{fmtCoord(selection.latitude, selection.longitude)}</span>
         <span>radius: <span className="font-mono text-ink">{selection.radius_m} m</span></span>
+        {coverage && (
+          <span className="flex items-center gap-2">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                coverage.in_south_pole_zone ? "bg-good" : "bg-warn"
+              }`}
+            />
+            <span className={coverage.in_south_pole_zone ? "text-good" : "text-warn"}>
+              {coverage.in_south_pole_zone
+                ? "NASA LOLA 80m DEM: Verified In-Bounds"
+                : "Outside Polar Coverage"}
+            </span>
+            {coverage.best_installed_resolution_m && (
+              <span className="chip font-mono text-[11px] !py-0.5">
+                res: {coverage.best_installed_resolution_m}m
+              </span>
+            )}
+          </span>
+        )}
         {globalSources && <span>sources: <span className="text-ink">{globalSources}</span></span>}
       </div>
 
@@ -248,6 +278,16 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
             {key}: {block ? "available" : "unavailable"}
           </span>
         ))}
+      </div>
+
+      {/* ===== Candidate Landing Regions (Feature 7) ===== */}
+      <div className="mt-6">
+        <CandidateRegionsPanel />
+      </div>
+
+      {/* ===== Mission Sunlight & Earth Visibility Simulation (Features 8, 9, 10) ===== */}
+      <div className="mt-6">
+        <SimulationPanel />
       </div>
 
       {/* ===== Suitability Score ===== */}

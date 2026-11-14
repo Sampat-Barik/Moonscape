@@ -25,6 +25,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
     refreshSites,
     selection,
     setSelection,
+    coverage,
     terrain,
     terrainStatus,
     terrainError,
@@ -232,6 +233,29 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                 {fmtCoord(selection.latitude, selection.longitude)}
               </p>
               <p className="font-mono text-xs text-muted">radius: {selection.radius_m} m</p>
+              {coverage && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      coverage.in_south_pole_zone ? "bg-good" : "bg-warn"
+                    }`}
+                  />
+                  <span
+                    className={`text-[11px] font-mono ${
+                      coverage.in_south_pole_zone ? "text-good" : "text-warn"
+                    }`}
+                  >
+                    {coverage.in_south_pole_zone
+                      ? "NASA LOLA 80m: Covered"
+                      : "Outside Polar Coverage"}
+                  </span>
+                  {coverage.best_installed_resolution_m && (
+                    <span className="chip font-mono text-[10px] !py-0.5">
+                      res: {coverage.best_installed_resolution_m}m
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="mt-4">
                 <CoordinateSelector value={selection} onChange={setSelection} showPresets={false} />
               </div>

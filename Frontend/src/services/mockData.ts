@@ -248,3 +248,126 @@ export async function generateReport(analysisId: string, format: string): Promis
     },
   };
 }
+
+export async function checkCoverage(lat: number, lon: number) {
+  await delay(200);
+  const inPole = lat <= -80.0 && lat >= -90.0;
+  return {
+    valid_coordinate: inPole,
+    latitude: lat,
+    longitude: lon,
+    in_south_pole_zone: inPole,
+    best_installed_resolution_m: 80.0,
+    total_covering_sources: 2,
+    installed_covering_sources: 1,
+    layers: [
+      {
+        source_id: "pgda_product90",
+        name: "NASA PGDA Product 90 (LOLA South Pole 80m Regional Foundation)",
+        tier: "Tier 1: Essential Local",
+        covers: inPole,
+        is_installed: true,
+        resolution_m: 80.0,
+      },
+    ],
+  };
+}
+
+export async function detectLandingSites(req: { center_lat: number; center_lon: number; search_radius_meters?: number }) {
+  await delay(600);
+  return {
+    status: "success",
+    center_lat: req.center_lat,
+    center_lon: req.center_lon,
+    search_radius_meters: req.search_radius_meters ?? 1500.0,
+    total_sites_detected: 2,
+    candidate_zones: [
+      {
+        zone_id: "ZONE-MOCK-A",
+        centroid_lat: req.center_lat + 0.002,
+        centroid_lon: req.center_lon + 0.005,
+        contiguous_area_m2: 125000.0,
+        effective_diameter_m: 398.9,
+        pixel_count: 500,
+        mean_slope_deg: 4.8,
+        max_slope_deg: 7.2,
+        mean_roughness_m: 0.12,
+        mean_elevation_m: 1650.0,
+        suitability_score: 92.4,
+        hard_constraint_status: "passed",
+        safety_rank: 1,
+        feasibility_status: "optimal",
+      },
+      {
+        zone_id: "ZONE-MOCK-B",
+        centroid_lat: req.center_lat - 0.003,
+        centroid_lon: req.center_lon - 0.004,
+        contiguous_area_m2: 85000.0,
+        effective_diameter_m: 328.9,
+        pixel_count: 340,
+        mean_slope_deg: 6.2,
+        max_slope_deg: 8.9,
+        mean_roughness_m: 0.18,
+        mean_elevation_m: 1620.0,
+        suitability_score: 84.1,
+        hard_constraint_status: "passed",
+        safety_rank: 2,
+        feasibility_status: "nominal",
+      },
+    ],
+    summary: "Mock landing zone detection around coordinate.",
+  };
+}
+
+export async function simulateVisibility(req: { lat: number; lon: number; duration_days?: number; step_hours?: number }) {
+  await delay(500);
+  const duration = req.duration_days ?? 14;
+  const step = req.step_hours ?? 2;
+  const count = Math.floor((duration * 24) / step) + 1;
+  const timeSeries = [];
+  const start = new Date();
+  for (let i = 0; i < count; i++) {
+    const elapsed = i * step;
+    const t = new Date(start.getTime() + elapsed * 3600 * 1000);
+    const angle = (elapsed / 708.7) * 2 * Math.PI; // synodic period
+    const sunElev = Math.sin(angle) * 1.5;
+    const earthElev = 2.0 + Math.sin(angle * 1.05) * 4.0;
+    const isSun = sunElev > 0;
+    const isEarth = earthElev > 0;
+    timeSeries.push({
+      timestamp_iso: t.toISOString(),
+      elapsed_hours: elapsed,
+      solar_elevation_deg: Math.round(sunElev * 100) / 100,
+      solar_azimuth_deg: Math.round(((elapsed * 0.5) % 360) * 10) / 10,
+      sunlit_fraction_pct: isSun ? 100.0 : 0.0,
+      is_sunlit: isSun,
+      earth_elevation_deg: Math.round(earthElev * 100) / 100,
+      earth_azimuth_deg: 120.0,
+      earth_visibility_fraction: isEarth ? 1.0 : 0.0,
+      is_earth_visible: isEarth,
+      communication_status: isEarth ? "operational" : "blackout",
+      surface_temp_k: isSun ? 220.0 : 40.0,
+      horizon_elevation_sun_deg: 0.0,
+      horizon_elevation_earth_deg: 0.0,
+      is_combined_ops_available: isSun && isEarth,
+    });
+  }
+  return {
+    query_lat: req.lat,
+    query_lon: req.lon,
+    start_epoch_iso: start.toISOString(),
+    end_epoch_iso: new Date(start.getTime() + duration * 24 * 3600 * 1000).toISOString(),
+    duration_days: duration,
+    total_steps: count,
+    total_sunlight_hours: Math.round(duration * 24 * 0.65),
+    sunlight_percentage: 65.0,
+    total_earth_comm_hours: Math.round(duration * 24 * 0.8),
+    earth_comm_percentage: 80.0,
+    max_continuous_sunlight_hours: 120.0,
+    max_continuous_darkness_hours: 48.0,
+    max_continuous_comm_blackout_hours: 24.0,
+    time_series: timeSeries,
+    scientific_methodology: "Mock ephemeris and horizon occultation simulation.",
+    caveats: ["Demo mock data."],
+  };
+}

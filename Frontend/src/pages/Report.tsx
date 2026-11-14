@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Route } from "@/hooks/useHashRoute";
 import { useApp } from "@/context/AppContext";
+import { api } from "@/services/api";
 import AIExplanation from "@/components/AIExplanation";
 import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
@@ -28,6 +29,8 @@ export default function Report({ navigate }: { navigate: (r: Route) => void }) {
   } = useApp();
 
   const [analysisId, setAnalysisId] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   // Prefill the analysis id whenever a new analysis arrives.
   useEffect(() => {
@@ -45,6 +48,28 @@ export default function Report({ navigate }: { navigate: (r: Route) => void }) {
     a.download = `moonscape-report-${analysisId.trim() || "analysis"}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const downloadPdf = async () => {
+    const targetId = analysisId.trim();
+    if (!targetId) return;
+    setPdfLoading(true);
+    setPdfError(null);
+    try {
+      const blob = await api.downloadPdfReport(targetId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `moonscape_report_${targetId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setPdfError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   const handlePrint = () => {
@@ -177,7 +202,23 @@ export default function Report({ navigate }: { navigate: (r: Route) => void }) {
             )}
             Generate Full Report
           </button>
+          <button
+            className="btn-primary !px-4 !py-2.5 !text-xs"
+            disabled={!canExplain || pdfLoading}
+            onClick={() => void downloadPdf()}
+            title="Download official binary PDF report compiled by FastAPI"
+          >
+            {pdfLoading ? (
+              <span className="spinner !h-4 !w-4" />
+            ) : (
+              <DownloadIcon className="h-4 w-4" />
+            )}
+            Download Official PDF
+          </button>
         </div>
+        {pdfError && (
+          <p className="mt-2 text-xs text-bad">PDF export error: {pdfError}</p>
+        )}
       </div>
 
       {/* ================= Section 1: AI Explanation ================= */}

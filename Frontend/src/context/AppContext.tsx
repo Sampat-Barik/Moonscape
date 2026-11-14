@@ -4,10 +4,16 @@
  * It owns:
  *  - the backend connection mode ("checking" | "live" | "mock"),
  *  - the candidate sites list,
- *  - the currently selected coordinates,
- *  - and the results of every API call (terrain, analysis, score, hazards,
- *    comparison, AI explanation, report) together with their
- *    loading / error status so pages can show spinners and error panels.
+ *  - the currently selected coordinates (shared across Explorer, Dashboard, Hazards, Compare, Report),
+ *  - dataset coverage status (Feature 4),
+ *  - terrain analysis results (Feature 5),
+ *  - hazard detection results (Feature 6),
+ *  - automated contiguous candidate landing regions (Feature 7),
+ *  - mission date/time configuration & solar/Earth visibility simulation (Features 8, 9, 10),
+ *  - suitability score & constraint evaluation (Feature 11),
+ *  - site comparison results,
+ *  - AI explanation synthesis,
+ *  - and report dossier generation.
  *
  * All network access happens inside `services/api.ts`; this context only
  * stores results and exposes actions.
@@ -23,10 +29,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, getApiMode, probeBackend, setApiMode } from "@/services/api";
+import { ApiError, api, getApiMode, probeBackend, setApiMode } from "@/services/api";
 import type {
   AnalysisResponse,
   CompareResponse,
+  DataCoverageResponse,
+  DetectedLandingZone,
+  DetectLandingSitesRequest,
   ExplanationResponse,
   HazardDetection,
   HealthResponse,
@@ -34,6 +43,8 @@ import type {
   ScoreResponse,
   Site,
   TerrainResponse,
+  VisibilitySimulationRequest,
+  VisibilitySimulationResponse,
 } from "@/types";
 
 export type Status = "idle" | "loading" | "error" | "ready";
@@ -42,6 +53,12 @@ export interface Selection {
   latitude: number;
   longitude: number;
   radius_m: number;
+}
+
+export interface MissionConfig {
+  startEpoch: string;
+  durationDays: number;
+  stepHours: number;
 }
 
 export interface AppContextValue {
@@ -57,6 +74,11 @@ export interface AppContextValue {
   selection: Selection;
   setSelection: (s: Selection) => void;
 
+  coverage: DataCoverageResponse | null;
+  coverageStatus: Status;
+  coverageError: string | null;
+  checkCoverage: (sel?: Selection) => Promise<void>;
+
   terrain: TerrainResponse | null;
   terrainStatus: Status;
   terrainError: string | null;
@@ -66,6 +88,19 @@ export interface AppContextValue {
   analysisStatus: Status;
   analysisError: string | null;
   runAnalysis: (sel?: Selection) => Promise<boolean>;
+
+  detectedZones: DetectedLandingZone[];
+  detectStatus: Status;
+  detectError: string | null;
+  runDetectSites: (sel?: Selection, params?: Partial<DetectLandingSitesRequest>) => Promise<void>;
+
+  missionConfig: MissionConfig;
+  setMissionConfig: (cfg: Partial<MissionConfig>) => void;
+
+  simulation: VisibilitySimulationResponse | null;
+  simulationStatus: Status;
+  simulationError: string | null;
+  runSimulation: (customConfig?: Partial<VisibilitySimulationRequest>) => Promise<void>;
 
   score: ScoreResponse | null;
   scoreStatus: Status;
@@ -103,7 +138,12 @@ export function useApp(): AppContextValue {
 
 const LS_SELECTION = "moonscape.selection";
 const LS_ANALYSIS = "moonscape.analysis";
-const DEFAULT_SELECTION: Selection = { latitude: -89.5, longitude: 0, radius_m: 500 };
+const DEFAULT_SELECTION: Selection = { latitude: -89.44, longitude: 222.5, radius_m: 1000 };
+const DEFAULT_MISSION: MissionConfig = {
+  startEpoch: "2026-10-15T00:00:00Z",
+  durationDays: 14,
+  stepHours: 2,
+};
 
 function loadJSON<T>(key: string): T | null {
   try {
@@ -130,6 +170,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => loadJSON<Selection>(LS_SELECTION) ?? DEFAULT_SELECTION
   );
 
+  const [coverage, setCoverage] = useState<DataCoverageResponse | null>(null);
+  const [coverageStatus, setCoverageStatus] = useState<Status>("idle");
+  const [coverageError, setCoverageError] = useState<string | null>(null);
+
   const [terrain, setTerrain] = useState<TerrainResponse | null>(null);
   const [terrainStatus, setTerrainStatus] = useState<Status>("idle");
   const [terrainError, setTerrainError] = useState<string | null>(null);
@@ -139,6 +183,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [analysisStatus, setAnalysisStatus] = useState<Status>("idle");
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  const [detectedZones, setDetectedZones] = useState<DetectedLandingZone[]>([]);
+  const [detectStatus, setDetectStatus] = useState<Status>("idle");
+  const [detectError, setDetectError] = useState<string | null>(null);
+
+  const [missionConfig, setMissionConfigState] = useState<MissionConfig>(DEFAULT_MISSION);
+
+  const [simulation, setSimulation] = useState<VisibilitySimulationResponse | null>(null);
+  const [simulationStatus, setSimulationStatus] = useState<Status>("idle");
+  const [simulationError, setSimulationError] = useState<string | null>(null);
 
   const [score, setScore] = useState<ScoreResponse | null>(null);
   const [scoreStatus, setScoreStatus] = useState<Status>("idle");
@@ -160,11 +214,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [reportStatus, setReportStatus] = useState<Status>("idle");
   const [reportError, setReportError] = useState<string | null>(null);
 
-  // Keep a ref of the selection so async actions never see a stale value.
+  // Keep refs of active values to prevent closures from using stale coordinates
   const selectionRef = useRef(selection);
   selectionRef.current = selection;
 
-  // Probe the backend once on startup (auto mode falls back to mock).
+  const missionConfigRef = useRef(missionConfig);
+  missionConfigRef.current = missionConfig;
+
+  // Debounce ref for rapid coordinate updates (e.g. typing or scrubbing)
+  const coverageDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (coverageDebounceRef.current) clearTimeout(coverageDebounceRef.current);
+    };
+  }, []);
+
+  // Probe the backend once on startup
   useEffect(() => {
     void (async () => {
       const res = await probeBackend();
@@ -195,12 +260,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMode(next);
   }, []);
 
-  const setSelection = useCallback((s: Selection) => {
-    setSelectionState(s);
+  const checkCoverage = useCallback(async (sel?: Selection) => {
+    const s = sel ?? selectionRef.current;
+    setCoverageStatus("loading");
+    setCoverageError(null);
     try {
-      localStorage.setItem(LS_SELECTION, JSON.stringify(s));
-    } catch {
-      /* storage unavailable — ignore */
+      const cov = await api.checkCoverage(s.latitude, s.longitude);
+      setCoverage(cov);
+      setCoverageStatus("ready");
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 499) {
+        // Superseded by newer coordinate selection; suppress error banner
+        return;
+      }
+      setCoverageError(errMsg(e));
+      setCoverageStatus("error");
     }
   }, []);
 
@@ -209,34 +283,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTerrainStatus("loading");
     setTerrainError(null);
     try {
-      setTerrain(await api.getTerrain(s.latitude, s.longitude));
+      setTerrain(await api.getTerrain(s.latitude, s.longitude, s.radius_m));
       setTerrainStatus("ready");
     } catch (e) {
+      if (e instanceof ApiError && e.status === 499) {
+        return;
+      }
       setTerrainError(errMsg(e));
       setTerrainStatus("error");
     }
   }, []);
 
-  const runAnalysis = useCallback(async (sel?: Selection): Promise<boolean> => {
-    const s = sel ?? selectionRef.current;
-    setAnalysisStatus("loading");
-    setAnalysisError(null);
-    try {
-      const a = await api.runAnalysis(s);
-      setAnalysis(a);
-      setAnalysisStatus("ready");
+  // Update selection with automatic invalidation of stale location-dependent metrics
+  const setSelection = useCallback(
+    (s: Selection) => {
+      const prev = selectionRef.current;
+      const coordChanged =
+        Math.abs(prev.latitude - s.latitude) > 0.0001 ||
+        Math.abs(prev.longitude - s.longitude) > 0.0001;
+
+      setSelectionState(s);
       try {
-        localStorage.setItem(LS_ANALYSIS, JSON.stringify(a));
+        localStorage.setItem(LS_SELECTION, JSON.stringify(s));
       } catch {
-        /* ignore */
+        /* storage unavailable — ignore */
       }
-      return true;
-    } catch (e) {
-      setAnalysisError(errMsg(e));
-      setAnalysisStatus("error");
-      return false;
-    }
-  }, []);
+
+      if (coordChanged) {
+        // Invalidate stale scores, hazards, simulations, and detected zones from previous locations
+        setScore(null);
+        setScoreStatus("idle");
+        setHazards(null);
+        setHazardsStatus("idle");
+        setSimulation(null);
+        setSimulationStatus("idle");
+        setDetectedZones([]);
+        setDetectStatus("idle");
+
+        // Debounce network coverage check by 200ms to avoid flooding backend during rapid scrubbing
+        if (coverageDebounceRef.current) {
+          clearTimeout(coverageDebounceRef.current);
+        }
+        coverageDebounceRef.current = setTimeout(() => {
+          void checkCoverage(s);
+        }, 200);
+      }
+    },
+    [checkCoverage]
+  );
 
   const runScore = useCallback(async (sel?: Selection) => {
     const s = sel ?? selectionRef.current;
@@ -250,6 +344,88 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setScoreStatus("error");
     }
   }, []);
+
+  const runDetectSites = useCallback(
+    async (sel?: Selection, params?: Partial<DetectLandingSitesRequest>) => {
+      const s = sel ?? selectionRef.current;
+      setDetectStatus("loading");
+      setDetectError(null);
+      try {
+        const res = await api.detectLandingSites({
+          center_lat: s.latitude,
+          center_lon: s.longitude,
+          search_radius_meters: s.radius_m || 1500.0,
+          ...params,
+        });
+        setDetectedZones(res.candidate_zones || []);
+        setDetectStatus("ready");
+      } catch (e) {
+        setDetectError(errMsg(e));
+        setDetectStatus("error");
+      }
+    },
+    []
+  );
+
+  const setMissionConfig = useCallback((cfg: Partial<MissionConfig>) => {
+    setMissionConfigState((prev) => ({ ...prev, ...cfg }));
+  }, []);
+
+  const runSimulation = useCallback(
+    async (customConfig?: Partial<VisibilitySimulationRequest>) => {
+      const s = selectionRef.current;
+      const m = missionConfigRef.current;
+      setSimulationStatus("loading");
+      setSimulationError(null);
+      try {
+        const sim = await api.simulateVisibility({
+          lat: s.latitude,
+          lon: s.longitude,
+          start_epoch_iso: customConfig?.start_epoch_iso ?? m.startEpoch,
+          duration_days: customConfig?.duration_days ?? m.durationDays,
+          step_hours: customConfig?.step_hours ?? m.stepHours,
+        });
+        setSimulation(sim);
+        setSimulationStatus("ready");
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 499) {
+          return;
+        }
+        setSimulationError(errMsg(e));
+        setSimulationStatus("error");
+      }
+    },
+    []
+  );
+
+  const runAnalysis = useCallback(
+    async (sel?: Selection): Promise<boolean> => {
+      const s = sel ?? selectionRef.current;
+      setAnalysisStatus("loading");
+      setAnalysisError(null);
+      try {
+        const a = await api.runAnalysis(s);
+        setAnalysis(a);
+        setAnalysisStatus("ready");
+        try {
+          localStorage.setItem(LS_ANALYSIS, JSON.stringify(a));
+        } catch {
+          /* ignore */
+        }
+
+        // Trigger downstream analysis chain for this verified location
+        void runScore(s);
+        void runDetectSites(s);
+        void runSimulation();
+        return true;
+      } catch (e) {
+        setAnalysisError(errMsg(e));
+        setAnalysisStatus("error");
+        return false;
+      }
+    },
+    [runScore, runDetectSites, runSimulation]
+  );
 
   const runHazards = useCallback(async (sel?: Selection) => {
     const s = sel ?? selectionRef.current;
@@ -300,6 +476,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Initial coverage check on load
+  useEffect(() => {
+    if (mode !== "checking") {
+      void checkCoverage();
+    }
+  }, [mode, checkCoverage]);
+
   const value = useMemo<AppContextValue>(
     () => ({
       mode,
@@ -311,6 +494,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       refreshSites,
       selection,
       setSelection,
+      coverage,
+      coverageStatus,
+      coverageError,
+      checkCoverage,
       terrain,
       terrainStatus,
       terrainError,
@@ -319,6 +506,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       analysisStatus,
       analysisError,
       runAnalysis,
+      detectedZones,
+      detectStatus,
+      detectError,
+      runDetectSites,
+      missionConfig,
+      setMissionConfig,
+      simulation,
+      simulationStatus,
+      simulationError,
+      runSimulation,
       score,
       scoreStatus,
       scoreError,
@@ -341,12 +538,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
       generateReportAction,
     }),
     [
-      mode, health, cycleMode, sites, sitesStatus, sitesError, refreshSites,
-      selection, setSelection, terrain, terrainStatus, terrainError, refreshTerrain,
-      analysis, analysisStatus, analysisError, runAnalysis, score, scoreStatus, scoreError,
-      runScore, hazards, hazardsStatus, hazardsError, runHazards, comparison, compareStatus,
-      compareError, compare, explanation, explainStatus, explainError, explain, report,
-      reportStatus, reportError, generateReportAction,
+      mode,
+      health,
+      cycleMode,
+      sites,
+      sitesStatus,
+      sitesError,
+      refreshSites,
+      selection,
+      setSelection,
+      coverage,
+      coverageStatus,
+      coverageError,
+      checkCoverage,
+      terrain,
+      terrainStatus,
+      terrainError,
+      refreshTerrain,
+      analysis,
+      analysisStatus,
+      analysisError,
+      runAnalysis,
+      detectedZones,
+      detectStatus,
+      detectError,
+      runDetectSites,
+      missionConfig,
+      setMissionConfig,
+      simulation,
+      simulationStatus,
+      simulationError,
+      runSimulation,
+      score,
+      scoreStatus,
+      scoreError,
+      runScore,
+      hazards,
+      hazardsStatus,
+      hazardsError,
+      runHazards,
+      comparison,
+      compareStatus,
+      compareError,
+      compare,
+      explanation,
+      explainStatus,
+      explainError,
+      explain,
+      report,
+      reportStatus,
+      reportError,
+      generateReportAction,
     ]
   );
 

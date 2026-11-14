@@ -10,6 +10,7 @@ from app.core.constants import (
     BOULDER_HAZARD_THRESHOLD_M,
     CRATER_HAZARD_MIN_DIAMETER_M,
     LOLA_NODATA_VALUE,
+    MOON_RADIUS_METERS,
     SCIENTIFIC_SAFETY_DISCLAIMER,
     SLOPE_CRITICAL_MAX_DEG,
 )
@@ -23,6 +24,8 @@ from app.schemas.hazard import (
 from app.services.dem_service import dem_service
 from app.services.hazard_detection import APOLLO_DOMAIN_LIMITATION, hazard_detection_service
 from app.services.terrain_service import terrain_service
+from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from Backend.app.services.nasa_data import nasa_data_manager
 from maths.curvature import laplacian_curvature, detect_crater_basins
 
 
@@ -36,16 +39,42 @@ class HazardService:
             return hazard_detection_service.predict(req)
 
         assessment_id = f"HAZ-{uuid.uuid4().hex[:8].upper()}"
+        target_lat = req.center_lat if req.center_lat is not None else -89.5
+        target_lon = req.center_lon if req.center_lon is not None else 0.0
+        target_radius = req.radius_meters if req.radius_meters is not None else 1000.0
 
-        elev_data, transform, res = dem_service.read_window_around_point(
-            lat_deg=req.center_lat if req.center_lat is not None else -89.5,
-            lon_deg=req.center_lon if req.center_lon is not None else 0.0,
-            radius_m=req.radius_meters if req.radius_meters is not None else 1000.0,
+        # Prioritize verified high-resolution NASA datasets (Product 78 / Product 90) via nasa_data_manager
+        window = nasa_data_manager.get_spatial_window(
+            lat_deg=target_lat,
+            lon_deg=target_lon,
+            radius_m=target_radius,
         )
+
+        if window is None or window.elevation_data is None or window.elevation_data.size == 0:
+            elev_data, transform, res = dem_service.read_window_around_point(
+                lat_deg=target_lat,
+                lon_deg=target_lon,
+                radius_m=target_radius,
+            )
+            slope_data = None
+            is_measured = False
+            dataset_name = "Calibrated Sample Baseline DEM"
+            source_tier = "Tier 0 (Calibrated Sample Baseline)"
+        else:
+            elev_data = window.elevation_data
+            slope_data = window.slope_data
+            transform = window.transform
+            res = (window.dx_meters, window.dy_meters)
+            is_measured = window.is_measured_data
+            dataset_name = window.dataset_name
+            source_tier = window.source_tier
 
         model_eval_metadata = {
             "model_architecture": "Morphological Curvature & Gradient Anomaly Detector v1.2",
-            "evaluation_dataset": "NASA LRO LOLA South Pole Ground Truth Catalog",
+            "evaluation_dataset": dataset_name,
+            "source_tier": source_tier,
+            "is_measured_data": is_measured,
+            "optical_hazard_detection": "OFFLINE (No trained optical weights loaded; using DEM morphological detector)",
             "f1_score_crater_detection": 0.88,
             "f1_score_steep_slope_delineation": 0.94,
             "boulder_confidence_basis": "Derived from sub-pixel RMS roughness anomaly thresholding",
@@ -106,7 +135,10 @@ class HazardService:
         dx = res[0] if res[0] > 0 else 620.0
         dy = res[1] if res[1] > 0 else 620.0
 
-        slopes, _ = terrain_service.calculate_slope_and_aspect(elev_data, dx, dy)
+        if slope_data is not None and slope_data.shape == elev_data.shape:
+            slopes = slope_data
+        else:
+            slopes, _ = terrain_service.calculate_slope_and_aspect(elev_data, dx, dy)
         roughness = terrain_service.calculate_roughness_rms(elev_data)
         curvature = laplacian_curvature(elev_data)
 
@@ -117,6 +149,17 @@ class HazardService:
         radius_m = req.radius_meters if req.radius_meters is not None else 1000.0
         min_crater_dia = req.min_crater_diameter_m if req.min_crater_diameter_m is not None else 5.0
         boulder_sens = req.boulder_detection_sensitivity if req.boulder_detection_sensitivity is not None else 0.7
+
+        def _cell_to_latlon(r_idx: int, c_idx: int, off_x: float, off_y: float) -> Tuple[float, float]:
+            """Geodetically converts raster row/col into lunar latitude and longitude."""
+            if transform is not None:
+                px = transform.c + c_idx * transform.a + r_idx * transform.b
+                py = transform.f + c_idx * transform.d + r_idx * transform.e
+                calc_lat, calc_lon = coordinate_manager.from_polar_stereographic(px, py)
+                return round(calc_lat, 4), round(calc_lon, 4)
+            m_per_deg_lat = MOON_RADIUS_METERS * math.pi / 180.0
+            m_per_deg_lon = m_per_deg_lat * max(0.005, math.cos(math.radians(center_lat)))
+            return round(center_lat + (off_y / m_per_deg_lat), 4), round(center_lon + (off_x / m_per_deg_lon), 4)
 
         # 1. Crater detection: Significant positive Laplacian (concave upward depression)
         crater_mask = valid_mask & detect_crater_basins(curvature, threshold=15.0)
@@ -133,8 +176,7 @@ class HazardService:
                 continue
 
             est_diameter = max(min_crater_dia, float(np.abs(curvature[r, c]) * 1.8))
-            h_lat = round(center_lat + (offset_y / 111000.0), 4)
-            h_lon = round(center_lon + (offset_x / 111000.0), 4)
+            h_lat, h_lon = _cell_to_latlon(r, c, offset_x, offset_y)
 
             severity = "critical" if est_diameter > 25.0 else ("high" if est_diameter > 10.0 else "medium")
             confidence = min(0.96, max(0.65, float(curvature[r, c] / 50.0)))
@@ -168,8 +210,7 @@ class HazardService:
             if b_height < BOULDER_HAZARD_THRESHOLD_M:
                 continue
 
-            h_lat = round(center_lat + (offset_y / 111000.0), 4)
-            h_lon = round(center_lon + (offset_x / 111000.0), 4)
+            h_lat, h_lon = _cell_to_latlon(r, c, offset_x, offset_y)
 
             detected_hazards.append(
                 HazardItem(
@@ -191,8 +232,7 @@ class HazardService:
             for r, c in steep_indices[:4]:
                 offset_y = (rows // 2 - r) * dy
                 offset_x = (c - cols // 2) * dx
-                h_lat = round(center_lat + (offset_y / 111000.0), 4)
-                h_lon = round(center_lon + (offset_x / 111000.0), 4)
+                h_lat, h_lon = _cell_to_latlon(r, c, offset_x, offset_y)
                 detected_hazards.append(
                     HazardItem(
                         hazard_type="escarpment",
@@ -243,7 +283,7 @@ class HazardService:
             detections=ml_detections,
             crater_count=craters_count,
             rock_count=boulders_count,
-            warnings=[],
+            warnings=["Operating on calibrated baseline synthetic DEM. Morphological hazard features are simulated and not verified NASA observations."] if not is_measured else [],
             model_name="Morphological Curvature & Gradient Anomaly Detector v1.2",
             model_version="1.2.0",
             limitations=APOLLO_DOMAIN_LIMITATION,

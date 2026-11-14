@@ -218,6 +218,12 @@ class NASADataManager:
         # ------------------------------------------------------------------
         # 3. Fallback: Calibrated baseline sample DEM
         # ------------------------------------------------------------------
+        from Backend.app.core.config import settings
+
+        if settings.DATA_MODE == "live" and not settings.ALLOW_SYNTHETIC_FALLBACK:
+            # Strict live mode disallows synthetic DEM substitution
+            return None
+
         read_radius = max(radius_m, 1500.0)
         elev_arr, transform, res = dem_service.read_window_around_point(lat_deg, lon_deg, read_radius)
         if elev_arr is None or elev_arr.size == 0:
@@ -245,7 +251,7 @@ class NASADataManager:
             slope_uncertainty_deg=None,
             effective_resolution_m=LOLA_SPATIAL_RESOLUTION_M,
             observation_count=None,
-            quality_warnings="Operating on calibrated baseline DEM. Acquire authentic NASA rasters via /api/data/download for primary mission evaluation.",
+            quality_warnings="Operating on calibrated baseline synthetic DEM. Acquire authentic NASA rasters via /api/data/download for primary mission evaluation.",
         )
 
 

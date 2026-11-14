@@ -37,29 +37,35 @@ class DEMService:
         """Converts Lunar South Pole Stereographic coordinates (meters) to planetocentric lat/lon (degrees)."""
         return _math_polar_stereo_to_latlon(x, y, radius_m=MOON_RADIUS_METERS)
 
-        colat_rad = 2.0 * math.atan(r / (2.0 * MOON_RADIUS_METERS))
-        lat_rad = colat_rad - (math.pi / 2.0)
-        lat_deg = math.degrees(lat_rad)
-
-        lon_rad = math.atan2(x, -y)
-        lon_deg = math.degrees(lon_rad)
-        if lon_deg < 0:
-            lon_deg += 360.0
-
-        return lat_deg, lon_deg
-
     def get_elevation_at_point(self, lat_deg: float, lon_deg: float) -> Tuple[Optional[float], bool, bool]:
         """Extracts single-point elevation from the DEM without loading the entire raster.
 
         Returns:
             (elevation_m, is_valid_point, is_nodata)
         """
-        if not self.is_available():
-            logger.warning("DEM dataset file not available at %s", self.dem_path)
-            return None, False, False
-
         # Must be in lunar South Pole latitude envelope (-90 to -80 deg)
         if not (-90.0 <= lat_deg <= -80.0):
+            return None, False, False
+
+        # Priority 1: Check if covered by verified high-res NASA Product 78 (Site 01)
+        try:
+            from Backend.app.config.dataset_settings import dataset_settings
+            from Backend.app.services.data_sources.pgda_product78 import pgda_product78
+            from Backend.app.services.geospatial.raster_sampler import raster_sampler
+
+            if pgda_product78.is_available() and pgda_product78.covers_point(lat_deg, lon_deg):
+                surf_def = dataset_settings.datasets.get("pgda78_site01_surf")
+                if surf_def and surf_def.absolute_local_path.exists():
+                    val, valid, nodata = raster_sampler.sample_point_value(
+                        surf_def.absolute_local_path, lat_deg, lon_deg, nodata_val=surf_def.nodata
+                    )
+                    if valid:
+                        return val, valid, nodata
+        except Exception:
+            pass
+
+        if not self.is_available():
+            logger.warning("DEM dataset file not available at %s", self.dem_path)
             return None, False, False
 
         x, y = self.latlon_to_polar_stereo(lat_deg, lon_deg)
@@ -95,10 +101,28 @@ class DEMService:
         """Reads a spatial window of raster pixels centered around coordinates.
 
         Memory-efficient: Only reads the requested bounding box into RAM.
+        Prefers verified high-resolution NASA rasters (Product 78) when available.
 
         Returns:
             (elevation_array, window_affine_transform, (pixel_res_x, pixel_res_y))
         """
+        # Priority 1: Check if covered by verified high-res NASA Product 78 (Site 01)
+        try:
+            from Backend.app.config.dataset_settings import dataset_settings
+            from Backend.app.services.data_sources.pgda_product78 import pgda_product78
+            from Backend.app.services.geospatial.raster_sampler import raster_sampler
+
+            if pgda_product78.is_available() and pgda_product78.covers_point(lat_deg, lon_deg):
+                surf_def = dataset_settings.datasets.get("pgda78_site01_surf")
+                if surf_def and surf_def.absolute_local_path.exists():
+                    data, win_transform, res = raster_sampler.sample_raster_window(
+                        surf_def.absolute_local_path, lat_deg, lon_deg, radius_m=radius_m
+                    )
+                    if data is not None and data.size > 0:
+                        return data, win_transform, res
+        except Exception:
+            pass
+
         if not self.is_available():
             return None, None, (0.0, 0.0)
 

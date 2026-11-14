@@ -41,7 +41,7 @@ class SiteScoringEngine:
     def __init__(self) -> None:
         self.version = CRITERIA_VERSION
 
-    def evaluate_suitability(self, req: ScoreRequest) -> ScoreResponse:
+    def evaluate_suitability(self, req: ScoreRequest, run_monte_carlo: bool = True) -> ScoreResponse:
         """Evaluates multi-criteria landing suitability with complete factor breakdown and coverage metrics."""
         warnings: List[str] = [PROVISIONAL_LIMITS_DISCLAIMER]
 
@@ -71,6 +71,28 @@ class SiteScoringEngine:
                 if science is None:
                     priority_map = {"high": 90.0, "medium": 75.0, "low": 50.0}
                     science = priority_map.get(site.priority.lower(), 75.0)
+
+        # Fallback: resolve from live point terrain if coordinates are provided and measurements omitted
+        if req.latitude is not None and req.longitude is not None:
+            if slope is None or roughness is None or elev is None:
+                try:
+                    from app.services.terrain_service import terrain_service
+                    pt = terrain_service.get_point_terrain(
+                        lat=req.latitude,
+                        lon=req.longitude,
+                        radius_m=req.radius_m or 50.0,
+                    )
+                    if pt and pt.is_valid_point:
+                        if slope is None and pt.slope_deg is not None:
+                            slope = pt.slope_deg
+                        if roughness is None and pt.roughness_m is not None:
+                            roughness = pt.roughness_m
+                        if elev is None and pt.elevation_m is not None:
+                            elev = pt.elevation_m
+                        if illum is None and pt.solar_illumination_pct is not None:
+                            illum = pt.solar_illumination_pct
+                except Exception as ex:
+                    warnings.append(f"Point terrain sampling note: {ex}")
 
         # 2. Extract and configure weights
         w = req.weights or ScoringWeights()
@@ -256,7 +278,7 @@ class SiteScoringEngine:
                 ml_pred = suitability_model_service.predict_suitability(
                     features=measurements_dict,
                     mission_profile=mission_profile,
-                    run_monte_carlo=True,
+                    run_monte_carlo=run_monte_carlo,
                 )
                 ml_score = ml_pred.ml_suitability_score
                 ml_version = ml_pred.model_version

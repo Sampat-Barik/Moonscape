@@ -39,6 +39,9 @@ class ScoreRequest(BaseModel):
     """Input payload to evaluate site suitability score."""
 
     site_id: Optional[str] = Field(None, description="Catalog site identifier (if scoring an existing site)")
+    latitude: Optional[float] = Field(None, ge=-90.0, le=90.0, description="Target latitude in degrees")
+    longitude: Optional[float] = Field(None, ge=-180.0, le=360.0, description="Target longitude in degrees")
+    radius_m: Optional[float] = Field(50.0, ge=10.0, le=25000.0, description="Evaluation radius in meters")
     slope_deg: Optional[float] = Field(None, ge=0.0, le=90.0, description="Topographic slope in degrees")
     max_slope_deg: Optional[float] = Field(None, ge=0.0, le=90.0, description="Peak localized slope in degrees")
     p95_slope_deg: Optional[float] = Field(None, ge=0.0, le=90.0, description="95th percentile slope in degrees")
@@ -58,6 +61,14 @@ class ScoreRequest(BaseModel):
     @classmethod
     def normalize_measurements_payload(cls, data: Any) -> Any:
         if isinstance(data, dict):
+            # Coordinate aliases
+            if "lat" in data and "latitude" not in data:
+                data["latitude"] = data["lat"]
+            if "lon" in data and "longitude" not in data:
+                data["longitude"] = data["lon"]
+            if "radius_meters" in data and "radius_m" not in data:
+                data["radius_m"] = data["radius_meters"]
+
             # If incoming data wraps measurements in a nested "measurements" dict, flatten them
             meas = data.get("measurements")
             if isinstance(meas, dict):
@@ -129,3 +140,43 @@ class ScoreResponse(BaseModel):
     warnings: List[str] = Field(default_factory=list, description="Caveats, coverage warnings, and threshold notices")
     criteria_version: str = Field("2.0-phase6", description="Scoring criteria and threshold version")
     disclaimer: str
+
+    # Convenience frontend-aligned aliases
+    score: Optional[float] = None
+    grade: Optional[str] = None
+    label: Optional[str] = None
+    breakdown: Optional[Dict[str, Optional[float]]] = None
+
+    @model_validator(mode="after")
+    def sync_frontend_aliases(self) -> "ScoreResponse":
+        if self.score is None:
+            self.score = self.overall_suitability_score
+        if self.label is None:
+            self.label = self.suitability_category
+        if self.grade is None and self.suitability_category:
+            cat = self.suitability_category
+            if "Higher" in cat or cat == "favorable":
+                self.grade = "A"
+            elif "Moderate" in cat or cat == "marginal":
+                self.grade = "B"
+            elif "Lower" in cat or cat == "unfavorable":
+                self.grade = "C"
+            elif "Disqualified" in cat:
+                self.grade = "F"
+            else:
+                self.grade = "N/A"
+        if self.breakdown is None:
+            bd: Dict[str, Optional[float]] = {}
+            for s in self.subscores:
+                bd[s.criterion] = s.normalized_subscore
+                # Add simplified / lowercase keys for robust frontend lookups
+                norm_key = s.criterion.lower().replace(" ", "_")
+                bd[norm_key] = s.normalized_subscore
+                if "slope" in norm_key and "slope" not in bd:
+                    bd["slope"] = s.normalized_subscore
+                elif "roughness" in norm_key and "roughness" not in bd:
+                    bd["roughness"] = s.normalized_subscore
+                elif "illumination" in norm_key and "illumination" not in bd:
+                    bd["illumination"] = s.normalized_subscore
+            self.breakdown = bd
+        return self

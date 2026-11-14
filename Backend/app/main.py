@@ -129,6 +129,14 @@ def get_spatial_coverage_alias(
     return DataCoverageResponse(**report)
 
 
+from Backend.app.schemas.dataset_schemas import DatasetCatalogResponse
+from Backend.app.routes.data_catalog import get_dataset_catalog
+
+@app.get(f"{api_prefix}/datasets", response_model=DatasetCatalogResponse, summary="List all registered NASA datasets (alias)")
+def get_datasets_alias() -> DatasetCatalogResponse:
+    return get_dataset_catalog()
+
+
 # ---------------------------------------------------------------------------
 # Root and Fallback Endpoints
 # ---------------------------------------------------------------------------
