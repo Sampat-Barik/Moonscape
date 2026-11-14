@@ -3,6 +3,8 @@
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
+from app.schemas.scoring import ScoreResponse
+
 
 class AnalysisRunRequest(BaseModel):
     """Input payload to trigger a landing zone raster analysis."""
@@ -87,4 +89,7 @@ class AnalysisRunResponse(BaseModel):
     disclaimer: str
     illumination: Optional[IlluminationSummary] = Field(
         None, description="Solar illumination and shadow analysis for landing zone"
+    )
+    suitability: Optional[ScoreResponse] = Field(
+        None, description="Preliminary multi-criteria landing suitability score evaluation"
     )

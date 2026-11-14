@@ -202,6 +202,7 @@ export interface AnalysisRunResponse {
   dataset_metadata: Record<string, any>;
   disclaimer: string;
   illumination?: IlluminationSummary | null;
+  suitability?: ScoreResponse | null;
 }
 
 export interface BoundingBox {
@@ -307,6 +308,9 @@ export interface ScoreRequest {
   site_id?: string;
   slope_deg?: number;
   roughness_m?: number;
+  elevation_m?: number;
+  crater_count?: number;
+  rock_count?: number;
   illumination_pct?: number;
   earth_visibility_pct?: number;
   science_value_rating?: number;
@@ -314,6 +318,9 @@ export interface ScoreRequest {
     slope_weight?: number;
     roughness_weight?: number;
     illumination_weight?: number;
+    crater_hazard_weight?: number;
+    rock_hazard_weight?: number;
+    elevation_weight?: number;
     communication_weight?: number;
     science_weight?: number;
   };
@@ -323,20 +330,37 @@ export interface FactorSubscore {
   criterion: string;
   raw_measurement: number | null;
   unit: string;
-  normalized_subscore: number;
+  normalized_subscore: number | null;
   weight: number;
-  weighted_contribution: number;
+  weighted_contribution: number | null;
+  status?: "available" | "missing";
+  preference_direction?: "lower_is_better" | "higher_is_better";
   description: string;
 }
 
 export interface ScoreResponse {
   site_id: string | null;
-  overall_suitability_score: number;
-  suitability_category: "Optimal" | "Nominal" | "Marginal" | "High Risk" | "Unsuitable";
+  overall_suitability_score: number | null;
+  suitability_category:
+    | "Higher preliminary suitability"
+    | "Moderate preliminary suitability"
+    | "Lower preliminary suitability"
+    | "Insufficient data"
+    | "Optimal"
+    | "Nominal"
+    | "Marginal"
+    | "High Risk"
+    | "Unsuitable";
+  score_coverage_pct: number;
+  missing_factors: string[];
+  evaluated_factors_count: number;
+  total_factors_count: number;
   subscores: FactorSubscore[];
   scoring_methodology: string;
   key_advantages: string[];
   critical_concerns: string[];
+  warnings?: string[];
+  criteria_version?: string;
   disclaimer: string;
 }
 

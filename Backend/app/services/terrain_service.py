@@ -31,7 +31,9 @@ from app.schemas.terrain import (
 )
 from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
 from Backend.app.services.illumination import illumination_service
+from Backend.app.services.site_scoring import site_scoring_engine
 from Backend.app.services.terrain_analysis import terrain_analysis_engine
+from app.schemas.scoring import ScoreRequest
 from maths.topography import (
     horn_slope_and_aspect,
     rms_surface_roughness,
@@ -214,6 +216,13 @@ class TerrainService:
                 epoch_iso=req.epoch_iso,
                 time_period=req.time_period or "annual_cycle",
             )
+            suitability_eval = site_scoring_engine.evaluate_suitability(
+                ScoreRequest(
+                    slope_deg=None,
+                    roughness_m=None,
+                    illumination_pct=illum_summary.cumulative_illumination_pct,
+                )
+            )
             return AnalysisRunResponse(
                 analysis_id=analysis_id,
                 center_lat=req.center_lat,
@@ -236,6 +245,7 @@ class TerrainService:
                 dataset_metadata={"error": "Terrain data unavailable for requested coordinate."},
                 disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
                 illumination=illum_summary,
+                suitability=suitability_eval,
             )
 
         elev_stats = TopographicStats(
@@ -292,6 +302,15 @@ class TerrainService:
             time_period=req.time_period or "annual_cycle",
         )
 
+        suitability_eval = site_scoring_engine.evaluate_suitability(
+            ScoreRequest(
+                slope_deg=res.slope.mean_slope_deg,
+                roughness_m=res.roughness.mean_roughness_m,
+                elevation_m=res.elevation.mean_elevation_m,
+                illumination_pct=illum_summary.cumulative_illumination_pct,
+            )
+        )
+
         return AnalysisRunResponse(
             analysis_id=analysis_id,
             center_lat=req.center_lat,
@@ -313,6 +332,7 @@ class TerrainService:
             dataset_metadata=metadata,
             disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
             illumination=illum_summary,
+            suitability=suitability_eval,
         )
 
 

@@ -70,3 +70,5 @@ class SiteCompareResponse(BaseModel):
     tradeoff_summary: str
     criteria_weights: Dict[str, float]
     disclaimer: str
+    criteria_version: Optional[str] = Field("2.0-phase6", description="Evaluation criteria and algorithm version")
+    warnings: List[str] = Field(default_factory=list, description="Comparative warnings and data disparity notes")

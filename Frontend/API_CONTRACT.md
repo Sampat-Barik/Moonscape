@@ -58,7 +58,7 @@ Returns details for a single candidate site by its unique slug.
 ---
 
 ### `POST /api/sites/compare`
-Evaluates and ranks multiple candidate sites against user-defined or default weights.
+Evaluates and ranks multiple candidate sites against user-defined or default weights with multi-criteria trade-off analysis.
 
 **Request Body:**
 ```json
@@ -80,15 +80,43 @@ Evaluates and ranks multiple candidate sites against user-defined or default wei
     {
       "site_id": "shackleton_connecting_ridge",
       "name": "Shackleton Connecting Ridge",
+      "latitude": -89.44,
+      "longitude": 222.50,
+      "elevation_m": -120.0,
+      "mean_slope_deg": 6.8,
+      "illumination_pct": 86.4,
+      "earth_visibility_pct": 68.2,
       "suitability_score": 83.25,
       "safety_rank": 1,
       "key_strengths": ["High solar power potential (86.4% illumination)"],
       "key_vulnerabilities": []
+    },
+    {
+      "site_id": "malapert_mountain",
+      "name": "Malapert Mountain",
+      "latitude": -84.90,
+      "longitude": 12.90,
+      "elevation_m": 5000.0,
+      "mean_slope_deg": 8.5,
+      "illumination_pct": 89.0,
+      "earth_visibility_pct": 91.0,
+      "suitability_score": 81.10,
+      "safety_rank": 2,
+      "key_strengths": ["Unmatched continuous Earth line-of-sight (91.0%)", "High solar illumination (89.0%)"],
+      "key_vulnerabilities": ["Moderate local slope (8.5 deg) on elevated massif flank"]
     }
   ],
   "top_recommended_site_id": "shackleton_connecting_ridge",
-  "tradeoff_summary": "Comparative analysis evaluates 2 candidates...",
-  "disclaimer": "..."
+  "tradeoff_summary": "Comparative analysis evaluates 2 candidates across topographic slope, solar illumination, direct-to-Earth communications, and scientific value. Shackleton Connecting Ridge leads primarily due to benign local relief despite moderate elevation.",
+  "criteria_weights": {
+    "slope": 0.40,
+    "illumination": 0.30,
+    "communication": 0.20,
+    "science": 0.10
+  },
+  "criteria_version": "2.0-phase6",
+  "warnings": [],
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
 }
 ```
 
@@ -287,6 +315,77 @@ Executes spatial analysis across a candidate landing zone bounded by a physical 
     "scientific_caveats": [
       "SCIENTIFIC NOTICE: Surface temperature (Kelvin) is a thermal brightness measurement governed by secondary radiative equilibrium and regolith thermal inertia. It is NOT a direct optical sunlight percentage measurement."
     ]
+  },
+  "suitability": {
+    "site_id": null,
+    "overall_suitability_score": 88.42,
+    "suitability_category": "Higher preliminary suitability",
+    "score_coverage_pct": 70.0,
+    "missing_factors": [
+      "Crater Hazards",
+      "Rock / Boulder Hazards",
+      "Direct-to-Earth Line-of-Sight",
+      "Scientific Exploration Prioritization"
+    ],
+    "evaluated_factors_count": 4,
+    "total_factors_count": 8,
+    "subscores": [
+      {
+        "criterion": "Topographic Slope",
+        "raw_measurement": 4.9,
+        "unit": "degrees",
+        "normalized_subscore": 93.8,
+        "weight": 0.30,
+        "weighted_contribution": 28.14,
+        "status": "available",
+        "preference_direction": "lower_is_better",
+        "description": "Critical lander tipping stability metric. Slopes below 5 deg are ideal for touchdown."
+      },
+      {
+        "criterion": "Terrain Roughness",
+        "raw_measurement": 0.08,
+        "unit": "meters RMS",
+        "normalized_subscore": 98.4,
+        "weight": 0.20,
+        "weighted_contribution": 19.68,
+        "status": "available",
+        "preference_direction": "lower_is_better",
+        "description": "Small-scale micro-topographic relief indicating boulder-field roughness and ground clearance risk."
+      },
+      {
+        "criterion": "Solar Illumination",
+        "raw_measurement": 86.4,
+        "unit": "percent",
+        "normalized_subscore": 86.4,
+        "weight": 0.20,
+        "weighted_contribution": 17.28,
+        "status": "available",
+        "preference_direction": "higher_is_better",
+        "description": "Solar energy generation potential and thermal environment stability."
+      },
+      {
+        "criterion": "Surface Elevation",
+        "raw_measurement": 1915.2,
+        "unit": "meters",
+        "normalized_subscore": 62.15,
+        "weight": 0.10,
+        "weighted_contribution": 6.22,
+        "status": "available",
+        "preference_direction": "higher_is_better",
+        "description": "Elevation above lunar reference datum (1737.4 km sphere). Higher elevations correlate with improved communication and illumination."
+      }
+    ],
+    "scoring_methodology": "Transparent Multi-Criteria Decision Analysis (MCDA) with non-redistributed missing factor penalty and missing-slope safety gate (Criteria v2.0-phase6).",
+    "key_advantages": [
+      "Gentle topographic slope profile (4.9 deg) minimizes lander tip-over risk",
+      "Benign micro-topographic roughness (0.08m) provides excellent footpad stability"
+    ],
+    "critical_concerns": [],
+    "warnings": [
+      "MISSING DATA NOTICE: 30.0% of criteria weight could not be evaluated due to unprovided hazard/communication inputs. Scores are computed solely over available factors without artificial zero-padding or weight redistribution."
+    ],
+    "criteria_version": "2.0-phase6",
+    "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
   }
 }
 ```
@@ -429,9 +528,144 @@ When no ML model is installed in `Backend/data/models/`, the API returns a grace
 
 ---
 
-## 7. Explainable Suitability Scoring
+## 7. Explainable Suitability Scoring (Phase 6 Engine)
 ### `POST /api/score`
-Calculates a composite suitability score (0-100) with complete factor breakdown.
+Calculates a transparent, configurable preliminary landing-site suitability score (0-100) using a multi-criteria decision analysis (MCDA) framework across six core physical and environmental factors.
+
+> **CRITICAL SCIENTIFIC PRINCIPLE:** This score is an early-stage computational screening indicator, **not a landing-safety certification**. All thresholds are provisional engineering assumptions derived from lunar lander design envelopes and peer-reviewed lunar South Pole literature.
+
+#### Supported Factors & Engineering Rationales:
+1. **Topographic Slope (`slope_deg`):** Primary lander tip-over risk factor. Normalized against Apollo LM (12 deg margin) and Artemis Human Landing System guidelines (optimal < 5 deg, acceptable < 8 deg, critical threshold 15 deg). Direction: *Lower is better*.
+2. **Terrain Roughness (`roughness_m`):** RMS micro-topographic height deviation. Indicates boulder fields and sub-pixel terrain irregularities affecting footpad clearance and differential settling. Direction: *Lower is better*.
+3. **Solar Illumination (`illumination_pct`):** Photovoltaic solar array power generation and thermal environment stability. High cumulative illumination avoids deep cryogenic night survival demands. Direction: *Higher is better*.
+4. **Crater Hazards (`crater_count`):** Direct touchdown stability hazard. Rim slopes and structural depressions risk uneven landing or tip-over. Direction: *Lower is better*.
+5. **Rock / Boulder Hazards (`rock_count`):** Obstacles exceeding lander belly pan clearance (> 0.3-0.5m) that could puncture fuel tanks, tip footpads, or damage engine bells. Direction: *Lower is better*.
+6. **Surface Elevation (`elevation_m`):** Relative elevation on the South Pole rim massif. Higher elevations correlate strongly with extended solar visibility and direct-to-Earth line-of-sight. Direction: *Higher is better*.
+
+#### Missing Data & Safety-Gate Rules:
+- **No Artificial Zero-Padding:** Unprovided factors are NOT treated as zero (which would falsely inflate or penalize scores).
+- **No Silent Weight Redistribution:** Unmeasured criteria are explicitly identified in `missing_factors`.
+- **Score Coverage:** `score_coverage_pct` explicitly reports what percentage of criteria weight has real measurements. If coverage is < 50%, the overall score is set to `null` and category is `"Insufficient data"`.
+- **Mandatory Slope Safety Gate:** Because slope is the non-negotiable physical tip-over risk factor, **if slope is missing, the engine refuses to certify a score** (`overall_suitability_score: null`, category: `"Insufficient data"`).
+
+---
+
+#### Mode A: Arbitrary Landing Zone Multi-Factor Scoring
+
+**Request Body:**
+```json
+{
+  "slope_deg": 4.5,
+  "roughness_m": 0.12,
+  "elevation_m": 1850.0,
+  "crater_count": 1,
+  "rock_count": 0,
+  "illumination_pct": 82.5,
+  "weights": {
+    "slope_weight": 0.30,
+    "roughness_weight": 0.20,
+    "illumination_weight": 0.20,
+    "crater_hazard_weight": 0.10,
+    "rock_hazard_weight": 0.10,
+    "elevation_weight": 0.10
+  }
+}
+```
+
+**Response (200 OK — Fully Evaluated):**
+```json
+{
+  "site_id": null,
+  "overall_suitability_score": 93.42,
+  "suitability_category": "Higher preliminary suitability",
+  "score_coverage_pct": 100.0,
+  "missing_factors": [],
+  "evaluated_factors_count": 6,
+  "total_factors_count": 6,
+  "subscores": [
+    {
+      "criterion": "Topographic Slope",
+      "raw_measurement": 4.5,
+      "unit": "degrees",
+      "normalized_subscore": 95.5,
+      "weight": 0.30,
+      "weighted_contribution": 28.65,
+      "status": "available",
+      "preference_direction": "lower_is_better",
+      "description": "Critical lander tipping stability metric. Slopes below 5 deg are ideal for touchdown."
+    },
+    {
+      "criterion": "Terrain Roughness",
+      "raw_measurement": 0.12,
+      "unit": "meters RMS",
+      "normalized_subscore": 95.2,
+      "weight": 0.20,
+      "weighted_contribution": 19.04,
+      "status": "available",
+      "preference_direction": "lower_is_better",
+      "description": "Small-scale micro-topographic relief indicating boulder-field roughness and ground clearance risk."
+    },
+    {
+      "criterion": "Solar Illumination",
+      "raw_measurement": 82.5,
+      "unit": "percent",
+      "normalized_subscore": 82.5,
+      "weight": 0.20,
+      "weighted_contribution": 16.50,
+      "status": "available",
+      "preference_direction": "higher_is_better",
+      "description": "Solar energy generation potential and thermal environment stability."
+    },
+    {
+      "criterion": "Crater Hazards",
+      "raw_measurement": 1.0,
+      "unit": "detected craters",
+      "normalized_subscore": 90.0,
+      "weight": 0.10,
+      "weighted_contribution": 9.00,
+      "status": "available",
+      "preference_direction": "lower_is_better",
+      "description": "Touchdown surface morphology risk. Craters introduce rim slope and rim-ejecta instability."
+    },
+    {
+      "criterion": "Rock / Boulder Hazards",
+      "raw_measurement": 0.0,
+      "unit": "detected rocks",
+      "normalized_subscore": 100.0,
+      "weight": 0.10,
+      "weighted_contribution": 10.00,
+      "status": "available",
+      "preference_direction": "lower_is_better",
+      "description": "Lander belly-pan clearance and landing leg collision risk from surface rock clusters."
+    },
+    {
+      "criterion": "Surface Elevation",
+      "raw_measurement": 1850.0,
+      "unit": "meters",
+      "normalized_subscore": 61.56,
+      "weight": 0.10,
+      "weighted_contribution": 6.16,
+      "status": "available",
+      "preference_direction": "higher_is_better",
+      "description": "Elevation above lunar reference datum (1737.4 km sphere). Higher elevations correlate with improved communication and illumination."
+    }
+  ],
+  "scoring_methodology": "Transparent Multi-Criteria Decision Analysis (MCDA) with non-redistributed missing factor penalty and missing-slope safety gate (Criteria v2.0-phase6).",
+  "key_advantages": [
+    "Gentle topographic slope profile (4.5 deg) minimizes lander tip-over risk",
+    "Benign micro-topographic roughness (0.12m) provides excellent footpad stability",
+    "Free of detected hazardous rocks/boulders in landing zone"
+  ],
+  "critical_concerns": [],
+  "warnings": [],
+  "criteria_version": "2.0-phase6",
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
+}
+```
+
+---
+
+#### Mode B: Catalog Site Evaluation by `site_id`
 
 **Request Body:**
 ```json
@@ -440,25 +674,83 @@ Calculates a composite suitability score (0-100) with complete factor breakdown.
 }
 ```
 
-**Response (200 OK):**
+**Response (200 OK — Graceful Handling of Missing Factors):**
 ```json
 {
   "site_id": "shackleton_connecting_ridge",
-  "overall_suitability_score": 80.48,
-  "suitability_category": "Nominal",
+  "overall_suitability_score": 83.25,
+  "suitability_category": "Higher preliminary suitability",
+  "score_coverage_pct": 100.0,
+  "missing_factors": [],
+  "evaluated_factors_count": 4,
+  "total_factors_count": 4,
   "subscores": [
     {
       "criterion": "Topographic Slope",
       "raw_measurement": 6.8,
       "unit": "degrees",
-      "normalized_subscore": 89.2,
-      "weight": 0.35,
-      "weighted_contribution": 31.22
+      "normalized_subscore": 86.4,
+      "weight": 0.40,
+      "weighted_contribution": 34.56,
+      "status": "available",
+      "preference_direction": "lower_is_better",
+      "description": "Critical lander tipping stability metric. Slopes below 5 deg are ideal for touchdown."
+    },
+    {
+      "criterion": "Solar Illumination",
+      "raw_measurement": 86.4,
+      "unit": "percent",
+      "normalized_subscore": 86.4,
+      "weight": 0.30,
+      "weighted_contribution": 25.92,
+      "status": "available",
+      "preference_direction": "higher_is_better",
+      "description": "Solar energy generation potential and thermal environment stability."
+    },
+    {
+      "criterion": "Direct-to-Earth Line-of-Sight",
+      "raw_measurement": 68.2,
+      "unit": "percent",
+      "normalized_subscore": 68.2,
+      "weight": 0.20,
+      "weighted_contribution": 13.64,
+      "status": "available",
+      "preference_direction": "higher_is_better",
+      "description": "Direct communication link availability with Earth ground stations."
+    },
+    {
+      "criterion": "Scientific Exploration Prioritization",
+      "raw_measurement": 91.3,
+      "unit": "rating (0-100)",
+      "normalized_subscore": 91.3,
+      "weight": 0.10,
+      "weighted_contribution": 9.13,
+      "status": "available",
+      "preference_direction": "higher_is_better",
+      "description": "Artemis III science priorities (volatile accessibility, cryogenic sample return)."
     }
   ],
-  "key_advantages": ["Favorable topographic slope profile", "Strong solar energy and thermal stability"]
+  "scoring_methodology": "Transparent Multi-Criteria Decision Analysis (MCDA) with non-redistributed missing factor penalty and missing-slope safety gate (Criteria v2.0-phase6).",
+  "key_advantages": [
+    "High cumulative solar illumination (86.4%) supports long-duration surface power",
+    "Favorable topographic slope profile (6.8 deg) within nominal landing envelope"
+  ],
+  "critical_concerns": [],
+  "warnings": [],
+  "criteria_version": "2.0-phase6",
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
 }
 ```
+
+---
+
+#### Preliminary Suitability Categories:
+| Category | Score Range | Description |
+|---|---|---|
+| **Higher preliminary suitability** | $\ge 75.0$ | Favorable terrain, benign slopes, robust illumination, low hazard density. |
+| **Moderate preliminary suitability** | $50.0 \le \text{Score} < 75.0$ | Acceptable operational envelope; may require precision landing or hazard avoidance maneuvers. |
+| **Lower preliminary suitability** | $< 50.0$ | Marginal conditions, steep terrain gradients, elevated boulder/crater counts, or severe shadow. |
+| **Insufficient data** | `null` | Crucial safety-critical data missing (e.g. slope unavailable, or overall data coverage $< 50\%$). |
 
 ---
 
