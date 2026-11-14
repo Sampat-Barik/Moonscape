@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moonscape — Lunar South Pole Landing Site Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-group">
+      <h1>MOONSCAPE</h1>
+      <p>NASA Lunar South Pole Landing-Site Analysis Platform</p>
+    </div>
+    <div class="health-badge" id="healthBadge">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="healthText">Connecting to backend...</span>
+    </div>
+  </header>
+
+  <div class="grid-layout">
+    
+    <!-- LEFT PANEL: SITE SELECTION & CONTROLS -->
+    <aside>
+      <!-- Candidate Sites Card -->
+      <div class="card">
+        <h2>Target Candidate Site</h2>
+        <div class="form-group">
+          <label for="siteSelect">Pre-registered Artemis III Sites</label>
+          <select id="siteSelect">
+            <option value="">-- Choose Candidate Site --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lunar Coordinates Card -->
+      <div class="card">
+        <h2>Lunar Coordinates</h2>
+        <div class="form-group">
+          <label for="latInput">Latitude (° South: -90.0 to -80.0)</label>
+          <input type="number" id="latInput" step="0.01" min="-90.0" max="-80.0" value="-89.44">
+        </div>
+        <div class="form-group">
+          <label for="lonInput">Longitude (° East: 0.0 to 360.0)</label>
+          <input type="number" id="lonInput" step="0.01" min="-180.0" max="360.0" value="222.50">
+        </div>
+        <div class="form-group">
+          <label for="radiusInput">Analysis Radius (meters)</label>
+          <input type="number" id="radiusInput" min="100" max="10000" step="100" value="1000">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button class="btn-secondary" id="btnSamplePoint" style="flex: 1;">Sample Point</button>
+          <button class="btn-primary" id="btnRunAnalysis" style="flex: 2;">Run Full Analysis</button>
+        </div>
+      </div>
+
+      <!-- Candidate Sites Comparison -->
+      <div class="card">
+        <h2>Multi-Site Comparison</h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Compare registered candidate sites across slopes, illumination, communications, and science.
+        </p>
+        <button class="btn-secondary" id="btnCompareSites" style="width: 100%;">Compare Top Artemis Sites</button>
+        <div id="compareResults" style="margin-top: 12px; font-size: 13px;"></div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: SCIENTIFIC RESULTS DASHBOARD -->
+    <main>
+      <!-- Results Container -->
+      <div id="resultsContainer">
+        <!-- Default State -->
+        <div class="card" id="welcomeCard">
+          <h2>Welcome to Moonscape</h2>
+          <p style="color: var(--text-muted); font-size: 14px;">
+            Select an Artemis III candidate landing site from the left panel or enter arbitrary lunar South Pole coordinates, then click <b>Run Full Analysis</b> to evaluate topographic slopes, surface roughness, solar illumination, touchdown hazards, and transparent suitability scores.
+          </p>
+        </div>
+
+        <!-- Analysis Results Card (Hidden until analysis runs) -->
+        <div class="card" id="analysisCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 id="analysisTitle" style="margin-bottom: 0;">Landing Zone Analysis</h2>
+            <span id="analysisIdBadge" style="font-size: 11px; background: var(--bg-input); padding: 4px 8px; border-radius: 4px; font-family: monospace;">ANL-001</span>
+          </div>
+
+          <!-- Topographic Metrics -->
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Mean Elevation</div>
+              <div class="value" id="valElevation">-- m</div>
+              <div class="sub" id="subElevationRelief">Relief: -- m</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Mean Slope</div>
+              <div class="value" id="valSlope">--°</div>
+              <div class="sub" id="subSlopeMax">Peak: --°</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">RMS Roughness</div>
+              <div class="value" id="valRoughness">-- m</div>
+              <div class="sub">15m baseline</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Safe Touchdown Area</div>
+              <div class="value" id="valSafeFraction">--%</div>
+              <div class="sub" id="subFeasibility">Feasibility: Favorable</div>
+            </div>
+          </div>
+
+          <!-- Slope Distribution Bar -->
+          <label>Horn (1981) Slope Distribution Breakdown</label>
+          <div class="slope-bar">
+            <div class="seg-ideal" id="barIdeal" style="width: 60%;" title="Ideal <= 5°"></div>
+            <div class="seg-accept" id="barAccept" style="width: 25%;" title="Acceptable 5-10°"></div>
+            <div class="seg-marginal" id="barMarginal" style="width: 10%;" title="Marginal 10-15°"></div>
+            <div class="seg-critical" id="barCritical" style="width: 5%;" title="Critical > 15°"></div>
+          </div>
+          <div class="bar-legend">
+            <span>Ideal (&le;5°): <b id="lblIdeal">0%</b></span>
+            <span>Acceptable (5-10°): <b id="lblAccept">0%</b></span>
+            <span>Marginal (10-15°): <b id="lblMarginal">0%</b></span>
+            <span>Critical (&gt;15°): <b id="lblCritical">0%</b></span>
+          </div>
+
+          <!-- Illumination & Thermal Section -->
+          <h2 style="margin-top: 20px;">Solar Illumination & Polar Environment</h2>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Cumulative Sunlight</div>
+              <div class="value" id="valCumIllum">--%</div>
+              <div class="sub">Draconic precession cycle</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Instantaneous Sunlit</div>
+              <div class="value" id="valInstIllum">--%</div>
+              <div class="sub" id="subPsr">PSR: NO</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Surface Temperature</div>
+              <div class="value" id="valTemp">-- K</div>
+              <div class="sub">Secondary radiative balance</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Touchdown Hazards Card -->
+        <div class="card" id="hazardsCard" style="display: none;">
+          <h2>Touchdown Hazard Detection (Optical & Morphological)</h2>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">Hazard Status</div>
+              <div class="value" id="valHazardStatus" style="font-size: 16px;">--</div>
+              <div class="sub" id="valHazardModel">Model: LOLA Morphological</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Craters Detected</div>
+              <div class="value" id="valCraterCount">--</div>
+              <div class="sub">Landing footprint</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Rocks / Boulders</div>
+              <div class="value" id="valRockCount">--</div>
+              <div class="sub">Belly-pan clearance hazard</div>
+            </div>
+          </div>
+          <div id="hazardNotice" style="font-size: 12px; color: var(--accent-gold); margin-top: 8px;"></div>
+        </div>
+
+        <!-- Suitability Scoring Card -->
+        <div class="card" id="suitabilityCard" style="display: none;">
+          <h2>Multi-Criteria Decision Analysis (MCDA v2.0-phase6)</h2>
+          <div class="suitability-banner" id="suitabilityBanner">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted);">Overall Suitability Score</span>
+                <div style="font-size: 28px; font-weight: 800;" id="valSuitabilityScore">--/100</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 12px; text-transform: uppercase; color: var(--text-muted);">Preliminary Category</span>
+                <div style="font-size: 18px; font-weight: 700;" id="valSuitabilityCategory">Higher preliminary suitability</div>
+                <span style="font-size: 11px; color: var(--text-muted);" id="valScoreCoverage">Coverage: 100%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Factor Breakdown Table -->
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Criterion</th>
+                  <th>Raw Value</th>
+                  <th>Subscore</th>
+                  <th>Weight</th>
+                  <th>Contribution</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="subscoreTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AI Scientific Explainer Card -->
+        <div class="card" id="aiCard" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2>AI Scientific Explainer</h2>
+            <button class="btn-primary" id="btnRequestAi" style="width: auto; padding: 6px 14px; font-size: 12px;">
+              Explain Analysis
+            </button>
+          </div>
+          <div id="aiLoading" style="display: none; padding: 12px; text-align: center; color: var(--text-muted);">
+            <div class="loading-spinner"></div> Synthesizing physical measurements...
+          </div>
+          <div id="aiContent" style="display: none;">
+            <div class="ai-narrative" id="aiExplanation"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <label style="color: var(--accent-green);">Favourable Operational Factors</label>
+                <ul class="bullet-list" id="aiPositiveFactors"></ul>
+              </div>
+              <div>
+                <label style="color: var(--accent-gold);">Identified Operational Risks</label>
+                <ul class="bullet-list risks" id="aiRiskFactors"></ul>
+              </div>
+            </div>
+            <div style="margin-top: 14px;">
+              <label>Preliminary Conclusion</label>
+              <p id="aiConclusion" style="font-size: 13px; font-style: italic; color: var(--accent-cyan);"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Generation Card -->
+        <div class="card" id="reportCard" style="display: none;">
+          <h2>Scientific Mission Report Generator</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+            Compile the complete 19-element scientific assessment into a publication-quality JSON report or a downloadable multi-page PDF.
+          </p>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-primary" id="btnDownloadPdf" style="flex: 1;">
+              📄 Download Scientific PDF Report
+            </button>
+            <button class="btn-secondary" id="btnViewJsonReport" style="flex: 1;">
+              🔍 View JSON Report
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- SCIENTIFIC DISCLAIMER FOOTER -->
+  <footer class="disclaimer-footer">
+    <p id="disclaimerText">
+      DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
