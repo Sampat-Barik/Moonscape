@@ -124,32 +124,82 @@ Provides map bounds, polar projection details, default zoom levels, and colormap
 
 ---
 
-## 4. Point Terrain Query
-### `GET /api/terrain?lat={latitude}&lon={longitude}`
-Queries elevation, Horn slope, roughness, and preliminary landing safety classification at a specific coordinate.
+## 4. Point Terrain & Local Neighborhood Query
+### `GET /api/terrain?lat={latitude}&lon={longitude}&radius_m={radius}`
+Queries elevation, slope, surface roughness, relief variation, and preliminary landing safety classification at a specific coordinate and physical radius.
 
 **Query Parameters:**
-- `lat`: float (-90.0 to +90.0)
-- `lon`: float (-180.0 to +360.0)
+- `lat`: float (-90.0 to +90.0) — Planetocentric latitude in degrees
+- `lon`: float (-180.0 to +360.0) — Longitude in degrees
+- `radius_m`: float (optional, default: `50.0`, range `10.0` to `25000.0`) — Physical radius in meters
 
 **Response (200 OK):**
 ```json
 {
-  "latitude": -89.9,
-  "longitude": 0.0,
+  "latitude": -89.46,
+  "longitude": 222.0,
   "is_valid_point": true,
   "is_nodata": false,
-  "elevation_m": -3840.5,
-  "slope_deg": 12.4,
-  "roughness_m": 0.85,
-  "aspect_deg": 184.2,
-  "solar_illumination_pct": 32.5,
-  "landing_hazard_classification": "marginal",
+  "elevation_m": 1934.41,
+  "slope_deg": 3.78,
+  "roughness_m": 0.04,
+  "aspect_deg": 354.5,
+  "solar_illumination_pct": 92.0,
+  "landing_hazard_classification": "safe",
   "dataset_info": {
-    "dataset_name": "NASA LRO LOLA (Lunar Orbiter Laser Altimeter)",
-    "product_id": "LDEM_80S_100M",
-    "spatial_resolution_m": 100.0
-  }
+    "dataset_name": "NASA PGDA Product 78 (LOLA 5m/pixel Candidate Site DEM)",
+    "product_id": "Site01_final_adj_5mpp_surf",
+    "spatial_resolution_m": 5.0,
+    "vertical_uncertainty_m": 0.2,
+    "slope_method": "NASA GSFC Precomputed Topographic Slope Raster",
+    "roughness_baseline_m": 15.0,
+    "citation": "Barker, M. K., et al. (2021). High-resolution lunar south pole digital elevation models from LOLA and LROC. Planetary and Space Science, 203, 105119.",
+    "is_measured_data": true,
+    "source_url": "https://pgda.gsfc.nasa.gov/products/78",
+    "crs": "ESRI:104903 (Lunar South Polar Stereographic)",
+    "reference_frame": "MOON_ME (Mean Earth / Polar Axis) DE421, R=1737400m"
+  },
+  "source_tier": "Tier 2 (High-Resolution 5m Candidate Region)",
+  "uncertainty_elevation_m": 0.2,
+  "uncertainty_slope_deg": 1.7,
+  "notes": "Analysis computed over physical disc of 50.0m radius.",
+  "analysis_radius_m": 50.0,
+  "elevation_summary": {
+    "point_m": 1934.41,
+    "min_m": 1931.2,
+    "max_m": 1938.5,
+    "mean_m": 1934.8,
+    "variation_m": 7.3,
+    "std_dev_m": 1.8,
+    "units": "meters"
+  },
+  "slope_summary": {
+    "point_deg": 3.78,
+    "min_deg": 1.2,
+    "max_deg": 6.4,
+    "mean_deg": 3.65,
+    "std_dev_deg": 1.1,
+    "method": "NASA GSFC Precomputed Topographic Slope Raster",
+    "units": "degrees",
+    "ideal_pct": 88.0,
+    "acceptable_pct": 12.0,
+    "marginal_pct": 0.0,
+    "critical_hazardous_pct": 0.0
+  },
+  "roughness_summary": {
+    "point_m": 0.04,
+    "min_m": 0.01,
+    "max_m": 0.09,
+    "mean_m": 0.04,
+    "std_dev_m": 0.02,
+    "method": "Root-Mean-Square (RMS) Residual Height Deviation from Local Neighborhood",
+    "kernel_size": 3,
+    "baseline_m": 15.0,
+    "units": "meters"
+  },
+  "total_pixels_in_disc": 314,
+  "valid_pixels_in_disc": 314,
+  "nodata_pixels_in_disc": 0
 }
 ```
 
@@ -157,16 +207,17 @@ Queries elevation, Horn slope, roughness, and preliminary landing safety classif
 
 ## 5. Landing Zone Spatial Analysis
 ### `POST /api/analysis/run`
-Executes windowed raster analysis across a candidate landing zone.
+Executes spatial analysis across a candidate landing zone bounded by a physical distance radius in meters.
 
 **Request Body:**
 ```json
 {
-  "center_lat": -89.44,
-  "center_lon": 222.50,
-  "radius_meters": 1500.0,
+  "center_lat": -89.46,
+  "center_lon": 222.00,
+  "radius_meters": 1000.0,
   "max_acceptable_slope_deg": 10.0,
-  "max_acceptable_roughness_m": 0.5
+  "max_acceptable_roughness_m": 0.5,
+  "roughness_kernel_size": 3
 }
 ```
 
@@ -174,19 +225,51 @@ Executes windowed raster analysis across a candidate landing zone.
 ```json
 {
   "analysis_id": "ANL-A1B2C3D4",
-  "total_samples": 49,
-  "valid_samples": 49,
+  "center_lat": -89.46,
+  "center_lon": 222.0,
+  "radius_meters": 1000.0,
+  "total_samples": 125600,
+  "valid_samples": 125600,
   "nodata_samples": 0,
-  "elevation": { "min_value": -320.0, "max_value": 110.0, "mean_value": -115.0, "units": "meters" },
-  "slope": { "min_value": 2.1, "max_value": 14.8, "mean_value": 6.8, "units": "degrees" },
-  "slope_distribution": {
-    "ideal_pct": 42.0,
-    "acceptable_pct": 46.0,
-    "marginal_pct": 12.0,
-    "critical_hazardous_pct": 0.0
+  "elevation": {
+    "min_value": 1820.4,
+    "max_value": 2010.8,
+    "mean_value": 1915.2,
+    "median_value": 1934.4,
+    "std_dev": 32.5,
+    "variation": 190.4,
+    "units": "meters"
   },
-  "safe_touchdown_fraction_pct": 88.0,
-  "preliminary_feasibility": "favorable"
+  "slope": {
+    "min_value": 0.8,
+    "max_value": 18.2,
+    "mean_value": 4.9,
+    "median_value": 3.8,
+    "std_dev": 2.6,
+    "units": "degrees"
+  },
+  "slope_distribution": {
+    "ideal_pct": 68.4,
+    "acceptable_pct": 24.1,
+    "marginal_pct": 6.2,
+    "critical_hazardous_pct": 1.3
+  },
+  "roughness_mean_m": 0.08,
+  "roughness_max_m": 0.42,
+  "roughness_baseline_m": 15.0,
+  "roughness_method": "Root-Mean-Square (RMS) Residual Height Deviation from Local Neighborhood",
+  "slope_method": "NASA GSFC Precomputed Topographic Slope Raster",
+  "safe_touchdown_fraction_pct": 92.5,
+  "preliminary_feasibility": "favorable",
+  "dataset_metadata": {
+    "source_tier": "Tier 2 (High-Resolution 5m Candidate Region)",
+    "dataset_name": "NASA PGDA Product 78 (LOLA 5m/pixel Candidate Site DEM)",
+    "product_id": "Site01_final_adj_5mpp_surf",
+    "spatial_resolution_m": 5.0,
+    "crs": "ESRI:104903 (Lunar South Polar Stereographic)",
+    "is_measured_data": true
+  },
+  "disclaimer": "PRELIMINARY SCIENTIFIC FEASIBILITY ONLY. NOT CERTIFIED LANDING SAFETY."
 }
 ```
 

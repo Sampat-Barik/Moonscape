@@ -61,6 +61,42 @@ export interface MapConfigResponse {
   }>;
 }
 
+export interface ElevationSummary {
+  point_m: number | null;
+  min_m: number | null;
+  max_m: number | null;
+  mean_m: number | null;
+  variation_m: number | null; // Macro relief: max - min
+  std_dev_m: number | null;
+  units: string;
+}
+
+export interface SlopeSummary {
+  point_deg: number | null;
+  min_deg: number | null;
+  max_deg: number | null;
+  mean_deg: number | null;
+  std_dev_deg: number | null;
+  method: string;
+  units: string;
+  ideal_pct?: number | null;
+  acceptable_pct?: number | null;
+  marginal_pct?: number | null;
+  critical_hazardous_pct?: number | null;
+}
+
+export interface RoughnessSummary {
+  point_m: number | null;
+  min_m: number | null;
+  max_m: number | null;
+  mean_m: number | null;
+  std_dev_m: number | null;
+  method: string;
+  kernel_size: number;
+  baseline_m: number;
+  units: string;
+}
+
 export interface TerrainResponse {
   latitude: number;
   longitude: number;
@@ -84,11 +120,22 @@ export interface TerrainResponse {
     slope_uncertainty_deg?: number | null;
     effective_resolution_m?: number | null;
     is_measured_data?: boolean;
+    source_url?: string | null;
+    crs?: string | null;
+    reference_frame?: string | null;
+    quality_warnings?: string | null;
   };
   source_tier?: string | null;
   uncertainty_elevation_m?: number | null;
   uncertainty_slope_deg?: number | null;
   notes: string | null;
+  analysis_radius_m?: number | null;
+  elevation_summary?: ElevationSummary | null;
+  slope_summary?: SlopeSummary | null;
+  roughness_summary?: RoughnessSummary | null;
+  total_pixels_in_disc?: number | null;
+  valid_pixels_in_disc?: number | null;
+  nodata_pixels_in_disc?: number | null;
 }
 
 export interface AnalysisRunRequest {
@@ -97,6 +144,7 @@ export interface AnalysisRunRequest {
   radius_meters?: number;
   max_acceptable_slope_deg?: number;
   max_acceptable_roughness_m?: number;
+  roughness_kernel_size?: number;
 }
 
 export interface TopographicStats {
@@ -105,6 +153,7 @@ export interface TopographicStats {
   mean_value: number | null;
   median_value: number | null;
   std_dev: number | null;
+  variation?: number | null;
   units: string;
 }
 
@@ -127,6 +176,10 @@ export interface AnalysisRunResponse {
   slope: TopographicStats;
   slope_distribution: SlopeDistribution;
   roughness_mean_m: number | null;
+  roughness_max_m?: number | null;
+  roughness_baseline_m?: number | null;
+  roughness_method?: string | null;
+  slope_method?: string | null;
   safe_touchdown_fraction_pct: number;
   preliminary_feasibility: "favorable" | "marginal" | "unfavorable" | "insufficient_data";
   dataset_metadata: Record<string, any>;

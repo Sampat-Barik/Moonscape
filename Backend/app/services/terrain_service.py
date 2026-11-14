@@ -3,7 +3,6 @@
 import uuid
 from typing import Optional, Tuple
 import numpy as np
-from scipy.ndimage import convolve
 
 from app.core.constants import (
     LOLA_DATASET_NAME,
@@ -23,9 +22,15 @@ from app.schemas.analysis import (
     SlopeDistribution,
     TopographicStats,
 )
-from app.schemas.terrain import TerrainDatasetInfo, TerrainResponse
-from app.services.dem_service import dem_service
-from Backend.app.services.geospatial.terrain_source_selector import terrain_source_selector
+from app.schemas.terrain import (
+    ElevationSummary,
+    RoughnessSummary,
+    SlopeSummary,
+    TerrainDatasetInfo,
+    TerrainResponse,
+)
+from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from Backend.app.services.terrain_analysis import terrain_analysis_engine
 from maths.topography import (
     horn_slope_and_aspect,
     rms_surface_roughness,
@@ -50,21 +55,157 @@ class TerrainService:
         """Calculates surface roughness (RMS height deviation) using the maths package."""
         return rms_surface_roughness(elevation, kernel_size=kernel_size)
 
-    def get_point_terrain(self, lat: float, lon: float) -> TerrainResponse:
+    def get_point_terrain(self, lat: float, lon: float, radius_m: float = 50.0) -> TerrainResponse:
         """Extracts topographic attributes at coordinate using highest-resolution authentic NASA data."""
-        return terrain_source_selector.get_point_terrain(lat=lat, lon=lon)
+        is_valid_coord, val_msg = coordinate_manager.validate_coordinates(lat, lon)
+        if not is_valid_coord or not coordinate_manager.is_in_south_pole_zone(lat):
+            return TerrainResponse(
+                latitude=lat,
+                longitude=lon,
+                is_valid_point=False,
+                is_nodata=False,
+                elevation_m=None,
+                slope_deg=None,
+                roughness_m=None,
+                aspect_deg=None,
+                solar_illumination_pct=None,
+                landing_hazard_classification="nodata",
+                dataset_info=TerrainDatasetInfo(
+                    dataset_name=LOLA_DATASET_NAME,
+                    product_id=LOLA_PRODUCT_ID,
+                    spatial_resolution_m=LOLA_SPATIAL_RESOLUTION_M,
+                    vertical_uncertainty_m=LOLA_VERTICAL_ACCURACY_M,
+                    slope_method="Horn (1981) 8-neighbor gradient operator",
+                    roughness_baseline_m=LOLA_SPATIAL_RESOLUTION_M * 3.0,
+                    source_url="https://pgda.gsfc.nasa.gov/products/90",
+                    crs="ESRI:104903 (Lunar South Polar Stereographic)",
+                    is_measured_data=False,
+                ),
+                notes=f"Coordinates outside lunar South Pole coverage area (-90.0° to -80.0°). {val_msg}",
+            )
 
-    def analyze_landing_zone(self, req: AnalysisRunRequest) -> AnalysisRunResponse:
-        """Executes a full landing ellipse spatial analysis within the specified radial footprint."""
-        elev_data, transform, res = dem_service.read_window_around_point(
-            lat_deg=req.center_lat,
-            lon_deg=req.center_lon,
-            radius_m=req.radius_meters,
+        res = terrain_analysis_engine.analyze_location(
+            lat_deg=lat,
+            lon_deg=lon,
+            radius_meters=radius_m,
+            roughness_kernel_size=3,
         )
 
+        if res is None:
+            return TerrainResponse(
+                latitude=lat,
+                longitude=lon,
+                is_valid_point=False,
+                is_nodata=False,
+                elevation_m=None,
+                slope_deg=None,
+                roughness_m=None,
+                aspect_deg=None,
+                solar_illumination_pct=None,
+                landing_hazard_classification="nodata",
+                dataset_info=TerrainDatasetInfo(
+                    dataset_name=LOLA_DATASET_NAME,
+                    product_id=LOLA_PRODUCT_ID,
+                    spatial_resolution_m=LOLA_SPATIAL_RESOLUTION_M,
+                    vertical_uncertainty_m=LOLA_VERTICAL_ACCURACY_M,
+                    slope_method="Horn (1981) 8-neighbor gradient operator",
+                    roughness_baseline_m=LOLA_SPATIAL_RESOLUTION_M * 3.0,
+                ),
+                notes="Terrain data could not be acquired for requested coordinates.",
+            )
+
+        # Build detailed sub-summaries
+        elev_summary = ElevationSummary(
+            point_m=res.elevation.point_elevation_m,
+            min_m=res.elevation.min_elevation_m,
+            max_m=res.elevation.max_elevation_m,
+            mean_m=res.elevation.mean_elevation_m,
+            variation_m=res.elevation.elevation_variation_m,
+            std_dev_m=res.elevation.std_dev_m,
+            units=res.elevation.units,
+        )
+
+        slope_summary = SlopeSummary(
+            point_deg=res.slope.point_slope_deg,
+            min_deg=res.slope.min_slope_deg,
+            max_deg=res.slope.max_slope_deg,
+            mean_deg=res.slope.mean_slope_deg,
+            std_dev_deg=res.slope.std_dev_deg,
+            method=res.slope.method,
+            units=res.slope.units,
+            ideal_pct=res.slope.ideal_pct,
+            acceptable_pct=res.slope.acceptable_pct,
+            marginal_pct=res.slope.marginal_pct,
+            critical_hazardous_pct=res.slope.critical_hazardous_pct,
+        )
+
+        rough_summary = RoughnessSummary(
+            point_m=res.roughness.point_roughness_m,
+            min_m=res.roughness.min_roughness_m,
+            max_m=res.roughness.max_roughness_m,
+            mean_m=res.roughness.mean_roughness_m,
+            std_dev_m=res.roughness.std_dev_m,
+            method=res.roughness.method,
+            kernel_size=res.roughness.kernel_size,
+            baseline_m=res.roughness.baseline_meters,
+            units=res.roughness.units,
+        )
+
+        dataset_info = TerrainDatasetInfo(
+            dataset_name=res.metadata.get("dataset_name", LOLA_DATASET_NAME),
+            product_id=res.metadata.get("product_id", LOLA_PRODUCT_ID),
+            spatial_resolution_m=res.metadata.get("spatial_resolution_m", 80.0),
+            vertical_uncertainty_m=res.metadata.get("vertical_uncertainty_m") or 1.0,
+            slope_method=res.metadata.get("slope_method", "Horn (1981)"),
+            roughness_baseline_m=res.metadata.get("roughness_baseline_m", 15.0),
+            citation=res.metadata.get("citation"),
+            observation_count=res.metadata.get("observation_count"),
+            slope_uncertainty_deg=res.metadata.get("slope_uncertainty_deg"),
+            effective_resolution_m=res.metadata.get("effective_resolution_m"),
+            is_measured_data=res.metadata.get("is_measured_data", True),
+            source_url=res.metadata.get("source_url"),
+            crs=res.metadata.get("crs"),
+            reference_frame=res.metadata.get("reference_frame"),
+            quality_warnings=res.metadata.get("quality_warnings"),
+        )
+
+        return TerrainResponse(
+            latitude=lat,
+            longitude=lon,
+            is_valid_point=True,
+            is_nodata=(res.valid_pixels_in_disc == 0),
+            elevation_m=res.elevation.point_elevation_m,
+            slope_deg=res.slope.point_slope_deg,
+            roughness_m=res.roughness.point_roughness_m,
+            aspect_deg=res.aspect_deg,
+            solar_illumination_pct=res.solar_illumination_pct,
+            landing_hazard_classification=res.landing_hazard_classification,
+            dataset_info=dataset_info,
+            source_tier=res.metadata.get("source_tier"),
+            uncertainty_elevation_m=res.metadata.get("vertical_uncertainty_m"),
+            uncertainty_slope_deg=res.metadata.get("slope_uncertainty_deg"),
+            notes=f"Analysis computed over physical disc of {radius_m:.1f}m radius.",
+            analysis_radius_m=radius_m,
+            elevation_summary=elev_summary,
+            slope_summary=slope_summary,
+            roughness_summary=rough_summary,
+            total_pixels_in_disc=res.total_pixels_in_disc,
+            valid_pixels_in_disc=res.valid_pixels_in_disc,
+            nodata_pixels_in_disc=res.nodata_pixels_in_disc,
+        )
+
+    def analyze_landing_zone(self, req: AnalysisRunRequest) -> AnalysisRunResponse:
+        """Executes full landing zone spatial analysis bounded by physical radius in meters."""
         analysis_id = f"ANL-{uuid.uuid4().hex[:8].upper()}"
 
-        if elev_data is None or elev_data.size == 0:
+        res = terrain_analysis_engine.analyze_location(
+            lat_deg=req.center_lat,
+            lon_deg=req.center_lon,
+            radius_meters=req.radius_meters,
+            roughness_kernel_size=req.roughness_kernel_size,
+        )
+
+        if res is None or res.valid_pixels_in_disc == 0:
             return AnalysisRunResponse(
                 analysis_id=analysis_id,
                 center_lat=req.center_lat,
@@ -84,114 +225,72 @@ class TerrainService:
                 roughness_mean_m=None,
                 safe_touchdown_fraction_pct=0.0,
                 preliminary_feasibility="insufficient_data",
-                dataset_metadata={"error": "Raster window unavailable"},
+                dataset_metadata={"error": "Terrain data unavailable for requested coordinate."},
                 disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
             )
 
-        total_samples = int(elev_data.size)
-        valid_mask = (elev_data != LOLA_NODATA_VALUE) & (elev_data > -30000) & (~np.isnan(elev_data))
-        valid_samples = int(np.sum(valid_mask))
-        nodata_samples = total_samples - valid_samples
-
-        if valid_samples < 4:
-            return AnalysisRunResponse(
-                analysis_id=analysis_id,
-                center_lat=req.center_lat,
-                center_lon=req.center_lon,
-                radius_meters=req.radius_meters,
-                total_samples=total_samples,
-                valid_samples=valid_samples,
-                nodata_samples=nodata_samples,
-                elevation=TopographicStats(units="meters"),
-                slope=TopographicStats(units="degrees"),
-                slope_distribution=SlopeDistribution(
-                    ideal_pct=0.0,
-                    acceptable_pct=0.0,
-                    marginal_pct=0.0,
-                    critical_hazardous_pct=0.0,
-                ),
-                roughness_mean_m=None,
-                safe_touchdown_fraction_pct=0.0,
-                preliminary_feasibility="insufficient_data",
-                dataset_metadata={"warning": "Too few valid samples in evaluated zone"},
-                disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
-            )
-
-        valid_elev = elev_data[valid_mask]
         elev_stats = TopographicStats(
-            min_value=round(float(np.min(valid_elev)), 2),
-            max_value=round(float(np.max(valid_elev)), 2),
-            mean_value=round(float(np.mean(valid_elev)), 2),
-            median_value=round(float(np.median(valid_elev)), 2),
-            std_dev=round(float(np.std(valid_elev)), 2),
-            units="meters",
+            min_value=res.elevation.min_elevation_m,
+            max_value=res.elevation.max_elevation_m,
+            mean_value=res.elevation.mean_elevation_m,
+            median_value=res.elevation.point_elevation_m,
+            std_dev=res.elevation.std_dev_m,
+            variation=res.elevation.elevation_variation_m,
+            units=res.elevation.units,
         )
-
-        dx = res[0] if res[0] > 0 else 620.0
-        dy = res[1] if res[1] > 0 else 620.0
-        slopes, _ = self.calculate_slope_and_aspect(elev_data, dx, dy)
-        valid_slopes = slopes[valid_mask]
 
         slope_stats = TopographicStats(
-            min_value=round(float(np.min(valid_slopes)), 2),
-            max_value=round(float(np.max(valid_slopes)), 2),
-            mean_value=round(float(np.mean(valid_slopes)), 2),
-            median_value=round(float(np.median(valid_slopes)), 2),
-            std_dev=round(float(np.std(valid_slopes)), 2),
-            units="degrees",
+            min_value=res.slope.min_slope_deg,
+            max_value=res.slope.max_slope_deg,
+            mean_value=res.slope.mean_slope_deg,
+            median_value=res.slope.point_slope_deg,
+            std_dev=res.slope.std_dev_deg,
+            units=res.slope.units,
         )
 
-        # Slope distribution percentages via maths package
-        breakdown = slope_distribution_breakdown(
-            slopes=slopes,
-            valid_mask=valid_mask,
-            ideal_max_deg=SLOPE_IDEAL_MAX_DEG,
-            nominal_max_deg=SLOPE_NOMINAL_MAX_DEG,
-            critical_max_deg=SLOPE_CRITICAL_MAX_DEG,
-        )
         slope_distribution = SlopeDistribution(
-            ideal_pct=breakdown["ideal_pct"],
-            acceptable_pct=breakdown["acceptable_pct"],
-            marginal_pct=breakdown["marginal_pct"],
-            critical_hazardous_pct=breakdown["critical_hazardous_pct"],
+            ideal_pct=res.slope.ideal_pct,
+            acceptable_pct=res.slope.acceptable_pct,
+            marginal_pct=res.slope.marginal_pct,
+            critical_hazardous_pct=res.slope.critical_hazardous_pct,
         )
 
-        roughness = self.calculate_roughness_rms(elev_data)
-        valid_roughness = roughness[valid_mask]
-        roughness_mean = round(float(np.mean(valid_roughness)), 2)
+        # Safe touchdown fraction: fraction of valid area meeting max slope & max roughness constraints
+        # Approximate from distribution percentages and roughness mean
+        slope_safe_pct = res.slope.ideal_pct + (res.slope.acceptable_pct if req.max_acceptable_slope_deg >= 10.0 else 0.0)
+        rough_factor = 1.0 if (res.roughness.mean_roughness_m or 0.0) <= req.max_acceptable_roughness_m else 0.5
+        safe_fraction_pct = round(float(slope_safe_pct * rough_factor), 1)
 
-        # Safe touchdown fraction: slope <= max_acceptable AND roughness <= max_acceptable
-        safe_mask = (valid_slopes <= req.max_acceptable_slope_deg) & (valid_roughness <= req.max_acceptable_roughness_m)
-        safe_fraction_pct = round(float(np.sum(safe_mask) / valid_samples * 100.0), 1)
-
-        # Feasibility determination
-        if safe_fraction_pct >= 75.0 and slope_stats.mean_value <= req.max_acceptable_slope_deg:
+        # Preliminary feasibility determination
+        mean_s = res.slope.mean_slope_deg or 99.0
+        if safe_fraction_pct >= 75.0 and mean_s <= req.max_acceptable_slope_deg:
             feasibility = "favorable"
         elif safe_fraction_pct >= 45.0:
             feasibility = "marginal"
         else:
             feasibility = "unfavorable"
 
-        metadata = {
-            "source_instrument": LOLA_DATASET_NAME,
-            "product_id": LOLA_PRODUCT_ID,
-            "spatial_resolution_meters": dx,
-            "slope_operator": "Horn 1981",
-            "eval_radius_meters": req.radius_meters,
-        }
+        metadata = dict(res.metadata)
+        metadata["analysis_radius_meters"] = req.radius_meters
+        metadata["max_acceptable_slope_deg"] = req.max_acceptable_slope_deg
+        metadata["max_acceptable_roughness_m"] = req.max_acceptable_roughness_m
 
         return AnalysisRunResponse(
             analysis_id=analysis_id,
             center_lat=req.center_lat,
             center_lon=req.center_lon,
             radius_meters=req.radius_meters,
-            total_samples=total_samples,
-            valid_samples=valid_samples,
-            nodata_samples=nodata_samples,
+            total_samples=res.total_pixels_in_disc,
+            valid_samples=res.valid_pixels_in_disc,
+            nodata_samples=res.nodata_pixels_in_disc,
             elevation=elev_stats,
             slope=slope_stats,
             slope_distribution=slope_distribution,
-            roughness_mean_m=roughness_mean,
+            roughness_mean_m=res.roughness.mean_roughness_m,
+            roughness_max_m=res.roughness.max_roughness_m,
+            roughness_baseline_m=res.roughness.baseline_meters,
+            roughness_method=res.roughness.method,
+            slope_method=res.slope.method,
             safe_touchdown_fraction_pct=safe_fraction_pct,
             preliminary_feasibility=feasibility,
             dataset_metadata=metadata,

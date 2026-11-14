@@ -9,9 +9,10 @@ class AnalysisRunRequest(BaseModel):
 
     center_lat: float = Field(..., ge=-90.0, le=-80.0, description="Center latitude of candidate landing zone (-90 to -80)")
     center_lon: float = Field(..., ge=-180.0, le=360.0, description="Center longitude of candidate landing zone (-180 to 360)")
-    radius_meters: float = Field(1000.0, ge=100.0, le=25000.0, description="Landing ellipse radius in meters (100m to 25km)")
+    radius_meters: float = Field(1000.0, ge=50.0, le=25000.0, description="Landing ellipse radius in meters (50m to 25km)")
     max_acceptable_slope_deg: float = Field(10.0, ge=1.0, le=30.0, description="Maximum slope constraint for lander stability (deg)")
     max_acceptable_roughness_m: float = Field(0.5, ge=0.1, le=5.0, description="Maximum surface roughness constraint (m)")
+    roughness_kernel_size: int = Field(3, ge=3, le=15, description="Moving window kernel size for RMS roughness (default 3x3)")
 
 
 class TopographicStats(BaseModel):
@@ -22,6 +23,7 @@ class TopographicStats(BaseModel):
     mean_value: Optional[float] = None
     median_value: Optional[float] = None
     std_dev: Optional[float] = None
+    variation: Optional[float] = None  # Relief (max - min)
     units: str
 
 
@@ -48,6 +50,10 @@ class AnalysisRunResponse(BaseModel):
     slope: TopographicStats
     slope_distribution: SlopeDistribution
     roughness_mean_m: Optional[float]
+    roughness_max_m: Optional[float] = None
+    roughness_baseline_m: Optional[float] = None
+    roughness_method: Optional[str] = None
+    slope_method: Optional[str] = None
     safe_touchdown_fraction_pct: float = Field(
         ...,
         ge=0.0,
