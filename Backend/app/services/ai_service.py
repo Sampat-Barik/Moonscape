@@ -101,6 +101,7 @@ class AIService:
         return AIExplainResponse(
             explanation_id=explanation_id,
             target_site=target_name,
+            explanation=exec_summary,
             executive_summary=exec_summary,
             geomorphology_assessment=geom_text,
             thermal_and_power_assessment=thermal_text,

@@ -2,7 +2,7 @@
 
 import sys
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -77,6 +77,14 @@ class Settings(BaseSettings):
     MAX_SAFE_SLOPE_DEG: float = 10.0
     CRITICAL_SLOPE_DEG: float = 15.0
     MAX_SAFE_ROUGHNESS_M: float = 0.5
+
+    # AI Explainer Service Configuration (Phase 7)
+    MOONSCAPE_AI_PROVIDER: str = "auto"  # 'auto', 'gemini', 'openai', or 'mock'
+    GEMINI_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+    MOONSCAPE_AI_MODEL: str = "gemini-1.5-flash"
+    MOONSCAPE_AI_TIMEOUT_SECONDS: float = 15.0
+    MOONSCAPE_AI_TEMPERATURE: float = 0.2
 
     model_config = SettingsConfigDict(
         env_file=(".env", "Backend/.env"),

@@ -365,6 +365,7 @@ export interface ScoreResponse {
 }
 
 export interface AIExplainRequest {
+  analysis_id?: string;
   site_id?: string;
   site_name?: string;
   latitude?: number;
@@ -376,16 +377,24 @@ export interface AIExplainRequest {
 }
 
 export interface AIExplainResponse {
-  explanation_id: string;
-  target_site: string;
-  executive_summary: string;
-  geomorphology_assessment: string;
-  thermal_and_power_assessment: string;
-  communication_and_direct_line_of_sight: string;
-  traverse_and_sampling_potential: string;
-  key_engineering_tradeoffs: string[];
-  mitigation_strategies: string[];
-  model_origin: string;
+  analysis_id?: string | null;
+  explanation: string;
+  positive_factors: string[];
+  risk_factors: string[];
+  limitations: string[];
+  conclusion: string;
+
+  // Backward-compatible mission planning fields
+  explanation_id?: string;
+  target_site?: string;
+  executive_summary?: string;
+  geomorphology_assessment?: string;
+  thermal_and_power_assessment?: string;
+  communication_and_direct_line_of_sight?: string;
+  traverse_and_sampling_potential?: string;
+  key_engineering_tradeoffs?: string[];
+  mitigation_strategies?: string[];
+  model_origin?: string;
   disclaimer: string;
 }
 

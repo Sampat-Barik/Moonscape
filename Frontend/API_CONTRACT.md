@@ -754,30 +754,65 @@ Calculates a transparent, configurable preliminary landing-site suitability scor
 
 ---
 
-## 8. AI Scientific Advisory
+## 8. AI Scientific Explainer (Phase 7 Engine)
 ### `POST /api/ai/explain`
-Generates physics-grounded scientific explanations and engineering trade-offs.
+Generates accessible, scientifically rigorous explanations of candidate landing zone analysis runs. Synthesizes physical terrain, hazard, illumination, and suitability measurements without hallucinating unmeasured data or altering backend scores.
+
+#### Mode A: Explanation by Stored Analysis ID (Recommended Phase 7 Flow)
+Evaluates a completed analysis run executed via `POST /api/analysis/run` or pre-seeded reference analyses (`analysis_001`).
 
 **Request Body:**
 ```json
 {
-  "site_id": "shackleton_connecting_ridge",
-  "focus_topics": ["topography", "thermal", "traverse"]
+  "analysis_id": "analysis_001",
+  "focus_topics": ["topography", "solar_power"]
 }
 ```
 
 **Response (200 OK):**
 ```json
 {
-  "explanation_id": "EXP-12345678",
+  "analysis_id": "analysis_001",
+  "explanation": "Preliminary scientific screening of candidate landing coordinates indicates an evaluated suitability score of 83.25/100. The site's primary operational advantage is its benign slope profile averaging 6.8 deg and exceptional cumulative solar illumination (86.4%), which provides reliable surface power for Artemis landers while maintaining manageable landing gear tilt margins.",
+  "positive_factors": [
+    "Benign local slope averaging 6.8 deg is within acceptable nominal landing gear stability tolerances.",
+    "Strong solar illumination (86.4%) provides reliable photovoltaic array power and mitigates severe cryogenic cooling.",
+    "Micro-topographic RMS roughness of 0.12m indicates relatively smooth regolith suitable for footpad contact."
+  ],
+  "risk_factors": [
+    "Depressed elevation (-120m relative to datum) may experience intermittent horizon occultation by surrounding crater rims.",
+    "Low grazing solar angles (< 2 deg) produce dynamic, elongated shadows that complicate optical landing navigation.",
+    "Sub-pixel boulder fields require terminal hazard detection and avoidance (HDA) maneuvers."
+  ],
+  "limitations": [
+    "Analysis is a preliminary computational screening indicator and does NOT constitute NASA-certified flight clearance.",
+    "High-resolution optical crater and boulder hazard counts are uncalibrated or pending orbital ground-truth validation."
+  ],
+  "conclusion": "Preliminary assessment only. Candidate site warrants high-resolution LROC photogrammetric validation.",
   "target_site": "Shackleton Connecting Ridge",
-  "executive_summary": "...",
-  "geomorphology_assessment": "...",
-  "thermal_and_power_assessment": "...",
-  "key_engineering_tradeoffs": ["..."],
-  "mitigation_strategies": ["..."]
+  "model_origin": "Google Gemini (gemini-1.5-flash) / Offline Rule Engine",
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
 }
 ```
+
+#### Mode B: Catalog Site Scientific Advisory
+Evaluates a pre-registered Artemis candidate landing site by its catalog slug.
+
+**Request Body:**
+```json
+{
+  "site_id": "shackleton_connecting_ridge",
+  "focus_topics": ["thermal", "traverse"]
+}
+```
+
+**Response (200 OK):**
+Returns identical structured schema (`analysis_id`, `explanation`, `positive_factors`, `risk_factors`, `limitations`, `conclusion`) alongside backward-compatible mission fields (`geomorphology_assessment`, `thermal_and_power_assessment`, etc.).
+
+#### Reliability & Fallback Guarantees:
+- **No Crash on Provider Failure:** If the remote LLM (Gemini or OpenAI) experiences network timeouts, rate limits (HTTP 429), or missing API keys, the backend automatically engages its **Offline Deterministic Scientific Rule Engine**, returning a complete, physics-grounded explanation.
+- **Strict Grounding:** The explainer only receives verified measurements from the backend analysis store. It never hallucinates values or alters the calculated suitability score.
+- **Safety Gate:** If slope is missing or score coverage is $< 50\%$, the AI explainer explicitly alerts mission planners that data is insufficient for landing certification.
 
 ---
 

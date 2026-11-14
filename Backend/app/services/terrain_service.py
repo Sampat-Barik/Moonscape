@@ -34,6 +34,7 @@ from Backend.app.services.illumination import illumination_service
 from Backend.app.services.site_scoring import site_scoring_engine
 from Backend.app.services.terrain_analysis import terrain_analysis_engine
 from app.schemas.scoring import ScoreRequest
+from app.services.analysis_store import analysis_store
 from maths.topography import (
     horn_slope_and_aspect,
     rms_surface_roughness,
@@ -311,7 +312,7 @@ class TerrainService:
             )
         )
 
-        return AnalysisRunResponse(
+        run_result = AnalysisRunResponse(
             analysis_id=analysis_id,
             center_lat=req.center_lat,
             center_lon=req.center_lon,
@@ -334,6 +335,9 @@ class TerrainService:
             illumination=illum_summary,
             suitability=suitability_eval,
         )
+
+        analysis_store.save(run_result)
+        return run_result
 
 
 terrain_service = TerrainService()
