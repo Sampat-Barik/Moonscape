@@ -399,21 +399,113 @@ export interface AIExplainResponse {
 }
 
 export interface ReportGenerateRequest {
-  site_id: string;
+  analysis_id?: string;
+  site_id?: string;
   mission_title?: string;
   include_ai_narrative?: boolean;
-  output_format?: "json" | "markdown" | "html";
+  format?: "json" | "pdf" | "markdown" | "html";
+  output_format?: "json" | "pdf" | "markdown" | "html";
+}
+
+export interface ScientificReportData {
+  title: string;
+  generated_at_utc: string;
+  generated_at_human: string;
+  analysis_id: string;
+  site_id?: string | null;
+  site_name?: string | null;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+    formatted: string;
+  };
+  analysis_radius_meters: number;
+  elevation: {
+    min_m?: number | null;
+    max_m?: number | null;
+    mean_m?: number | null;
+    relief_variation_m?: number | null;
+    std_dev_m?: number | null;
+    datum: string;
+    units: string;
+  };
+  slope: {
+    min_deg?: number | null;
+    max_deg?: number | null;
+    mean_deg?: number | null;
+    median_deg?: number | null;
+    std_dev_deg?: number | null;
+    operator: string;
+    ideal_pct: number;
+    acceptable_pct: number;
+    marginal_pct: number;
+    critical_hazardous_pct: number;
+    units: string;
+  };
+  roughness: {
+    mean_rms_m?: number | null;
+    max_rms_m?: number | null;
+    baseline_meters: number;
+    method: string;
+    safe_touchdown_fraction_pct: number;
+  };
+  illumination: {
+    status: string;
+    cumulative_illumination_pct?: number | null;
+    instantaneous_sunlit_fraction_pct?: number | null;
+    is_permanently_shadowed_region: boolean;
+    estimated_surface_temp_k?: number | null;
+    time_period_evaluated: string;
+    thermal_caveat: string;
+  };
+  hazards: {
+    craters_detected?: number | null;
+    rocks_detected?: number | null;
+    hazard_status: string;
+    severity_assessment: string;
+    calibration_notice: string;
+  };
+  suitability: {
+    overall_score?: number | null;
+    category: string;
+    score_coverage_pct: number;
+    evaluated_factors_count: number;
+    total_factors_count: number;
+    criteria_version: string;
+  };
+  factor_breakdown: Array<Record<string, any>>;
+  positive_factors: string[];
+  risk_factors: string[];
+  data_sources: Record<string, any>;
+  methodology: {
+    topographic_slope: string;
+    surface_roughness: string;
+    solar_illumination: string;
+    multi_criteria_scoring: string;
+  };
+  missing_data: string[];
+  uncertainty: {
+    vertical_accuracy_m: number;
+    horizontal_resolution_m: number;
+    interpolation_uncertainty: string;
+    hazard_scale_uncertainty: string;
+  };
+  limitations: string[];
+  conclusion: string;
+  disclaimer: string;
 }
 
 export interface ReportGenerateResponse {
   report_id: string;
   generated_at: string;
   mission_title: string;
-  site_id: string;
-  site_name: string;
-  output_format: "json" | "markdown" | "html";
-  content: string;
-  structured_summary: Record<string, any>;
+  site_id?: string | null;
+  site_name?: string | null;
+  analysis_id?: string | null;
+  output_format: "json" | "pdf" | "markdown" | "html";
+  content?: string | null;
+  structured_summary?: Record<string, any> | null;
+  report_data?: ScientificReportData | null;
   disclaimer: string;
 }
 

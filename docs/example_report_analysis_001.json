@@ -1,0 +1,168 @@
+{
+  "report_id": "RPT-3E38796F",
+  "generated_at": "2026-11-14T13:57:53.095187+00:00",
+  "mission_title": "Moonscape Lunar Landing Site Scientific Assessment",
+  "analysis_id": "analysis_001",
+  "site_metadata": {
+    "site_id": null,
+    "site_name": "Candidate Lunar Landing Zone",
+    "coordinates": {
+      "latitude": -89.44,
+      "longitude": 222.5,
+      "formatted": "89.4400\u00b0 S, 222.5000\u00b0 E"
+    }
+  },
+  "scientific_report_data": {
+    "title": "Moonscape Lunar Landing Site Scientific Assessment",
+    "generated_at_utc": "2026-11-14T13:57:53.095187+00:00",
+    "generated_at_human": "2026-11-14 13:57:53 UTC",
+    "analysis_id": "analysis_001",
+    "site_id": null,
+    "site_name": "Candidate Lunar Landing Zone",
+    "coordinates": {
+      "latitude": -89.44,
+      "longitude": 222.5,
+      "formatted": "89.4400\u00b0 S, 222.5000\u00b0 E"
+    },
+    "analysis_radius_meters": 1000.0,
+    "elevation": {
+      "min_m": -210.0,
+      "max_m": 15.0,
+      "mean_m": -120.0,
+      "relief_variation_m": 225.0,
+      "std_dev_m": 35.0,
+      "datum": "Lunar reference sphere (R = 1737.4 km)",
+      "units": "meters"
+    },
+    "slope": {
+      "min_deg": 0.8,
+      "max_deg": 14.5,
+      "mean_deg": 6.8,
+      "median_deg": 5.9,
+      "std_dev_deg": 2.4,
+      "operator": "Horn 1981 Finite-Difference Slope Operator",
+      "ideal_pct": 62.5,
+      "acceptable_pct": 28.5,
+      "marginal_pct": 7.2,
+      "critical_hazardous_pct": 1.8,
+      "units": "degrees"
+    },
+    "roughness": {
+      "mean_rms_m": 0.12,
+      "max_rms_m": 0.38,
+      "baseline_meters": 15.0,
+      "method": "Root-Mean-Square (RMS) Residual Height Deviation",
+      "safe_touchdown_fraction_pct": 91.0
+    },
+    "illumination": {
+      "status": "available",
+      "cumulative_illumination_pct": 86.4,
+      "instantaneous_sunlit_fraction_pct": 100.0,
+      "is_permanently_shadowed_region": false,
+      "estimated_surface_temp_k": 185.0,
+      "time_period_evaluated": "LRO LOLA multi-year draconic precession baseline (Barker et al. 2021)",
+      "thermal_caveat": "Surface temperature is a thermal brightness measurement, not a direct optical sunlight fraction."
+    },
+    "hazards": {
+      "craters_detected": null,
+      "rocks_detected": null,
+      "hazard_status": "model_unconfigured_or_uncalibrated",
+      "severity_assessment": "Micro-relief clearance to be confirmed via terminal optical descent sensors.",
+      "calibration_notice": "Sub-meter boulders (< 5m) cannot be resolved from regional LOLA DEM without high-resolution NAC imagery."
+    },
+    "suitability": {
+      "overall_score": 83.25,
+      "category": "Higher preliminary suitability",
+      "score_coverage_pct": 80.0,
+      "evaluated_factors_count": 4,
+      "total_factors_count": 6,
+      "criteria_version": "2.0-phase6"
+    },
+    "factor_breakdown": [
+      {
+        "criterion": "Topographic Slope",
+        "raw_measurement": 6.8,
+        "unit": "degrees",
+        "normalized_subscore": 86.4,
+        "weight": 0.3,
+        "weighted_contribution": 25.92,
+        "status": "available",
+        "preference_direction": "lower_is_better",
+        "description": "Critical lander tipping stability metric. Slopes below 5 deg are ideal."
+      },
+      {
+        "criterion": "Terrain Roughness",
+        "raw_measurement": 0.12,
+        "unit": "meters RMS",
+        "normalized_subscore": 95.2,
+        "weight": 0.2,
+        "weighted_contribution": 19.04,
+        "status": "available",
+        "preference_direction": "lower_is_better",
+        "description": "Micro-topographic relief indicating boulder-field roughness."
+      },
+      {
+        "criterion": "Solar Illumination",
+        "raw_measurement": 86.4,
+        "unit": "percent",
+        "normalized_subscore": 86.4,
+        "weight": 0.2,
+        "weighted_contribution": 17.28,
+        "status": "available",
+        "preference_direction": "higher_is_better",
+        "description": "Solar energy generation potential and thermal environment stability."
+      },
+      {
+        "criterion": "Surface Elevation",
+        "raw_measurement": -120.0,
+        "unit": "meters",
+        "normalized_subscore": 43.11,
+        "weight": 0.1,
+        "weighted_contribution": 4.31,
+        "status": "available",
+        "preference_direction": "higher_is_better",
+        "description": "Elevation above lunar reference datum (1737.4 km sphere)."
+      }
+    ],
+    "positive_factors": [
+      "High cumulative solar illumination (86.4%) supports long-duration surface power",
+      "Favorable topographic slope profile (6.8 deg) within nominal landing envelope"
+    ],
+    "risk_factors": [
+      "Low grazing solar elevation angles (< 2\u00b0) produce dynamic elongated shadows across terrain depressions.",
+      "Terminal hazard detection and avoidance (HDA) required to detect sub-pixel boulders during final descent."
+    ],
+    "data_sources": {
+      "source_tier": "Tier 2 (High-Resolution 5m Candidate Region)",
+      "dataset_name": "NASA PGDA Product 78 (LOLA 5m/pixel Candidate Site DEM)",
+      "product_id": "Site01_final_adj_5mpp_surf",
+      "spatial_resolution_m": 5.0,
+      "crs": "ESRI:104903 (Lunar South Polar Stereographic)",
+      "is_measured_data": true
+    },
+    "methodology": {
+      "topographic_slope": "Horn (1981) 3x3 finite-difference convolution operator accounting for physical pixel spacing.",
+      "surface_roughness": "Root-Mean-Square (RMS) height residual relative to moving local mean filter (15m baseline).",
+      "solar_illumination": "JPL DE421 analytical solar ephemeris combined with multi-year LOLA draconic precession ground truth.",
+      "multi_criteria_scoring": "Multi-Criteria Decision Analysis (MCDA v2.0-phase6) with non-redistributed missing factor penalty."
+    },
+    "missing_data": [
+      "Crater Hazards",
+      "Rock / Boulder Hazards"
+    ],
+    "uncertainty": {
+      "vertical_accuracy_m": 1.0,
+      "horizontal_resolution_m": 5.0,
+      "interpolation_uncertainty": "Bilinear surface interpolation across polar stereographic grid (< 0.2m error).",
+      "hazard_scale_uncertainty": "Features smaller than DEM resolution cannot be verified without high-resolution optical NAC cameras."
+    },
+    "limitations": [
+      "PRELIMINARY SCREENING ONLY: Assessment does not constitute NASA flight safety certification or terrain clearance guarantee.",
+      "SPATIAL RESOLUTION CONSTRAINT: Regional DEM cannot resolve boulders smaller than ~10m; terminal descent HDA is required.",
+      "EPHEMERIS SENSITIVITY: Instantaneous illumination depends strictly on landing epoch and local lunar libration phase."
+    ],
+    "conclusion": "Candidate site 'Candidate Lunar Landing Zone' exhibits favorable preliminary landing suitability (Score: 83.2/100, Category: Higher preliminary suitability). Favorable slope corridors and high illumination support long-duration surface missions. Recommended for high-resolution stereophotogrammetric trajectory modeling.",
+    "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions provided by Moonscape are preliminary engineering research models derived from orbital remote sensing measurements (NASA LRO LOLA/LROC). These outputs do NOT constitute certified landing safety clearance for lunar flight missions."
+  },
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions provided by Moonscape are preliminary engineering research models derived from orbital remote sensing measurements (NASA LRO LOLA/LROC). These outputs do NOT constitute certified landing safety clearance for lunar flight missions."
+}

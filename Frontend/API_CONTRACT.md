@@ -816,28 +816,207 @@ Returns identical structured schema (`analysis_id`, `explanation`, `positive_fac
 
 ---
 
-## 9. Mission Reports Generation
+## 9. Scientific Mission Report Generator (Phase 8 Engine)
 ### `POST /api/reports/generate`
-Compiles evaluation data into exportable formats (`json`, `markdown`, or `html`).
+Compiles authentic backend measurements, slope statistics, roughness, illumination, hazards, and multi-criteria suitability scoring into comprehensive scientific reports (JSON, downloadable PDF, Markdown, or HTML).
+
+> **CRITICAL ARCHITECTURAL RULE:** Scientific values are assembled strictly from completed analysis records (`analysis_id`). The report generator does **not** recalculate or modify physical measurements.
+
+#### Supported Formats:
+1. `format="json"`: Returns a comprehensive structured report containing **all 19 mandated scientific elements**.
+2. `format="pdf"`: Generates and streams an authentic, publication-quality multi-page PDF document using ReportLab.
+3. `format="markdown"`: Returns structured GitHub-Flavored Markdown for rendering in rich text web components.
+4. `format="html"`: Returns a standalone, styled HTML document for direct browser previewing.
+
+---
+
+#### Mode A: JSON Scientific Report by Analysis ID (Recommended Phase 8 Flow)
+
+**Request Body:**
+```json
+{
+  "analysis_id": "analysis_001",
+  "format": "json"
+}
+```
+
+**Response (200 OK — `application/json`):**
+```json
+{
+  "report_id": "RPT-B3F7A1C9",
+  "generated_at": "2026-11-14T19:25:00.123456+00:00",
+  "mission_title": "Moonscape Lunar Landing Site Scientific Assessment",
+  "site_id": "shackleton_connecting_ridge",
+  "site_name": "Shackleton Connecting Ridge",
+  "analysis_id": "analysis_001",
+  "output_format": "json",
+  "content": "...",
+  "structured_summary": {
+    "analysis_id": "analysis_001",
+    "site_id": "shackleton_connecting_ridge",
+    "site_name": "Shackleton Connecting Ridge",
+    "coordinates": {
+      "latitude": -89.44,
+      "longitude": 222.50
+    },
+    "elevation_mean_m": -120.0,
+    "mean_slope_deg": 6.8,
+    "safe_touchdown_fraction_pct": 91.0,
+    "illumination_pct": 86.4,
+    "suitability_score": 83.25,
+    "suitability_category": "Higher preliminary suitability",
+    "score_coverage_pct": 80.0
+  },
+  "report_data": {
+    "title": "Moonscape Lunar Landing Site Scientific Assessment: Shackleton Connecting Ridge",
+    "generated_at_utc": "2026-11-14T19:25:00.123456+00:00",
+    "generated_at_human": "2026-11-14 19:25:00 UTC",
+    "analysis_id": "analysis_001",
+    "site_id": "shackleton_connecting_ridge",
+    "site_name": "Shackleton Connecting Ridge",
+    "coordinates": {
+      "latitude": -89.44,
+      "longitude": 222.50,
+      "formatted": "89.4400° S, 222.5000° E"
+    },
+    "analysis_radius_meters": 1000.0,
+    "elevation": {
+      "min_m": -210.0,
+      "max_m": 15.0,
+      "mean_m": -120.0,
+      "relief_variation_m": 225.0,
+      "std_dev_m": 35.0,
+      "datum": "Lunar reference sphere (R = 1737.4 km)",
+      "units": "meters"
+    },
+    "slope": {
+      "min_deg": 0.8,
+      "max_deg": 14.5,
+      "mean_deg": 6.8,
+      "median_deg": 5.9,
+      "std_dev_deg": 2.4,
+      "operator": "Horn (1981) 3x3 Finite-Difference Operator",
+      "ideal_pct": 62.5,
+      "acceptable_pct": 28.5,
+      "marginal_pct": 7.2,
+      "critical_hazardous_pct": 1.8,
+      "units": "degrees"
+    },
+    "roughness": {
+      "mean_rms_m": 0.12,
+      "max_rms_m": 0.38,
+      "baseline_meters": 15.0,
+      "method": "Root-Mean-Square (RMS) Residual Height Deviation",
+      "safe_touchdown_fraction_pct": 91.0
+    },
+    "illumination": {
+      "status": "available",
+      "cumulative_illumination_pct": 86.4,
+      "instantaneous_sunlit_fraction_pct": 100.0,
+      "is_permanently_shadowed_region": false,
+      "estimated_surface_temp_k": 185.0,
+      "time_period_evaluated": "LRO LOLA multi-year draconic precession baseline (Barker et al. 2021)",
+      "thermal_caveat": "Surface temperature is a thermal brightness measurement, not a direct optical sunlight fraction."
+    },
+    "hazards": {
+      "craters_detected": null,
+      "rocks_detected": null,
+      "hazard_status": "model_unconfigured_or_uncalibrated",
+      "severity_assessment": "Micro-relief clearance to be confirmed via terminal optical descent sensors.",
+      "calibration_notice": "Sub-meter boulders (< 5m) cannot be resolved from regional LOLA DEM without high-resolution NAC imagery."
+    },
+    "suitability": {
+      "overall_score": 83.25,
+      "category": "Higher preliminary suitability",
+      "score_coverage_pct": 80.0,
+      "evaluated_factors_count": 4,
+      "total_factors_count": 6,
+      "criteria_version": "2.0-phase6"
+    },
+    "factor_breakdown": [
+      {
+        "criterion": "Topographic Slope",
+        "raw_measurement": 6.8,
+        "unit": "degrees",
+        "normalized_subscore": 86.4,
+        "weight": 0.30,
+        "weighted_contribution": 25.92,
+        "status": "available"
+      }
+    ],
+    "positive_factors": [
+      "High cumulative solar illumination (86.4%) supports long-duration surface power",
+      "Favorable topographic slope profile (6.8 deg) within nominal landing envelope"
+    ],
+    "risk_factors": [
+      "Low grazing solar elevation angles (< 2 deg) produce dynamic elongated shadows across terrain depressions.",
+      "Terminal hazard detection and avoidance (HDA) required to detect sub-pixel boulders during final descent."
+    ],
+    "data_sources": {
+      "dataset_name": "NASA PGDA Product 78 (LOLA 5m/pixel Candidate Site DEM)",
+      "spatial_resolution_m": 5.0,
+      "crs": "ESRI:104903 (Lunar South Polar Stereographic)"
+    },
+    "methodology": {
+      "topographic_slope": "Horn (1981) 3x3 finite-difference convolution operator accounting for physical pixel spacing.",
+      "surface_roughness": "Root-Mean-Square (RMS) height residual relative to moving local mean filter (15m baseline).",
+      "solar_illumination": "JPL DE421 analytical solar ephemeris combined with multi-year LOLA draconic precession ground truth.",
+      "multi_criteria_scoring": "Multi-Criteria Decision Analysis (MCDA v2.0-phase6) with non-redistributed missing factor penalty."
+    },
+    "missing_data": [
+      "Crater Hazards",
+      "Rock / Boulder Hazards"
+    ],
+    "uncertainty": {
+      "vertical_accuracy_m": 1.0,
+      "horizontal_resolution_m": 5.0,
+      "interpolation_uncertainty": "Bilinear surface interpolation across polar stereographic grid (< 0.2m error).",
+      "hazard_scale_uncertainty": "Features smaller than DEM resolution cannot be verified without high-resolution optical NAC cameras."
+    },
+    "limitations": [
+      "PRELIMINARY SCREENING ONLY: Assessment does not constitute NASA flight safety certification or terrain clearance guarantee.",
+      "SPATIAL RESOLUTION CONSTRAINT: Regional DEM cannot resolve boulders smaller than ~10m; terminal descent HDA is required.",
+      "EPHEMERIS SENSITIVITY: Instantaneous illumination depends strictly on landing epoch and local lunar libration phase."
+    ],
+    "conclusion": "Candidate site 'Shackleton Connecting Ridge' exhibits favorable preliminary landing suitability (Score: 83.3/100, Category: Higher preliminary suitability). Favorable slope corridors and high illumination support long-duration surface missions. Recommended for high-resolution stereophotogrammetric trajectory modeling.",
+    "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
+  },
+  "disclaimer": "DISCLAIMER: Suitability evaluations and hazard predictions are preliminary computational screening indicators. They do not constitute NASA-certified landing safety clearance or flight qualification."
+}
+```
+
+---
+
+#### Mode B: Downloadable PDF Generation (ReportLab Engine)
+
+**Request Body:**
+```json
+{
+  "analysis_id": "analysis_001",
+  "format": "pdf"
+}
+```
+
+**Response (200 OK — `application/pdf` binary stream):**
+- Headers:
+  - `Content-Type: application/pdf`
+  - `Content-Disposition: attachment; filename="moonscape_report_analysis_001.pdf"`
+- Body: Direct binary PDF data stream containing publication-quality tables, NASA blue headers, executive summary cards, and all 19 scientific report sections.
+
+---
+
+#### Mode C: Markdown / HTML Export
 
 **Request Body:**
 ```json
 {
   "site_id": "malapert_mountain",
-  "mission_title": "Artemis III Base Camp Staging Assessment",
   "output_format": "markdown"
 }
 ```
 
 **Response (200 OK):**
-```json
-{
-  "report_id": "RPT-98765432",
-  "output_format": "markdown",
-  "content": "# Artemis III Base Camp Staging Assessment\n...",
-  "structured_summary": { ... }
-}
-```
+Returns structured Markdown/HTML in `content` with `structured_summary`.
 
 ---
 
