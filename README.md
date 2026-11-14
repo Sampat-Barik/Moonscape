@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg?logo=python&logoColor=white)](https://python.org)
 [![NASA Data](https://img.shields.io/badge/Data-NASA%20PDS%20%2F%20LOLA%20%2F%20LROC-red.svg)](https://pgda.gsfc.nasa.gov)
 [![CRS](https://img.shields.io/badge/CRS-ESRI%3A104903%20(Polar%20Stereographic)-green.svg)](https://epsg.io/104903)
-[![Tests](https://img.shields.io/badge/Tests-126%20Passed-brightgreen.svg)](https://pytest.org)
+[![Tests](https://img.shields.io/badge/Tests-162%20Passed-brightgreen.svg)](https://pytest.org)
 
 Moonscape is an open-source, scientifically grounded lunar South Pole landing-site suitability and hazard analysis platform. Designed for local development on high-performance laptops (AMD Ryzen 9 / NVIDIA RTX) with authentic NASA planetary datasets, it evaluates candidate Artemis landing locations between 80°S and 90°S using multi-criteria decision analysis (MCDA), Horn (1981) geodetic slope modeling, RMS surface roughness, JPL DE421 solar ephemeris, morphological hazard detection, grounded AI explanations, and automated ReportLab PDF mission reports.
 
