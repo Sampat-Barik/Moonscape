@@ -234,8 +234,8 @@ def test_scientific_honesty_and_error_boundaries(client: TestClient) -> None:
     res_lat_low = client.get("/api/terrain?lat=-95.0&lon=0.0")
     assert res_lat_low.status_code == 422
 
-    # 2. Coordinate outside South Pole polar bounds (-75 deg) reports nodata honestly without 0 coercion
-    res_outside = client.get("/api/terrain?lat=-75.0&lon=0.0")
+    # 2. Coordinate outside South Pole polar bounds (-69 deg) reports nodata honestly without 0 coercion
+    res_outside = client.get("/api/terrain?lat=-69.0&lon=0.0")
     assert res_outside.status_code == 200
     d_outside = res_outside.json()
     assert d_outside["is_valid_point"] is False

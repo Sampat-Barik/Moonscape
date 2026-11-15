@@ -361,7 +361,7 @@ export default function RegionalTerrainViewer({
           const polarX = meshData.center_x_polar_m + normX * (radiusM * 2.0);
           const polarY = meshData.center_y_polar_m + normZ * (radiusM * 2.0);
           const ll = polarStereoToLatLon(polarX, polarY);
-          if (ll.lat <= -80.0 && ll.lat >= -90.0) {
+          if (ll.lat <= -70.0 && ll.lat >= -90.0) {
             onSelectCoord(ll.lat, ll.lon);
           }
         }

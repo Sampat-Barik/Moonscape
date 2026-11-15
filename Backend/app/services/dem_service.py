@@ -43,8 +43,8 @@ class DEMService:
         Returns:
             (elevation_m, is_valid_point, is_nodata)
         """
-        # Must be in lunar South Pole latitude envelope (-90 to -80 deg)
-        if not (-90.0 <= lat_deg <= -80.0):
+        # Must be in configured lunar South Pole exploration region (-90 to -70 deg)
+        if not (-90.0 <= lat_deg <= -70.0):
             return None, False, False
 
         # Priority 1: Check if covered by verified high-res NASA Product 78 (Site 01)

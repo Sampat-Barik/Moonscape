@@ -471,10 +471,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAnalysisStatus("loading");
       setAnalysisError(null);
 
-      // Pre-flight check: ensure coordinate is in the supported South Pole analysis region (-90 to -80)
-      if (s.latitude < -90 || s.latitude > -80) {
+      // Pre-flight check: ensure coordinate is in the supported South Pole exploration region (-90 to -70)
+      if (s.latitude < -90 || s.latitude > -70) {
         setAnalysisError(
-          `Selected latitude (${s.latitude}°) is outside the supported lunar South Pole analysis region (80°S–90°S). Please select a coordinate within the polar coverage zone.`
+          `Selected latitude (${s.latitude}°) is outside the supported lunar South Pole exploration region (70°S–90°S). Please select a coordinate within the configured region (-90° to -70°).`
         );
         setAnalysisStatus("error");
         return false;

@@ -1,0 +1,216 @@
+{
+  "mission": "Lunar Reconnaissance Orbiter (LRO)",
+  "instrument": "Lunar Reconnaissance Orbiter Camera (LROC NAC)",
+  "archive": "NASA Planetary Data System (PDS) Cartography and Imaging Sciences Node",
+  "base_pds_url": "https://pds.lroc.im-ldi.com/data",
+  "quickmap_url": "https://quickmap.lroc.asu.edu",
+  "citation": "Robinson, M.S. et al. (2010). Lunar Reconnaissance Orbiter Camera (LROC) Instrument Overview. Space Science Reviews, 150(1-4), 81-124.",
+  "licensing": "NASA Open Data Policy (Public Domain / US Government Work). Free for research, education, and civil spaceflight planning.",
+  "redistribution_policy": "Unrestricted redistribution of PDS calibrated EDR/CDR/RDR products with proper credit.",
+  "cataloged_products": [
+    {
+      "product_id": "LROC_NAC_POLAR_M119811899LE",
+      "scene_id": "20",
+      "region": "Shackleton Connecting Ridge (Artemis Site 01)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -89.9,
+        -89.4
+      ],
+      "lon_bounds": [
+        140.0,
+        240.0
+      ],
+      "resolution_mpp": 1.2,
+      "solar_incidence_deg": 82.5,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M119818694LE",
+      "scene_id": "21",
+      "region": "Shackleton Crater Rim Bench",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -89.9,
+        -89.4
+      ],
+      "lon_bounds": [
+        120.0,
+        210.0
+      ],
+      "resolution_mpp": 1.2,
+      "solar_incidence_deg": 82.5,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M120145821LE",
+      "scene_id": "22",
+      "region": "Connecting Ridge Extension (Site 01 Ext)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -89.6,
+        -89.3
+      ],
+      "lon_bounds": [
+        190.0,
+        240.0
+      ],
+      "resolution_mpp": 1.4,
+      "solar_incidence_deg": 83.1,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M123456789LE",
+      "scene_id": "23",
+      "region": "Malapert Mountain Plateau (Site 02 Margin)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -86.3,
+        -85.7
+      ],
+      "lon_bounds": [
+        0.0,
+        30.0
+      ],
+      "resolution_mpp": 1.5,
+      "solar_incidence_deg": 80.4,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M123456790RE",
+      "scene_id": "24",
+      "region": "Malapert Mountain Summit Massif (Site 02)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -86.0,
+        -85.5
+      ],
+      "lon_bounds": [
+        0.0,
+        35.0
+      ],
+      "resolution_mpp": 1.5,
+      "solar_incidence_deg": 80.4,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M145129840LE",
+      "scene_id": "25",
+      "region": "Haworth Transition Rim (PSR Margin)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -87.6,
+        -87.1
+      ],
+      "lon_bounds": [
+        342.0,
+        358.0
+      ],
+      "resolution_mpp": 1.8,
+      "solar_incidence_deg": 84.5,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M134982103LE",
+      "scene_id": "26",
+      "region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -88.8,
+        -88.3
+      ],
+      "lon_bounds": [
+        265.0,
+        290.0
+      ],
+      "resolution_mpp": 1.4,
+      "solar_incidence_deg": 81.2,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M134988898LE",
+      "scene_id": "27",
+      "region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+      "coverage_zone": "core",
+      "lat_bounds": [
+        -88.5,
+        -88.0
+      ],
+      "lon_bounds": [
+        270.0,
+        295.0
+      ],
+      "resolution_mpp": 1.4,
+      "solar_incidence_deg": 81.2,
+      "samples_in_dataset": 10
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M1139415414RE",
+      "scene_id": "28",
+      "region": "Amundsen Crater Rim & Plateau",
+      "coverage_zone": "extended",
+      "lat_bounds": [
+        -84.8,
+        -79.0
+      ],
+      "lon_bounds": [
+        80.0,
+        95.0
+      ],
+      "resolution_mpp": 1.5,
+      "solar_incidence_deg": 79.5,
+      "status": "reference_extended_footprint"
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M1174628392LE",
+      "scene_id": "29",
+      "region": "Nobile Crater Rim 1 & 2",
+      "coverage_zone": "extended",
+      "lat_bounds": [
+        -85.6,
+        -83.5
+      ],
+      "lon_bounds": [
+        45.0,
+        60.0
+      ],
+      "resolution_mpp": 1.5,
+      "solar_incidence_deg": 79.8,
+      "status": "reference_extended_footprint"
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M1382940192RE",
+      "scene_id": "30",
+      "region": "Drygalski Outer Rim / SPA Highland",
+      "coverage_zone": "extended",
+      "lat_bounds": [
+        -79.5,
+        -75.0
+      ],
+      "lon_bounds": [
+        265.0,
+        285.0
+      ],
+      "resolution_mpp": 1.6,
+      "solar_incidence_deg": 78.5,
+      "status": "reference_extended_footprint"
+    },
+    {
+      "product_id": "LROC_NAC_POLAR_M1402938104LE",
+      "scene_id": "31",
+      "region": "Boguslawsky Rim Corridor",
+      "coverage_zone": "context",
+      "lat_bounds": [
+        -74.5,
+        -71.0
+      ],
+      "lon_bounds": [
+        50.0,
+        65.0
+      ],
+      "resolution_mpp": 1.7,
+      "solar_incidence_deg": 77.8,
+      "status": "reference_context_footprint"
+    }
+  ]
+}

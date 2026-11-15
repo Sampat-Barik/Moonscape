@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 class DetectLandingSitesRequest(BaseModel):
     """Input payload to trigger automated contiguous safe landing zone search."""
 
-    center_lat: float = Field(..., ge=-90.0, le=-80.0, description="Center latitude of search region (-90 to -80)")
+    center_lat: float = Field(..., ge=-90.0, le=-70.0, description="Center latitude of search region (-90 to -70)")
     center_lon: float = Field(..., ge=-180.0, le=360.0, description="Center longitude of search region (-180 to 360)")
     search_radius_meters: float = Field(1500.0, ge=200.0, le=10000.0, description="Physical search radius in meters")
     max_slope_deg: float = Field(8.0, ge=2.0, le=15.0, description="Maximum allowable slope for touchdown (deg)")

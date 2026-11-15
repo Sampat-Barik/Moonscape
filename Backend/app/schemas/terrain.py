@@ -102,8 +102,8 @@ class TerrainResponse(BaseModel):
 class TerrainMeshRequest(BaseModel):
     """Input payload for extracting downsampled 3D elevation and slope meshes."""
 
-    lat: Optional[float] = Field(None, ge=-90.0, le=-80.0, description="Latitude in degrees (-90 to -80)")
-    latitude: Optional[float] = Field(None, ge=-90.0, le=-80.0, description="Alias for lat")
+    lat: Optional[float] = Field(None, ge=-90.0, le=-70.0, description="Latitude in degrees (-90 to -70)")
+    latitude: Optional[float] = Field(None, ge=-90.0, le=-70.0, description="Alias for lat")
     lon: Optional[float] = Field(None, ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)")
     longitude: Optional[float] = Field(None, ge=-180.0, le=360.0, description="Alias for lon")
     radius_m: Optional[float] = Field(500.0, ge=20.0, le=25000.0, description="Physical radius in meters")

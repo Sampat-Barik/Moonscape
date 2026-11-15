@@ -107,7 +107,7 @@ def get_spatial_coverage(
 
 @router.get("/lroc/footprints", summary="Discover intersecting NASA LROC NAC targeted stereo DTM footprints")
 def discover_lroc_nac_footprints(
-    lat: float = Query(..., ge=-90.0, le=-80.0, description="Center latitude in degrees (-90 to -80)"),
+    lat: float = Query(..., ge=-90.0, le=-70.0, description="Center latitude in degrees (-90 to -70)"),
     lon: float = Query(..., ge=-180.0, le=360.0, description="Center longitude in degrees (-180 to 360)"),
     radius: float = Query(5000.0, ge=100.0, le=50000.0, description="Search radius in meters (100m to 50km)"),
 ) -> Dict[str, Any]:

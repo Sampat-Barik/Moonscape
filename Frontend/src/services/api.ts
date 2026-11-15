@@ -533,43 +533,85 @@ export const api = {
       post(reqPayload)
     );
 
-    // Live backend returns hazards list or detections list
-    const rawHazards: any[] = Array.isArray(raw.hazards)
-      ? raw.hazards
-      : Array.isArray(raw.detections)
-      ? raw.detections
-      : [];
+    // Distinguish optical scan completion from unavailable/unexecuted scan
+    const opticalRan = raw.optical_status === "success" || (raw.crater_count !== null && raw.crater_count !== undefined);
 
-    const craters: HazardItem[] =
-      raw.craters ??
-      rawHazards
-        .filter((h: any) => (h.hazard_type || h.label || "").toLowerCase() === "crater")
-        .map((h: any, i: number) => ({
+    const rawHazards: any[] = Array.isArray(raw.hazards) ? raw.hazards : [];
+    const rawDetections: any[] = Array.isArray(raw.detections) ? raw.detections : [];
+
+    let craters: HazardItem[] | null = null;
+    let rocks: HazardItem[] | null = null;
+
+    if (opticalRan) {
+      if (Array.isArray(raw.craters)) {
+        craters = raw.craters.map((h: any, i: number) => ({
           id: h.id ?? `CR-${i + 1}`,
           type: "crater",
           latitude: h.latitude,
           longitude: h.longitude,
           diameter_m: h.estimated_size_m ?? (h.radius_m ? h.radius_m * 2 : null),
           confidence: h.confidence_score ?? h.confidence ?? null,
-          severity: h.severity ?? "unclassified",
+          severity: h.severity ?? "medium",
         }));
+      } else {
+        craters = rawDetections
+          .filter((d: any) => (d.label || "").toLowerCase() === "crater")
+          .map((d: any, i: number) => ({
+            id: `CR-${i + 1}`,
+            type: "crater",
+            latitude: body.latitude,
+            longitude: body.longitude,
+            diameter_m: d.estimated_size_m ?? null,
+            confidence: d.confidence ?? null,
+            severity: d.severity ?? "medium",
+          }));
+      }
 
-    const rocks: HazardItem[] =
-      raw.rocks ??
-      rawHazards
-        .filter((h: any) => {
-          const t = (h.hazard_type || h.label || "").toLowerCase();
-          return t === "boulder" || t === "rock";
-        })
-        .map((h: any, i: number) => ({
+      if (Array.isArray(raw.rocks)) {
+        rocks = raw.rocks.map((h: any, i: number) => ({
           id: h.id ?? `RK-${i + 1}`,
           type: "rock",
           latitude: h.latitude,
           longitude: h.longitude,
           size_m: h.estimated_size_m ?? h.diameter_m ?? null,
           confidence: h.confidence_score ?? h.confidence ?? null,
-          severity: h.severity ?? "unclassified",
+          severity: h.severity ?? "medium",
         }));
+      } else {
+        rocks = rawDetections
+          .filter((d: any) => {
+            const l = (d.label || "").toLowerCase();
+            return l === "boulder" || l === "rock";
+          })
+          .map((d: any, i: number) => ({
+            id: `RK-${i + 1}`,
+            type: "rock",
+            latitude: body.latitude,
+            longitude: body.longitude,
+            size_m: d.estimated_size_m ?? null,
+            confidence: d.confidence ?? null,
+            severity: d.severity ?? "medium",
+          }));
+      }
+    }
+
+    // Topographic hazards from DEM
+    const topographicHazards: HazardItem[] = rawHazards
+      .filter((h: any) => {
+        const t = (h.hazard_type || "").toLowerCase();
+        return t === "escarpment" || t === "morphological_depression" || t === "surface_roughness_anomaly";
+      })
+      .map((h: any, i: number) => ({
+        id: h.id ?? `TOPO-${i + 1}`,
+        type: h.hazard_type,
+        latitude: h.latitude,
+        longitude: h.longitude,
+        diameter_m: h.estimated_size_m ?? null,
+        size_m: h.estimated_size_m ?? null,
+        confidence: h.confidence_score ?? 0.90,
+        severity: h.severity ?? "medium",
+        source: h.source,
+      }));
 
     const limitations: string[] = Array.isArray(raw.limitations)
       ? raw.limitations
@@ -577,18 +619,30 @@ export const api = {
       ? [raw.limitations]
       : [];
 
+    const warnings: string[] = Array.isArray(raw.warnings) ? raw.warnings : [];
+
     return {
       ...raw,
       latitude: raw.center_lat ?? raw.latitude ?? body.latitude,
       longitude: raw.center_lon ?? raw.longitude ?? body.longitude,
       radius_m: raw.radius_meters ?? raw.radius_m ?? body.radius_m,
+      status: raw.status ?? "success",
+      optical_status: raw.optical_status ?? (opticalRan ? "success" : "not_available"),
+      source_product_id: raw.source_product_id ?? null,
+      source_resolution_m: raw.source_resolution_m ?? null,
+      coverage_zone: raw.coverage_zone ?? "core",
       craters,
       rocks,
+      crater_count: raw.crater_count ?? (craters ? craters.length : null),
+      rock_count: raw.rock_count ?? (rocks ? rocks.length : null),
+      topographic_hazards: topographicHazards,
+      overlay_image: raw.overlay_image ?? null,
       limitations,
+      warnings,
       model: raw.model_name ?? raw.model ?? null,
       summary: raw.summary ?? {
-        overall_hazard_level: raw.overall_hazard_level ?? null,
-        total_hazards: raw.total_hazards_detected ?? (craters.length + rocks.length),
+        overall_hazard_level: raw.overall_hazard_level ?? "low",
+        total_hazards: raw.total_hazards_detected ?? ((craters ? craters.length : 0) + (rocks ? rocks.length : 0) + topographicHazards.length),
         steep_slope_cells: raw.steep_slope_cells ?? 0,
       },
     };

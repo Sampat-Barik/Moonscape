@@ -168,7 +168,7 @@ describe("MOONSCAPE — LIVE SCIENTIFIC WORKFLOW VALIDATION (11 CORE FEATURES)",
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        center_lat: -78.0, // North of 80°S constraint
+        center_lat: -69.0, // North of 70°S constraint
         center_lon: 0.0,
         radius_meters: 500.0,
       }),

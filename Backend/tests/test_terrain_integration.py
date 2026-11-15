@@ -27,8 +27,8 @@ def test_terrain_site01_shackleton_connecting_ridge():
 
 
 def test_terrain_out_of_bounds():
-    """Verify that points outside South Pole (-90 to -80) are rejected cleanly."""
-    resp = client.get("/api/terrain?lat=-75.0&lon=0.0")
+    """Verify that points outside South Pole (-90 to -70) are rejected cleanly."""
+    resp = client.get("/api/terrain?lat=-69.0&lon=0.0")
     assert resp.status_code == 200
     data = resp.json()
     assert data["is_valid_point"] is False

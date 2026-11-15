@@ -12,7 +12,7 @@ class AIExplainRequest(BaseModel):
     analysis_id: Optional[str] = Field(None, description="Identifier of completed spatial analysis run (e.g. 'analysis_001')")
     site_id: Optional[str] = Field(None, description="Catalog site identifier (e.g. 'shackleton_connecting_ridge')")
     site_name: Optional[str] = Field(None, description="Human readable name of region")
-    latitude: Optional[float] = Field(None, ge=-90.0, le=-80.0, description="Latitude of candidate zone")
+    latitude: Optional[float] = Field(None, ge=-90.0, le=-70.0, description="Latitude of candidate zone")
     longitude: Optional[float] = Field(None, ge=-180.0, le=360.0, description="Longitude of candidate zone")
     topographic_data: Optional[Dict[str, Any]] = Field(None, description="Metrics dictionary containing slope, roughness, etc.")
     score_data: Optional[Dict[str, Any]] = Field(None, description="Output from scoring engine")

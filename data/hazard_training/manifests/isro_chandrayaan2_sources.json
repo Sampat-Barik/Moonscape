@@ -1,0 +1,98 @@
+{
+  "mission": "Chandrayaan-2 Orbiter",
+  "provider": "Indian Space Research Organisation (ISRO) / Indian Space Science Data Centre (ISSDC)",
+  "archive_portal": "ISRO ISSDC PRADAN (Planetary Data Archive)",
+  "portal_url": "https://pradan.issdc.gov.in/ch2/",
+  "citation": "Chowdhury, A. et al. (2020). Orbiter High Resolution Camera (OHRC) on Chandrayaan-2: High resolution imaging of the lunar surface. Current Science, 118(4), 548-555.",
+  "licensing_and_usage": "ISRO Chandrayaan-2 Planetary Data Policy. Data accessible via ISSDC PRADAN portal. Reproduction and scientific use permitted with proper attribution to ISRO. Redistribution of raw payload products requires compliance with ISRO archive terms.",
+  "instruments": {
+    "OHRC": {
+      "full_name": "Orbiter High Resolution Camera",
+      "type": "Very high-resolution optical framing telescope",
+      "spatial_resolution_mpp": "0.25 m to 0.32 m per pixel at 100 km orbit",
+      "swath_width_km": "3.0 km to 4.0 km",
+      "spectral_band_nm": "450 - 900 nm (Panchromatic)",
+      "significance": "Finest spatial resolution lunar orbital civilian camera; resolves boulders down to 0.5m diameter."
+    },
+    "TMC-2": {
+      "full_name": "Terrain Mapping Camera 2",
+      "type": "Three-line stereo pushbroom scanner (Fore, Nadir, Aft)",
+      "spatial_resolution_mpp": "5.0 m per pixel",
+      "stereo_viewing_angles": "+25 deg (Fore), 0 deg (Nadir), -25 deg (Aft)",
+      "spectral_band_nm": "500 - 850 nm (Panchromatic)",
+      "significance": "Generates high-precision digital elevation models across polar strips [-70 deg to -90 deg]."
+    }
+  },
+  "cataloged_polar_products": [
+    {
+      "product_id": "CH2_OHR_NC_20190906T123045_710_D",
+      "instrument": "OHRC",
+      "target_region": "Simpelius N / Boguslawsky South Pole Transition Corridor",
+      "coverage_zone": "context",
+      "latitude_bounds": [
+        -74.8,
+        -71.2
+      ],
+      "longitude_bounds": [
+        52.0,
+        56.5
+      ],
+      "resolution_mpp": 0.28,
+      "solar_incidence_deg": 81.5,
+      "format": "PDS4 Standard / GeoTIFF calibrated",
+      "usage_notes": "Provides extreme resolution context for boulder distribution in the 70\u00b0S-75\u00b0S context corridor."
+    },
+    {
+      "product_id": "CH2_OHR_NC_20200115T081520_825_D",
+      "instrument": "OHRC",
+      "target_region": "Amundsen-Ganswindt Transition Corridor",
+      "coverage_zone": "extended",
+      "latitude_bounds": [
+        -81.2,
+        -78.5
+      ],
+      "longitude_bounds": [
+        82.0,
+        87.0
+      ],
+      "resolution_mpp": 0.25,
+      "solar_incidence_deg": 83.0,
+      "format": "PDS4 Standard / GeoTIFF calibrated",
+      "usage_notes": "High-resolution verification of crater morphology and boulder ejecta in the 75\u00b0S-80\u00b0S extended corridor."
+    },
+    {
+      "product_id": "CH2_TMC_NC_20191012T041230_DTM",
+      "instrument": "TMC-2",
+      "target_region": "South Pole Highland Extended Corridor (-70\u00b0 to -80\u00b0)",
+      "coverage_zone": "extended_and_context",
+      "latitude_bounds": [
+        -80.0,
+        -70.0
+      ],
+      "longitude_bounds": [
+        0.0,
+        360.0
+      ],
+      "resolution_mpp": 5.0,
+      "format": "PDS4 DTM GeoTIFF",
+      "usage_notes": "Stereo triplet DTM providing elevation, slope, and roughness for regions poleward of 70\u00b0S where 80m LOLA polar DEM has coarse coverage."
+    },
+    {
+      "product_id": "CH2_TMC_NC_20200218T102450_DTM",
+      "instrument": "TMC-2",
+      "target_region": "South Pole Polar Core Corridor (-80\u00b0 to -90\u00b0)",
+      "coverage_zone": "core",
+      "latitude_bounds": [
+        -90.0,
+        -80.0
+      ],
+      "longitude_bounds": [
+        0.0,
+        360.0
+      ],
+      "resolution_mpp": 5.0,
+      "format": "PDS4 DTM GeoTIFF",
+      "usage_notes": "Independent stereo validation of LOLA Product 78/90 altimetry models."
+    }
+  ]
+}

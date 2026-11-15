@@ -39,7 +39,7 @@ class LandingSiteDetectionService:
         profile = req.mission_profile or "artemis_hls"
         # Validate coordinates
         is_valid, msg = coordinate_manager.validate_coordinates(req.center_lat, req.center_lon)
-        if not is_valid or not coordinate_manager.is_in_south_pole_zone(req.center_lat):
+        if not is_valid or not coordinate_manager.is_in_analysis_region(req.center_lat):
             return DetectLandingSitesResponse(
                 status="no_sites_found",
                 center_lat=req.center_lat,
@@ -48,7 +48,7 @@ class LandingSiteDetectionService:
                 total_sites_detected=0,
                 candidate_zones=[],
                 dataset_metadata={},
-                summary=f"Coordinates outside lunar South Pole operational zone (-90° to -80°). {msg}",
+                summary=f"Coordinates outside lunar South Pole exploration region (-90° to -70°). {msg}",
                 warnings=["Location is outside verified polar data coverage."],
             )
 

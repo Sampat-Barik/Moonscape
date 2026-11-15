@@ -152,8 +152,8 @@ def test_frontend_error_handling_contracts(client: TestClient) -> None:
     res_bad_coord = client.get("/api/terrain?lat=-95.0&lon=0.0")
     assert res_bad_coord.status_code == 422  # Pydantic validation failure on lat range
 
-    # 1b. Coordinate outside South Pole coverage region (-80 < lat <= 90) returns 200 with invalid point and nodata classification
-    res_out_of_bounds = client.get("/api/terrain?lat=-75.0&lon=0.0")
+    # 1b. Coordinate outside South Pole coverage region (-70 < lat <= 90) returns 200 with invalid point and nodata classification
+    res_out_of_bounds = client.get("/api/terrain?lat=-69.0&lon=0.0")
     assert res_out_of_bounds.status_code == 200
     out_data = res_out_of_bounds.json()
     assert out_data["is_valid_point"] is False

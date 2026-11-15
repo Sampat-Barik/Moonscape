@@ -229,9 +229,9 @@ def test_resolution_coarser_than_diameter_warning():
 
 
 def test_out_of_bounds_coordinate_rejection():
-    """12. Coordinates outside supported South Pole region [-90, -80] rejected with HTTP 422."""
+    """12. Coordinates outside supported South Pole region [-90, -70] rejected with HTTP 422."""
     res = client.post("/api/analysis/run", json={
-        "center_lat": -75.0,
+        "center_lat": -69.0,
         "center_lon": 0.0,
         "radius_meters": 1000.0,
     })

@@ -64,6 +64,7 @@ class DataCoverageResponse(BaseModel):
     valid_coordinate: bool
     latitude: float
     longitude: float
+    coverage_zone: Optional[str] = Field("core", description="'core', 'extended', 'context', 'outside', or 'invalid'")
     in_south_pole_zone: bool
     best_installed_resolution_m: Optional[float] = None
     total_covering_sources: int

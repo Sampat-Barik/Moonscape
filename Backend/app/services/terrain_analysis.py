@@ -473,7 +473,7 @@ class TerrainAnalysisEngine:
 
         # Illumination estimate
         elev_val = elev_metrics.point_elevation_m or 0.0
-        lat_factor = (lat_deg - (-80.0)) / (-10.0)
+        lat_factor = max(0.0, min(1.0, (lat_deg - (-70.0)) / (-20.0)))
         elev_factor = max(0.0, min(1.0, (elev_val + 2000.0) / 4000.0))
         estimated_illum = round(min(92.0, max(15.0, 50.0 + (lat_factor * 20.0) + (elev_factor * 22.0))), 1)
 

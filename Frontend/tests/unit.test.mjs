@@ -240,20 +240,20 @@ describe("7. Live Backend & API Contract Integration", () => {
     }
   });
 
-  test("POST /api/analysis/run rejects out-of-bounds latitude (-75°) with HTTP 422", async () => {
+  test("POST /api/analysis/run rejects out-of-bounds latitude (-69°) with HTTP 422", async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/analysis/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          center_lat: -75.0,
+          center_lat: -69.0,
           center_lon: 0.0,
           radius_meters: 1000.0,
         }),
       });
       assert.equal(res.status, 422);
       const err = await res.json();
-      assert.ok(JSON.stringify(err.detail).includes("less than or equal to -80"));
+      assert.ok(JSON.stringify(err.detail).includes("less than or equal to -70"));
     } catch (e) {
       if (e.cause?.code === "ECONNREFUSED") {
         assert.ok(true, "Backend not currently running on 8000; skipped");

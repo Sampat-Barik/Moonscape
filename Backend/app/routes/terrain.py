@@ -75,8 +75,8 @@ def post_terrain_mesh(payload: TerrainMeshRequest) -> TerrainMeshResponse:
 
 @router.get("/terrain/mesh", response_model=TerrainMeshResponse, summary="Extract downsampled elevation and slope grids for 3D terrain rendering (GET)")
 def get_terrain_mesh(
-    lat: Optional[float] = Query(None, ge=-90.0, le=-80.0, description="Latitude in degrees (-90 to -80)"),
-    latitude: Optional[float] = Query(None, ge=-90.0, le=-80.0, description="Alias for lat"),
+    lat: Optional[float] = Query(None, ge=-90.0, le=-70.0, description="Latitude in degrees (-90 to -70)"),
+    latitude: Optional[float] = Query(None, ge=-90.0, le=-70.0, description="Alias for lat"),
     lon: Optional[float] = Query(None, ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)"),
     longitude: Optional[float] = Query(None, ge=-180.0, le=360.0, description="Alias for lon"),
     radius_m: Optional[float] = Query(500.0, ge=20.0, le=25000.0, description="Physical radius in meters"),

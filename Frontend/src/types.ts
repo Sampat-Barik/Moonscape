@@ -85,12 +85,21 @@ export interface HazardDetection {
   latitude?: number;
   longitude?: number;
   radius_m?: number;
+  status?: string;
+  optical_status?: string;
+  source_product_id?: string | null;
+  source_resolution_m?: number | null;
+  coverage_zone?: string;
+  crater_count?: number | null;
+  rock_count?: number | null;
   craters?: HazardItem[] | null;
   rocks?: HazardItem[] | null;
+  topographic_hazards?: HazardItem[];
   overlay_image?: string | null;
   image_url?: string | null;
   model?: string;
   limitations?: string[];
+  warnings?: string[];
   summary?: Record<string, unknown>;
   [key: string]: unknown;
 }

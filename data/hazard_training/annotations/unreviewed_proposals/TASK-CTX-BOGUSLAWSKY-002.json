@@ -1,0 +1,53 @@
+{
+  "task_id": "TASK-CTX-BOGUSLAWSKY-002",
+  "target_region": "Boguslawsky Rim Corridor (-74.5\u00b0 to -71.0\u00b0)",
+  "coverage_zone": "context",
+  "source_product_id": "CH2_OHR_NC_20190906T123045_710_D",
+  "resolution_mpp": 0.28,
+  "solar_incidence_deg": 81.5,
+  "review_status": "unreviewed_proposal",
+  "reviewed": false,
+  "proposed_craters": [
+    {
+      "proposal_id": "PROP-CR-01",
+      "bbox_norm": [
+        0.21,
+        0.415,
+        0.095,
+        0.105
+      ],
+      "estimated_diameter_m": 17.2,
+      "confidence": 0.65
+    }
+  ],
+  "proposed_boulders": [
+    {
+      "proposal_id": "PROP-BL-01",
+      "bbox_norm": [
+        0.225,
+        0.435,
+        0.008,
+        0.01
+      ],
+      "estimated_size_m": 1.6,
+      "confidence": 0.74
+    },
+    {
+      "proposal_id": "PROP-BL-02",
+      "bbox_norm": [
+        0.55,
+        0.62,
+        0.006,
+        0.008
+      ],
+      "estimated_size_m": 1.2,
+      "confidence": 0.71
+    }
+  ],
+  "human_review_checklist": {
+    "crater_rim_crest_delineated": "Pending review",
+    "boulder_shadow_reflectance_confirmed": "Pending review",
+    "shadow_azimuth_consistent_with_sun": "Pending review",
+    "no_topographic_roughness_conflation": "Pending review"
+  }
+}

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 class VisibilitySimulationRequest(BaseModel):
     """Input parameters for temporal Sun and Earth visibility propagation."""
 
-    lat: float = Field(..., ge=-90.0, le=-80.0, description="Latitude in degrees (-90 to -80)")
+    lat: float = Field(..., ge=-90.0, le=-70.0, description="Latitude in degrees (-90 to -70)")
     lon: float = Field(..., ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)")
     start_epoch_iso: Optional[str] = Field(None, description="Start UTC timestamp (ISO-8601). Defaults to current time.")
     duration_days: float = Field(14.0, ge=1.0, le=60.0, description="Simulation duration in Earth days (1 to 60 days)")

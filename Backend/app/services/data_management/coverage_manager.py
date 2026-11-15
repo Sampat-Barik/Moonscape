@@ -9,6 +9,7 @@ from app.services.data_sources.lroc_wac import lroc_wac
 from app.services.data_sources.pgda_product104 import pgda_product104
 from app.services.data_sources.pgda_product78 import pgda_product78
 from app.services.data_sources.pgda_product90 import pgda_product90
+from app.services.data_sources.isro_chandrayaan2 import isro_chandrayaan2
 from app.services.geospatial.coordinate_manager import coordinate_manager
 
 
@@ -25,11 +26,13 @@ class CoverageManager:
                 "error": val_msg,
                 "latitude": lat_deg,
                 "longitude": lon_deg,
+                "coverage_zone": "invalid",
                 "in_south_pole_zone": False,
                 "available_layers": [],
             }
 
-        in_sp = coordinate_manager.is_in_south_pole_zone(lat_deg)
+        zone = coordinate_manager.get_coverage_zone(lat_deg)
+        in_sp = coordinate_manager.is_in_analysis_region(lat_deg)
         norm_lon = coordinate_manager.normalize_longitude(lon_deg, target_range="360")
 
         layers: List[Dict[str, Any]] = []
@@ -108,6 +111,20 @@ class CoverageManager:
             "covering_nac_dtms": [d["name"] for d in nac_dtms],
         })
 
+        # 7. ISRO Chandrayaan-2 (OHRC & TMC-2)
+        ch2_covering = isro_chandrayaan2.covers_point(lat_deg, lon_deg)
+        ch2_products = isro_chandrayaan2.find_covering_products(lat_deg, lon_deg)
+        layers.append({
+            "source_id": isro_chandrayaan2.source_id,
+            "name": isro_chandrayaan2.source_name,
+            "tier": "Tier 3: Remote / On-Demand",
+            "covers": ch2_covering,
+            "is_installed": isro_chandrayaan2.is_available(),
+            "resolution_m": 0.25 if any(p["instrument"] == "OHRC" for p in ch2_products) else 5.0,
+            "covering_isro_products": [p["name"] for p in ch2_products],
+            "agency": "ISRO",
+        })
+
         # Determine best available resolution
         installed_resolutions = [l["resolution_m"] for l in layers if l["covers"] and l["is_installed"]]
         best_res = min(installed_resolutions) if installed_resolutions else None
@@ -116,6 +133,7 @@ class CoverageManager:
             "valid_coordinate": True,
             "latitude": lat_deg,
             "longitude": norm_lon,
+            "coverage_zone": zone,
             "in_south_pole_zone": in_sp,
             "best_installed_resolution_m": best_res,
             "total_covering_sources": len([l for l in layers if l["covers"]]),

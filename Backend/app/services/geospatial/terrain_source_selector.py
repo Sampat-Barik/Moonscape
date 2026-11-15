@@ -36,7 +36,7 @@ class TerrainSourceSelector:
     def get_point_terrain(cls, lat: float, lon: float) -> TerrainResponse:
         """Acquires scientific terrain measurements using the highest-fidelity available layer."""
         is_valid_coord, val_msg = coordinate_manager.validate_coordinates(lat, lon)
-        if not is_valid_coord or not coordinate_manager.is_in_south_pole_zone(lat):
+        if not is_valid_coord or not coordinate_manager.is_in_analysis_region(lat):
             return TerrainResponse(
                 latitude=lat,
                 longitude=lon,
@@ -56,7 +56,7 @@ class TerrainSourceSelector:
                     slope_method="Horn (1981) 8-neighbor gradient operator",
                     roughness_baseline_m=LOLA_SPATIAL_RESOLUTION_M * 3.0,
                 ),
-                notes=f"Coordinates outside lunar South Pole coverage area (-90.0° to -80.0°). {val_msg}",
+                notes=f"Coordinates outside lunar South Pole exploration region (-90.0° to -70.0°). {val_msg}",
             )
 
         source_id = cls.select_source(lat, lon)

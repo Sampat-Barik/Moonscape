@@ -609,16 +609,71 @@ class HazardDetectionService:
         model_name = self._metadata.get("model_name", "Lunar Hazard Detector")
         model_version = self._metadata.get("version", "1.0.0")
 
+        # Generate visual detection overlay
+        overlay_data_url = self.render_detection_overlay(pil_img, detections)
+
         return HazardPredictResponse(
             status="success",
             detections=detections,
             crater_count=crater_count,
             rock_count=rock_count,
+            overlay_image=overlay_data_url,
             warnings=warnings,
             model_name=model_name,
             model_version=model_version,
             limitations=APOLLO_DOMAIN_LIMITATION,
         )
+
+    @staticmethod
+    def render_detection_overlay(
+        img: Image.Image,
+        detections: List[DetectionItem],
+        max_dimension: int = 1024,
+    ) -> str:
+        """Draws bounding boxes and class labels onto lunar image and returns base64 PNG data URL."""
+        from PIL import ImageDraw
+        overlay_img = img.convert("RGB")
+        orig_w, orig_h = overlay_img.size
+
+        if max(orig_w, orig_h) > max_dimension:
+            scale = max_dimension / max(orig_w, orig_h)
+            new_w, new_h = int(orig_w * scale), int(orig_h * scale)
+            overlay_img = overlay_img.resize((new_w, new_h), Image.Resampling.BILINEAR)
+        else:
+            scale = 1.0
+
+        draw = ImageDraw.Draw(overlay_img)
+
+        for det in detections:
+            if not det.bounding_box:
+                continue
+            b = det.bounding_box
+            ymin = b.ymin * scale
+            xmin = b.xmin * scale
+            ymax = b.ymax * scale
+            xmax = b.xmax * scale
+
+            label_lower = det.label.lower()
+            if "crater" in label_lower:
+                box_color = "#38BDF8"  # Cyan
+                bg_color = "#38BDF8"
+            else:
+                box_color = "#F59E0B"  # Amber / Orange
+                bg_color = "#F59E0B"
+
+            draw.rectangle([xmin, ymin, xmax, ymax], outline=box_color, width=2)
+
+            size_str = f" {det.estimated_size_m:.1f}m" if det.estimated_size_m is not None else ""
+            tag = f"{det.label.upper()}{size_str} ({int(round(det.confidence * 100))}%)"
+            tag_w = len(tag) * 6 + 6
+            tag_top = max(0, ymin - 13)
+            draw.rectangle([xmin, tag_top, xmin + tag_w, ymin], fill=bg_color)
+            draw.text((xmin + 3, tag_top), tag, fill="#000000")
+
+        buf = io.BytesIO()
+        overlay_img.save(buf, format="PNG", optimize=True)
+        b64_data = base64.b64encode(buf.getvalue()).decode("utf-8")
+        return f"data:image/png;base64,{b64_data}"
 
 
 hazard_detection_service = HazardDetectionService()

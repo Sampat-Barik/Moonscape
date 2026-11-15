@@ -168,7 +168,17 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
     });
   };
 
-  const isInAnalysisRegion = selection.latitude <= -80 && selection.latitude >= -90;
+  const coverageZone = selection.latitude < -90 || selection.latitude > 90
+    ? 'invalid'
+    : selection.latitude > -70
+    ? 'outside'
+    : selection.latitude > -75
+    ? 'context'
+    : selection.latitude > -80
+    ? 'extended'
+    : 'core';
+
+  const isInAnalysisRegion = selection.latitude <= -70 && selection.latitude >= -90;
 
   const onAnalyse = async () => {
     if (!isInAnalysisRegion) return;
@@ -632,14 +642,14 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="coord-lat" className="mb-1 block text-[10px] font-mono uppercase tracking-wider text-muted">
-                    Latitude (-90° to -80°)
+                    Latitude (-90° to -70°)
                   </label>
                   <input
                     id="coord-lat"
                     type="number"
                     step="0.001"
                     min={-90}
-                    max={-80}
+                    max={-70}
                     value={selection.latitude}
                     onChange={(e) => {
                       const val = parseFloat(e.target.value);
@@ -671,6 +681,30 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                     className="input text-xs font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Coverage Tier Indicator */}
+              <div className="flex items-center justify-between rounded border border-divider/60 bg-surface/60 px-2.5 py-1.5 text-[11px]">
+                <span className="text-muted">Coverage Tier:</span>
+                <span
+                  className={
+                    coverageZone === "core"
+                      ? "font-mono font-medium text-emerald-400"
+                      : coverageZone === "extended"
+                      ? "font-mono font-medium text-sky-400"
+                      : coverageZone === "context"
+                      ? "font-mono font-medium text-amber-400"
+                      : "font-mono font-medium text-rose-400"
+                  }
+                >
+                  {coverageZone === "core"
+                    ? "Core South Pole (-90° to -80°)"
+                    : coverageZone === "extended"
+                    ? "Extended South Pole (-80° to -75°)"
+                    : coverageZone === "context"
+                    ? "Context Region (-75° to -70°)"
+                    : "Outside Analysis Region"}
+                </span>
               </div>
 
               {/* Radius Selector Pills */}

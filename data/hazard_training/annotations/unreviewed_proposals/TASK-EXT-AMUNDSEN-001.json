@@ -1,0 +1,53 @@
+{
+  "task_id": "TASK-EXT-AMUNDSEN-001",
+  "target_region": "Amundsen Crater Rim & Plateau (-84.8\u00b0 to -79.0\u00b0)",
+  "coverage_zone": "extended",
+  "source_product_id": "LROC_NAC_POLAR_M1139415414RE",
+  "resolution_mpp": 1.5,
+  "solar_incidence_deg": 79.5,
+  "review_status": "unreviewed_proposal",
+  "reviewed": false,
+  "proposed_craters": [
+    {
+      "proposal_id": "PROP-CR-01",
+      "bbox_norm": [
+        0.452,
+        0.321,
+        0.084,
+        0.092
+      ],
+      "estimated_diameter_m": 82.5,
+      "confidence": 0.62
+    },
+    {
+      "proposal_id": "PROP-CR-02",
+      "bbox_norm": [
+        0.68,
+        0.54,
+        0.065,
+        0.071
+      ],
+      "estimated_diameter_m": 64.0,
+      "confidence": 0.59
+    }
+  ],
+  "proposed_boulders": [
+    {
+      "proposal_id": "PROP-BL-01",
+      "bbox_norm": [
+        0.485,
+        0.345,
+        0.015,
+        0.018
+      ],
+      "estimated_size_m": 4.5,
+      "confidence": 0.68
+    }
+  ],
+  "human_review_checklist": {
+    "crater_rim_crest_delineated": "Pending review",
+    "boulder_shadow_reflectance_confirmed": "Pending review",
+    "shadow_azimuth_consistent_with_sun": "Pending review",
+    "no_topographic_roughness_conflation": "Pending review"
+  }
+}

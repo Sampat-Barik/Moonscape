@@ -63,7 +63,7 @@ class TerrainService:
     def get_point_terrain(self, lat: float, lon: float, radius_m: float = 50.0) -> TerrainResponse:
         """Extracts topographic attributes at coordinate using highest-resolution authentic NASA data."""
         is_valid_coord, val_msg = coordinate_manager.validate_coordinates(lat, lon)
-        if not is_valid_coord or not coordinate_manager.is_in_south_pole_zone(lat):
+        if not is_valid_coord or not coordinate_manager.is_in_analysis_region(lat):
             return TerrainResponse(
                 latitude=lat,
                 longitude=lon,
@@ -86,7 +86,7 @@ class TerrainService:
                     crs="ESRI:104903 (Lunar South Polar Stereographic)",
                     is_measured_data=False,
                 ),
-                notes=f"Coordinates outside lunar South Pole coverage area (-90.0° to -80.0°). {val_msg}",
+                notes=f"Coordinates outside lunar South Pole exploration region (-90.0° to -70.0°). {val_msg}",
             )
 
         res = terrain_analysis_engine.analyze_location(
@@ -358,7 +358,7 @@ class TerrainService:
 
         # Validate coordinate
         is_valid, _ = coordinate_manager.validate_coordinates(lat, lon)
-        if not is_valid or not coordinate_manager.is_in_south_pole_zone(lat):
+        if not is_valid or not coordinate_manager.is_in_analysis_region(lat):
             cx, cy = coordinate_manager.to_polar_stereographic(lat, lon)
             empty_grid = [[0.0] * grid_size for _ in range(grid_size)]
             return TerrainMeshResponse(

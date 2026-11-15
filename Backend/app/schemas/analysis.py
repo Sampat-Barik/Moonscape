@@ -9,7 +9,7 @@ from app.schemas.scoring import ScoreResponse
 class AnalysisRunRequest(BaseModel):
     """Input payload to trigger a landing zone raster analysis."""
 
-    center_lat: float = Field(..., ge=-90.0, le=-80.0, description="Center latitude of candidate landing zone (-90 to -80)")
+    center_lat: float = Field(..., ge=-90.0, le=-70.0, description="Center latitude of candidate landing zone (-90 to -70)")
     center_lon: float = Field(..., ge=-180.0, le=360.0, description="Center longitude of candidate landing zone (-180 to 360)")
     radius_meters: float = Field(1000.0, ge=50.0, le=25000.0, description="Landing ellipse radius in meters (50m to 25km)")
     max_acceptable_slope_deg: float = Field(10.0, ge=1.0, le=30.0, description="Maximum slope constraint for lander stability (deg)")
@@ -21,10 +21,10 @@ class AnalysisRunRequest(BaseModel):
     @field_validator("center_lat")
     @classmethod
     def validate_center_lat(cls, v: float) -> float:
-        if v < -90.0 or v > -80.0:
+        if v < -90.0 or v > -70.0:
             raise ValueError(
-                f"Selected latitude ({v}°) is outside the supported lunar South Pole analysis region (80°S–90°S). "
-                "Visual exploration is available, but terrain analysis requires coordinates within the polar coverage zone."
+                f"Selected latitude ({v}°) is outside the supported lunar South Pole analysis region (70°S–90°S). "
+                "Visual exploration is available on the globe, but scientific analysis requires coordinates within the configured South Pole region (-90° to -70°)."
             )
         return v
 

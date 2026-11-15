@@ -6,7 +6,10 @@ MOON_SURFACE_GRAVITY: float = 1.62  # m/s^2
 
 # Coordinate Bounds for Lunar South Pole Analysis
 SOUTH_POLE_MIN_LAT: float = -90.0
-SOUTH_POLE_MAX_LAT: float = -80.0
+SOUTH_POLE_CORE_MAX_LAT: float = -80.0      # Core region: -90° to -80°
+SOUTH_POLE_EXTENDED_MAX_LAT: float = -75.0  # Extended region: -80° to -75°
+SOUTH_POLE_CONTEXT_MAX_LAT: float = -70.0   # Optional context region: -75° to -70°
+SOUTH_POLE_MAX_LAT: float = -70.0           # Maximum bounds of configured South Pole exploration region
 LUNAR_MIN_LON: float = -180.0
 LUNAR_MAX_LON: float = 360.0
 

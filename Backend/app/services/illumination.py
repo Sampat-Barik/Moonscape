@@ -186,7 +186,7 @@ class IlluminationService:
         permanently shadowed regions (PSRs), and thermal brightness conditions.
         """
         # Validate coordinates
-        if not (-90.0 <= lat_deg <= -80.0):
+        if not (-90.0 <= lat_deg <= -70.0):
             return IlluminationSummary(
                 status="unavailable",
                 solar_elevation_deg=None,
@@ -197,9 +197,9 @@ class IlluminationService:
                 is_permanently_shadowed_region=False,
                 estimated_surface_temp_k=None,
                 sunlight_continuous_hours_max=None,
-                methodology="Unavailable: Query latitude falls outside the lunar South Pole operational zone (-90 to -80 deg).",
+                methodology="Unavailable: Query latitude falls outside the configured lunar South Pole exploration envelope (-90 to -70 deg).",
                 source_attribution="NASA LRO LOLA / Diviner",
-                scientific_caveats=["Query coordinates must fall poleward of 80 degrees South."],
+                scientific_caveats=["Query coordinates must fall within the configured South Pole exploration envelope (-90 to -70 deg)."],
             )
 
         if radius_m <= 0.0 or radius_m > 50000.0:

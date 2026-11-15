@@ -31,6 +31,8 @@ Desktop.ini
 Backend/data/lunar/cache/
 Backend/data/lunar/temporary/
 !Backend/data/lunar/**/*.gitkeep
+data/hazard_training/images/**/*.png
+data/hazard_training/images/*.png
 
 # Machine Learning Large Weights
 *.pt

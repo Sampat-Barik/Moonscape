@@ -1,0 +1,2082 @@
+[
+  {
+    "sample_id": "tile_20_5",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 62,
+    "annotated_boulders": 14,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_3",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 53,
+    "annotated_boulders": 2,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_2",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 89,
+    "annotated_boulders": 0,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_1",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 93,
+    "annotated_boulders": 5,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_4",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 70,
+    "annotated_boulders": 11,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_7",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 39,
+    "annotated_boulders": 19,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_6",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 23,
+    "annotated_boulders": 16,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_0",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 71,
+    "annotated_boulders": 13,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_0",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 24,
+    "annotated_boulders": 15,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_9",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 13,
+    "annotated_boulders": 29,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_20_8",
+    "split": "train",
+    "scene_id": "20",
+    "geographic_region": "Shackleton Connecting Ridge (Site 01)",
+    "product_id": "LROC_NAC_POLAR_M119811899LE",
+    "latitude_bounds": [
+      -89.9,
+      -89.4
+    ],
+    "longitude_bounds": [
+      140.0,
+      240.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 82.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 22,
+    "annotated_boulders": 33,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_1",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 21,
+    "annotated_boulders": 9,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_4",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 18,
+    "annotated_boulders": 12,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_2",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 18,
+    "annotated_boulders": 22,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_0",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 15,
+    "annotated_boulders": 16,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_5",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 25,
+    "annotated_boulders": 7,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_3",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 19,
+    "annotated_boulders": 17,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_8",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 16,
+    "annotated_boulders": 9,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_3",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 14,
+    "annotated_boulders": 9,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_7",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 12,
+    "annotated_boulders": 10,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_6",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 9,
+    "annotated_boulders": 9,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_21_9",
+    "split": "train",
+    "scene_id": "21",
+    "geographic_region": "Shackleton Crater Rim Bench",
+    "product_id": "LROC_NAC_POLAR_M119818694LE",
+    "latitude_bounds": [
+      -89.8,
+      -89.3
+    ],
+    "longitude_bounds": [
+      150.0,
+      220.0
+    ],
+    "resolution_mpp": 1.2,
+    "solar_incidence_deg": 81.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 13,
+    "annotated_boulders": 16,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_2",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 4,
+    "annotated_boulders": 24,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_1",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 17,
+    "annotated_boulders": 11,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_8",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 14,
+    "annotated_boulders": 14,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_4",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 14,
+    "annotated_boulders": 7,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_5",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 16,
+    "annotated_boulders": 19,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_6",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 14,
+    "annotated_boulders": 11,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_1",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 29,
+    "annotated_boulders": 18,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_0",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 19,
+    "annotated_boulders": 8,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_9",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 12,
+    "annotated_boulders": 13,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_22_7",
+    "split": "train",
+    "scene_id": "22",
+    "geographic_region": "Connecting Ridge Extension (Site 01 Ext)",
+    "product_id": "LROC_NAC_POLAR_M120145821LE",
+    "latitude_bounds": [
+      -89.6,
+      -89.2
+    ],
+    "longitude_bounds": [
+      180.0,
+      230.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 83.2,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 10,
+    "annotated_boulders": 17,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_3",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 12,
+    "annotated_boulders": 33,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_4",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 39,
+    "annotated_boulders": 4,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_8",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 21,
+    "annotated_boulders": 10,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_2",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 15,
+    "annotated_boulders": 22,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_5",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 36,
+    "annotated_boulders": 14,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_4",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 40,
+    "annotated_boulders": 10,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_9",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 22,
+    "annotated_boulders": 29,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_1",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 19,
+    "annotated_boulders": 38,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_3",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 29,
+    "annotated_boulders": 18,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_6",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 25,
+    "annotated_boulders": 36,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_23_7",
+    "split": "train",
+    "scene_id": "23",
+    "geographic_region": "Malapert Mountain Plateau (Site 02 Margin)",
+    "product_id": "LROC_NAC_POLAR_M123456789LE",
+    "latitude_bounds": [
+      -86.2,
+      -85.6
+    ],
+    "longitude_bounds": [
+      355.0,
+      10.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 79.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 32,
+    "annotated_boulders": 21,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_2",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 19,
+    "annotated_boulders": 36,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_0",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 36,
+    "annotated_boulders": 26,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_6",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 21,
+    "annotated_boulders": 60,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_9",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 28,
+    "annotated_boulders": 33,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_0",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 35,
+    "annotated_boulders": 32,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_7",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 29,
+    "annotated_boulders": 21,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_5",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 49,
+    "annotated_boulders": 10,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_24_8",
+    "split": "val",
+    "scene_id": "24",
+    "geographic_region": "Malapert Mountain Summit Massif (Site 02)",
+    "product_id": "LROC_NAC_POLAR_M123456790RE",
+    "latitude_bounds": [
+      -86.0,
+      -85.5
+    ],
+    "longitude_bounds": [
+      358.0,
+      5.0
+    ],
+    "resolution_mpp": 1.5,
+    "solar_incidence_deg": 78.0,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 22,
+    "annotated_boulders": 28,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_1",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 33,
+    "annotated_boulders": 17,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_4",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 32,
+    "annotated_boulders": 24,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_6",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 12,
+    "annotated_boulders": 60,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_2",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 26,
+    "annotated_boulders": 39,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_7",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 30,
+    "annotated_boulders": 34,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_8",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 22,
+    "annotated_boulders": 55,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_3",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 25,
+    "annotated_boulders": 27,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_0",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 41,
+    "annotated_boulders": 32,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_1",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 28,
+    "annotated_boulders": 44,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_9",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 68,
+    "annotated_boulders": 16,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_4",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 41,
+    "annotated_boulders": 46,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_25_5",
+    "split": "val",
+    "scene_id": "25",
+    "geographic_region": "Haworth Transition Rim (PSR Margin)",
+    "product_id": "LROC_NAC_POLAR_M145129840LE",
+    "latitude_bounds": [
+      -87.6,
+      -87.1
+    ],
+    "longitude_bounds": [
+      342.0,
+      358.0
+    ],
+    "resolution_mpp": 1.8,
+    "solar_incidence_deg": 84.5,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 41,
+    "annotated_boulders": 16,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_3",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 15,
+    "annotated_boulders": 72,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_2",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 9,
+    "annotated_boulders": 74,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_1",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 29,
+    "annotated_boulders": 25,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_8",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 45,
+    "annotated_boulders": 29,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_6",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 18,
+    "annotated_boulders": 40,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_0",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 38,
+    "annotated_boulders": 24,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_7",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 46,
+    "annotated_boulders": 28,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_5",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 35,
+    "annotated_boulders": 35,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_3",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 5,
+    "annotated_boulders": 48,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_26_9",
+    "split": "test",
+    "scene_id": "26",
+    "geographic_region": "de Gerlache Crater Rim 1 (Site 03 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134982103LE",
+    "latitude_bounds": [
+      -88.7,
+      -88.2
+    ],
+    "longitude_bounds": [
+      268.0,
+      290.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 81.8,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 15,
+    "annotated_boulders": 41,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_4",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 13,
+    "annotated_boulders": 27,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_2",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 30,
+    "annotated_boulders": 6,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_6",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 10,
+    "annotated_boulders": 29,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_9",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 24,
+    "annotated_boulders": 24,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_7",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 41,
+    "annotated_boulders": 19,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_5",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 31,
+    "annotated_boulders": 23,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  },
+  {
+    "sample_id": "tile_27_8",
+    "split": "test",
+    "scene_id": "27",
+    "geographic_region": "de Gerlache Crater Rim 2 (Site 04 Unseen Holdout)",
+    "product_id": "LROC_NAC_POLAR_M134988898LE",
+    "latitude_bounds": [
+      -88.6,
+      -88.1
+    ],
+    "longitude_bounds": [
+      270.0,
+      292.0
+    ],
+    "resolution_mpp": 1.4,
+    "solar_incidence_deg": 82.1,
+    "usage_rights": "NASA / PDS / Planetary Cartography Public Domain",
+    "annotation_provenance": "Hand-labeled bounding box ground truth (OpenCraterTool / LabelImg)",
+    "annotated_craters": 34,
+    "annotated_boulders": 12,
+    "provider": "NASA / Arizona State University (PDS Cartography Node)",
+    "instrument": "Lunar Reconnaissance Orbiter Camera (LROC) Narrow Angle Camera (NAC)",
+    "reviewed_status": "verified_ground_truth",
+    "annotation_protocol": "Manual bounding box delineation with grazing shadow verification",
+    "optical_modality": "Calibrated polar nadir optical orbital frame"
+  }
+]

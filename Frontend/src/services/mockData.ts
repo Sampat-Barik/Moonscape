@@ -101,10 +101,10 @@ export async function getTerrain(lat: number, lon: number): Promise<TerrainRespo
     roughness: { rms_m: r2(0.5 + h * 2.2), max_m: r2(1.5 + h * 4) },
     illumination: hasIllumination
       ? {
-          sunlight_percent: r1(18 + h * 60),
-          psr_nearby: hash2(lat, lon, 3) > 0.5,
-          note: "Mock illumination estimate",
-        }
+        sunlight_percent: r1(18 + h * 60),
+        psr_nearby: hash2(lat, lon, 3) > 0.5,
+        note: "Mock illumination estimate",
+      }
       : null,
     data_sources: ["LOLA (mock)", "LROC WAC (mock)"],
     availability: { elevation: true, slope: true, roughness: true, illumination: hasIllumination },
@@ -251,11 +251,13 @@ export async function generateReport(analysisId: string, format: string): Promis
 
 export async function checkCoverage(lat: number, lon: number) {
   await delay(200);
-  const inPole = lat <= -80.0 && lat >= -90.0;
+  const inPole = lat <= -70.0 && lat >= -90.0;
+  const coverageZone = lat <= -80.0 ? "core" : (lat <= -75.0 ? "extended" : (lat <= -70.0 ? "context" : "outside"));
   return {
     valid_coordinate: inPole,
     latitude: lat,
     longitude: lon,
+    coverage_zone: coverageZone,
     in_south_pole_zone: inPole,
     best_installed_resolution_m: 80.0,
     total_covering_sources: 2,

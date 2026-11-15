@@ -46,7 +46,7 @@ class HazardPredictRequest(BaseModel):
 
     # Topographic coordinate inputs (optional for ML image queries)
     center_lat: Optional[float] = Field(
-        None, ge=-90.0, le=-80.0, description="Center latitude of candidate landing zone (-90 to -80)"
+        None, ge=-90.0, le=-70.0, description="Center latitude of candidate landing zone (-90 to -70)"
     )
     center_lon: Optional[float] = Field(
         None, ge=-180.0, le=360.0, description="Center longitude of candidate landing zone (-180 to 360)"
@@ -122,6 +122,13 @@ class HazardPredictResponse(BaseModel):
     shadow_coverage_pct: Optional[float] = Field(None, description="Permanent shadow coverage percentage")
     overall_hazard_level: Optional[str] = Field(None, description="'low', 'moderate', 'high', 'critical'")
     hazards: Optional[List[HazardItem]] = Field(default_factory=list, description="Topographic hazard items")
+    craters: Optional[List[HazardItem]] = Field(None, description="Identified craters list")
+    rocks: Optional[List[HazardItem]] = Field(None, description="Identified boulders list")
+    overlay_image: Optional[str] = Field(None, description="Base64 PNG data URL of optical detection overlay image")
+    source_product_id: Optional[str] = Field(None, description="NASA or ISRO source observation product ID")
+    source_resolution_m: Optional[float] = Field(None, description="Resolution of evaluated source image in meters per pixel")
+    optical_status: Optional[str] = Field(None, description="'success', 'not_available', 'outside_coverage', 'error'")
+    coverage_zone: Optional[str] = Field("core", description="'core', 'extended', 'context', 'outside', 'invalid'")
     model_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Metadata dictionary")
     disclaimer: Optional[str] = Field(None, description="Scientific safety disclaimer")
 

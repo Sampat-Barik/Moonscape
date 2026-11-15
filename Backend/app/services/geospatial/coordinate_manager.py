@@ -15,7 +15,10 @@ class CoordinateManager:
 
     RADIUS_METERS: float = DEFAULT_MOON_RADIUS_M
     SOUTH_POLE_MIN_LAT: float = -90.0
-    SOUTH_POLE_MAX_LAT: float = -80.0
+    SOUTH_POLE_CORE_MAX_LAT: float = -80.0       # Core South Pole: -90° to -80°
+    SOUTH_POLE_EXTENDED_MAX_LAT: float = -75.0   # Extended region: -80° to -75°
+    SOUTH_POLE_CONTEXT_MAX_LAT: float = -70.0    # Optional context region: -75° to -70°
+    SOUTH_POLE_MAX_LAT: float = -70.0            # Boundary of configured South Pole exploration envelope
 
     @staticmethod
     def normalize_longitude(lon_deg: float, target_range: str = "360") -> float:
@@ -41,9 +44,39 @@ class CoordinateManager:
         return True, "Valid"
 
     @classmethod
-    def is_in_south_pole_zone(cls, lat_deg: float) -> bool:
-        """Checks if coordinate falls inside the NASA South Pole polar disk (-90° to -80°)."""
+    def get_coverage_zone(cls, lat_deg: float) -> str:
+        """Classifies latitude into exploration coverage levels.
+
+        Returns:
+            'core'     : Core South Pole (-90° to -80°)
+            'extended' : Extended South Pole (-80° to -75°)
+            'context'  : Optional Context Region (-75° to -70°)
+            'outside'  : Outside configured analysis region (lat > -70° or invalid)
+        """
+        if not (-90.0 <= lat_deg <= 90.0):
+            return "invalid"
+        if lat_deg > cls.SOUTH_POLE_CONTEXT_MAX_LAT:
+            return "outside"
+        if lat_deg > cls.SOUTH_POLE_EXTENDED_MAX_LAT:
+            return "context"
+        if lat_deg > cls.SOUTH_POLE_CORE_MAX_LAT:
+            return "extended"
+        return "core"
+
+    @classmethod
+    def is_in_core_zone(cls, lat_deg: float) -> bool:
+        """Checks if coordinate falls inside the Core South Pole region (-90° to -80°)."""
+        return cls.SOUTH_POLE_MIN_LAT <= lat_deg <= cls.SOUTH_POLE_CORE_MAX_LAT
+
+    @classmethod
+    def is_in_analysis_region(cls, lat_deg: float) -> bool:
+        """Checks if coordinate falls within configured South Pole exploration/analysis region (-90° to -70°)."""
         return cls.SOUTH_POLE_MIN_LAT <= lat_deg <= cls.SOUTH_POLE_MAX_LAT
+
+    @classmethod
+    def is_in_south_pole_zone(cls, lat_deg: float) -> bool:
+        """Legacy helper: Checks if coordinate falls inside the Core South Pole zone (-90° to -80°)."""
+        return cls.is_in_core_zone(lat_deg)
 
     @classmethod
     def to_polar_stereographic(cls, lat_deg: float, lon_deg: float) -> Tuple[float, float]:

@@ -70,7 +70,7 @@ class NASADataManager:
     ) -> Optional[NASASpatialWindow]:
         """Extracts spatial sub-windows of elevation and slope for requested location and physical radius in meters."""
         is_valid, _ = coordinate_manager.validate_coordinates(lat_deg, lon_deg)
-        if not is_valid or not coordinate_manager.is_in_south_pole_zone(lat_deg):
+        if not is_valid or not coordinate_manager.is_in_analysis_region(lat_deg):
             return None
 
         # Determine center in projection coordinates

@@ -194,13 +194,13 @@ def test_scenario_2_hazard_disqualified_site():
 
 def test_scenario_3_coverage_boundary():
     """
-    Scenario 3: Latitude -78.50 deg, 45.00 deg
+    Scenario 3: Latitude -68.50 deg, 45.00 deg
     Verifies:
-      - Coordinate is north of the -80.0 deg polar stereographic South Pole grid.
+      - Coordinate is north of the -70.0 deg polar stereographic South Pole grid.
       - Coverage endpoint reports in_south_pole_zone == False.
       - Querying terrain returns is_valid_point=False gracefully without crashing.
     """
-    lat = -78.50
+    lat = -68.50
     lon = 45.00
 
     cov_resp = client.get(f"/api/data/coverage?lat={lat}&lon={lon}")

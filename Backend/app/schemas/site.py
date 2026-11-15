@@ -9,7 +9,7 @@ class CandidateSite(BaseModel):
 
     site_id: str = Field(..., description="Unique slug identifier (e.g., 'shackleton_connecting_ridge')")
     name: str = Field(..., description="Official designated name of candidate region")
-    latitude: float = Field(..., ge=-90.0, le=-80.0, description="Planetocentric latitude in degrees (South Pole: -90 to -80)")
+    latitude: float = Field(..., ge=-90.0, le=-70.0, description="Planetocentric latitude in degrees (South Pole: -90 to -70)")
     longitude: float = Field(..., ge=-180.0, le=360.0, description="Planetocentric longitude in degrees (-180 to 360)")
     elevation_m: Optional[float] = Field(None, description="Average surface elevation in meters relative to 1737.4 km lunar sphere")
     mean_slope_deg: Optional[float] = Field(None, description="Average terrain slope in degrees")
