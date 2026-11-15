@@ -373,51 +373,53 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
             </div>
           )}
 
-          {/* Scientific Layers Dropdown */}
-          <div className="relative" data-toolbar-menu>
-            <Button
-              variant="ghost"
-              size="sm"
-              data-toolbar-trigger
-              onClick={() => setOpenDropdown(openDropdown === "layers" ? null : "layers")}
-              icon={<SlidersIcon className="h-3.5 w-3.5 text-muted" />}
-              iconRight={<ChevronDownIcon className="h-3 w-3 text-muted/70" />}
-              title="Toggle scientific analysis layers & graticules"
-            >
-              <span className="hidden sm:inline">Layers</span>
-            </Button>
+          {/* // Temporarily hidden Layers control — re-enable later */}
+          {false && (
+            <div className="relative" data-toolbar-menu>
+              <Button
+                variant="ghost"
+                size="sm"
+                data-toolbar-trigger
+                onClick={() => setOpenDropdown(openDropdown === "layers" ? null : "layers")}
+                icon={<SlidersIcon className="h-3.5 w-3.5 text-muted" />}
+                iconRight={<ChevronDownIcon className="h-3 w-3 text-muted/70" />}
+                title="Toggle scientific analysis layers & graticules"
+              >
+                <span className="hidden sm:inline">Layers</span>
+              </Button>
 
-            <AnimatePresence>
-              {openDropdown === "layers" && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                  transition={{ duration: 0.15 }}
-                  data-toolbar-popover
-                  className="absolute right-0 top-full mt-2 w-64 rounded-md border border-divider/80 bg-[#181818] p-2 shadow-2xl z-40 text-xs font-mono"
-                >
-                  <span className="block px-2 py-1 text-[10px] uppercase text-muted tracking-wider border-b border-divider/30 mb-1">
-                    Scientific Terrain Overlays
-                  </span>
-                  <div className="space-y-1.5 p-1 text-[11px]">
-                    <div className="flex items-center justify-between py-1 px-1.5">
-                      <span className="text-ink">Horn Slope Colormap</span>
-                      <span className="text-[10px] text-good">Active (3D)</span>
+              <AnimatePresence>
+                {openDropdown === "layers" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    data-toolbar-popover
+                    className="absolute right-0 top-full mt-2 w-64 rounded-md border border-divider/80 bg-[#181818] p-2 shadow-2xl z-40 text-xs font-mono"
+                  >
+                    <span className="block px-2 py-1 text-[10px] uppercase text-muted tracking-wider border-b border-divider/30 mb-1">
+                      Scientific Terrain Overlays
+                    </span>
+                    <div className="space-y-1.5 p-1 text-[11px]">
+                      <div className="flex items-center justify-between py-1 px-1.5">
+                        <span className="text-ink">Horn Slope Colormap</span>
+                        <span className="text-[10px] text-good">Active (3D)</span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 px-1.5">
+                        <span className="text-ink">Candidate Zone Footprints</span>
+                        <span className="text-[10px] text-cyan">5 Sites</span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 px-1.5">
+                        <span className="text-ink">Polar Graticule Grid</span>
+                        <span className="text-[10px] text-muted">10° Intervals</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between py-1 px-1.5">
-                      <span className="text-ink">Candidate Zone Footprints</span>
-                      <span className="text-[10px] text-cyan">5 Sites</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1 px-1.5">
-                      <span className="text-ink">Polar Graticule Grid</span>
-                      <span className="text-[10px] text-muted">10° Intervals</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* Solar Diurnal Simulation Popover */}
           <div className="relative" data-toolbar-menu>

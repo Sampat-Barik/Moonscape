@@ -387,29 +387,31 @@ export default function HazardPanel({
         </div>
       </div>
 
-      {/* ===== SECTION D: SCIENTIFIC LIMITATIONS & OPERATIONAL CAVEATS ===== */}
-      <div className="panel panel-warn p-5">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-warn">
-          <AlertIcon className="h-4 w-4" /> Section D · Scientific Limitations &amp; Operational Caveats
-        </h3>
-        {limitations.length > 0 ? (
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-[13px] leading-relaxed text-muted">
-            {limitations.map((l, i) => (
-              <li key={i}>{l}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-[13px] text-muted">
-            Optical hazard detection models trained on Apollo equatorial photography are invalidated at the South Pole
-            due to grazing solar incidence (&lt;1.5°), severe elongated shadows, and permanently shadowed regions (PSRs).
-          </p>
-        )}
-        <div className="mt-4 border-t border-divider/60 pt-3 text-[11px] italic text-muted">
-          DISCLAIMER: Suitability evaluations and hazard predictions provided by Moonscape are preliminary engineering
-          research models derived from orbital remote sensing measurements (NASA LRO LOLA/LROC). These outputs do NOT
-          constitute certified landing safety clearance for lunar flight missions.
+      {/* // Temporarily hidden Section D — re-enable later */}
+      {false && (
+        <div className="panel panel-warn p-5">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-warn">
+            <AlertIcon className="h-4 w-4" /> Section D · Scientific Limitations &amp; Operational Caveats
+          </h3>
+          {limitations.length > 0 ? (
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-[13px] leading-relaxed text-muted">
+              {limitations.map((l, i) => (
+                <li key={i}>{l}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-[13px] text-muted">
+              Optical hazard detection models trained on Apollo equatorial photography are invalidated at the South Pole
+              due to grazing solar incidence (&lt;1.5°), severe elongated shadows, and permanently shadowed regions (PSRs).
+            </p>
+          )}
+          <div className="mt-4 border-t border-divider/60 pt-3 text-[11px] italic text-muted">
+            DISCLAIMER: Suitability evaluations and hazard predictions provided by Moonscape are preliminary engineering
+            research models derived from orbital remote sensing measurements (NASA LRO LOLA/LROC). These outputs do NOT
+            constitute certified landing safety clearance for lunar flight missions.
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );
