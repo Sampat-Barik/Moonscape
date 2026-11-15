@@ -1,8 +1,8 @@
 """Tests for background download task tracking and management."""
 
 import pytest
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.services.data_management.download_manager import DownloadTask, download_manager
+from app.config.dataset_settings import dataset_settings
+from app.services.data_management.download_manager import DownloadTask, download_manager
 
 
 def test_download_task_serialization():

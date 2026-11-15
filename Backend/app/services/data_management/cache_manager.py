@@ -6,8 +6,8 @@ from collections import OrderedDict
 from typing import Any, Optional, Tuple
 import numpy as np
 
-from Backend.app.config.resource_settings import resource_settings
-from Backend.app.core.logging import logger
+from app.config.resource_settings import resource_settings
+from app.core.logging import logger
 
 
 class BoundedCacheManager:

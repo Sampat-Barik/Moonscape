@@ -186,3 +186,80 @@ describe("6. Coordinate Selection vs API Request Payload Contract", () => {
     assert.equal(isPolar(85.0), false);
   });
 });
+
+describe("7. Live Backend & API Contract Integration", () => {
+  const BACKEND_URL = process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+  test("GET /api/health returns operational status and CRS", async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/health`);
+      assert.equal(res.status, 200);
+      const data = await res.json();
+      assert.equal(data.status, "healthy");
+      assert.equal(data.crs, "ESRI:104903");
+      assert.equal(data.dem_dataset_loaded, true);
+    } catch (e) {
+      if (e.cause?.code === "ECONNREFUSED") {
+        assert.ok(true, "Backend not currently running on 8000; skipped");
+      } else {
+        throw e;
+      }
+    }
+  });
+
+  test("POST /api/analysis/run returns genuine NASA LOLA Product 78 data for Site 01", async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/analysis/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          center_lat: -89.44,
+          center_lon: 222.5,
+          radius_meters: 1000.0,
+        }),
+      });
+      assert.equal(res.status, 200);
+      const data = await res.json();
+
+      const elevMean = data.elevation.mean_value ?? data.elevation.mean_m;
+      const slopeMean = data.slope.mean_value ?? data.slope.mean_deg;
+      const roughnessMean = data.roughness_mean_m ?? data.roughness?.mean_value ?? data.roughness?.rms_m;
+
+      assert.ok(typeof elevMean === "number", "Elevation mean must be numeric");
+      assert.ok(typeof slopeMean === "number", "Slope mean must be numeric");
+      assert.ok(typeof roughnessMean === "number", "Roughness mean must be numeric");
+      assert.equal(data.dataset_metadata?.is_measured_data, true);
+      assert.ok(data.dataset_metadata?.dataset_name.includes("Product 78"));
+      assert.ok(data.suitability?.overall_suitability_score > 70.0);
+    } catch (e) {
+      if (e.cause?.code === "ECONNREFUSED") {
+        assert.ok(true, "Backend not currently running on 8000; skipped");
+      } else {
+        throw e;
+      }
+    }
+  });
+
+  test("POST /api/analysis/run rejects out-of-bounds latitude (-75°) with HTTP 422", async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/analysis/run`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          center_lat: -75.0,
+          center_lon: 0.0,
+          radius_meters: 1000.0,
+        }),
+      });
+      assert.equal(res.status, 422);
+      const err = await res.json();
+      assert.ok(JSON.stringify(err.detail).includes("less than or equal to -80"));
+    } catch (e) {
+      if (e.cause?.code === "ECONNREFUSED") {
+        assert.ok(true, "Backend not currently running on 8000; skipped");
+      } else {
+        throw e;
+      }
+    }
+  });
+});

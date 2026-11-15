@@ -13,11 +13,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.config.resource_settings import resource_settings
-from Backend.app.services.data_management.dataset_registry import dataset_registry
-from Backend.app.services.data_management.download_manager import download_manager
-from Backend.app.services.data_management.local_storage import local_storage
+from app.config.dataset_settings import dataset_settings
+from app.config.resource_settings import resource_settings
+from app.services.data_management.dataset_registry import dataset_registry
+from app.services.data_management.download_manager import download_manager
+from app.services.data_management.local_storage import local_storage
 
 
 def download_datasets(dataset_ids: list[str]) -> bool:

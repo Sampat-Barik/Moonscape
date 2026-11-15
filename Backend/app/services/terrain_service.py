@@ -29,10 +29,10 @@ from app.schemas.terrain import (
     TerrainDatasetInfo,
     TerrainResponse,
 )
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.illumination import illumination_service
-from Backend.app.services.site_scoring import site_scoring_engine
-from Backend.app.services.terrain_analysis import terrain_analysis_engine
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.illumination import illumination_service
+from app.services.site_scoring import site_scoring_engine
+from app.services.terrain_analysis import terrain_analysis_engine
 from app.schemas.scoring import ScoreRequest
 from app.services.analysis_store import analysis_store
 from maths.topography import (

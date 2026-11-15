@@ -14,13 +14,13 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from Backend.app.main import app
-from Backend.app.schemas.simulation import VisibilitySimulationRequest
-from Backend.app.services.data_sources.lroc_nac import lroc_nac
-from Backend.app.services.spice_service import spice_service
-from Backend.app.services.terrain_horizon import terrain_horizon_engine
-from Backend.app.services.visibility_simulation import visibility_simulation_service
-from Backend.app.services.terrain_analysis import terrain_analysis_engine
+from app.main import app
+from app.schemas.simulation import VisibilitySimulationRequest
+from app.services.data_sources.lroc_nac import lroc_nac
+from app.services.spice_service import spice_service
+from app.services.terrain_horizon import terrain_horizon_engine
+from app.services.visibility_simulation import visibility_simulation_service
+from app.services.terrain_analysis import terrain_analysis_engine
 from maths.topography import calculate_multi_baseline_roughness
 from maths.illumination_geometry import LUNAR_RADIUS_METERS
 

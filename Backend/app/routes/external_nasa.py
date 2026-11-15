@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query, Response, status
 
-from Backend.app.schemas.external_nasa import (
+from app.schemas.external_nasa import (
     ExternalSourcesStatusResponse,
     ExternalSourceStatus,
     HorizonsQueryRequest,
@@ -12,10 +12,10 @@ from Backend.app.schemas.external_nasa import (
     LROCCoverageResponse,
     MoonTrekLayersResponse,
 )
-from Backend.app.services.data_sources.lroc_service import lroc_service
-from Backend.app.services.data_sources.moon_trek import moon_trek_service
-from Backend.app.services.ephemeris.horizons_client import horizons_client
-from Backend.app.services.spice_service import spice_service
+from app.services.data_sources.lroc_service import lroc_service
+from app.services.data_sources.moon_trek import moon_trek_service
+from app.services.ephemeris.horizons_client import horizons_client
+from app.services.spice_service import spice_service
 from maths.illumination_geometry import parse_utc_timestamp
 
 router = APIRouter(prefix="", tags=["External NASA Integrations"])

@@ -12,7 +12,7 @@ from app.schemas.site import (
     SiteCompareResponse,
     SiteComparisonItem,
 )
-from Backend.app.services.ml.suitability_model_service import suitability_model_service
+from app.services.ml.suitability_model_service import suitability_model_service
 from maths.scoring import evaluate_hard_constraints
 
 

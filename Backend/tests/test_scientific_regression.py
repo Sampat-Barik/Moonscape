@@ -14,12 +14,12 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from Backend.app.core.constants import MOON_RADIUS_METERS
-from Backend.app.main import app
-from Backend.app.schemas.simulation import VisibilitySimulationRequest
-from Backend.app.schemas.site_detection import DetectLandingSitesRequest
-from Backend.app.services.landing_site_detection import landing_site_detection_service
-from Backend.app.services.visibility_simulation import visibility_simulation_service
+from app.core.constants import MOON_RADIUS_METERS
+from app.main import app
+from app.schemas.simulation import VisibilitySimulationRequest
+from app.schemas.site_detection import DetectLandingSitesRequest
+from app.services.landing_site_detection import landing_site_detection_service
+from app.services.visibility_simulation import visibility_simulation_service
 from maths.earth_visibility import (
     calculate_earth_elevation_and_azimuth,
     calculate_earth_visibility_fraction,

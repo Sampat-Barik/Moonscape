@@ -9,20 +9,20 @@ from typing import Any, Dict, Optional, Tuple
 from affine import Affine
 import numpy as np
 
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.core.constants import (
+from app.config.dataset_settings import dataset_settings
+from app.core.constants import (
     LOLA_DATASET_NAME,
     LOLA_NODATA_VALUE,
     LOLA_PRODUCT_ID,
     LOLA_SPATIAL_RESOLUTION_M,
     LOLA_VERTICAL_ACCURACY_M,
 )
-from Backend.app.services.data_sources.pgda_product78 import pgda_product78
-from Backend.app.services.data_sources.pgda_product90 import pgda_product90
-from Backend.app.services.dem_service import dem_service
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.geospatial.raster_sampler import raster_sampler
-from Backend.app.services.geospatial.terrain_source_selector import terrain_source_selector
+from app.services.data_sources.pgda_product78 import pgda_product78
+from app.services.data_sources.pgda_product90 import pgda_product90
+from app.services.dem_service import dem_service
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.geospatial.raster_sampler import raster_sampler
+from app.services.geospatial.terrain_source_selector import terrain_source_selector
 
 
 @dataclass
@@ -218,7 +218,7 @@ class NASADataManager:
         # ------------------------------------------------------------------
         # 3. Fallback: Calibrated baseline sample DEM
         # ------------------------------------------------------------------
-        from Backend.app.core.config import settings
+        from app.core.config import settings
 
         if settings.DATA_MODE == "live" and not settings.ALLOW_SYNTHETIC_FALLBACK:
             # Strict live mode disallows synthetic DEM substitution

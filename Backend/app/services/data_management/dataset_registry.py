@@ -1,12 +1,12 @@
 """Central Dataset Registry tracking installation, validation states, and provenance."""
 
 from typing import Dict, List, Optional
-from Backend.app.config.dataset_settings import (
+from app.config.dataset_settings import (
     DatasetDefinition,
     DatasetStatus,
     dataset_settings,
 )
-from Backend.app.services.data_management.local_storage import local_storage
+from app.services.data_management.local_storage import local_storage
 
 
 class DatasetRegistry:

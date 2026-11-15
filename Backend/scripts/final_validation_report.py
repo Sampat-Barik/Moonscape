@@ -23,15 +23,15 @@ sys.path.insert(0, str(BACKEND_DIR))
 import numpy as np
 from fastapi.testclient import TestClient
 
-from Backend.app.core.constants import MOON_RADIUS_METERS, PROJECTION_EPSG
-from Backend.app.main import app
-from Backend.app.schemas.scoring import ScoreRequest
-from Backend.app.services.analysis_store import analysis_store
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.hazard_detection import hazard_detection_service
-from Backend.app.services.illumination import illumination_service
-from Backend.app.services.site_scoring import site_scoring_engine
-from Backend.app.services.terrain_analysis import terrain_analysis_engine
+from app.core.constants import MOON_RADIUS_METERS, PROJECTION_EPSG
+from app.main import app
+from app.schemas.scoring import ScoreRequest
+from app.services.analysis_store import analysis_store
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.hazard_detection import hazard_detection_service
+from app.services.illumination import illumination_service
+from app.services.site_scoring import site_scoring_engine
+from app.services.terrain_analysis import terrain_analysis_engine
 from maths.geodesy import latlon_to_polar_stereo, polar_stereo_to_latlon
 from maths.illumination_geometry import calculate_solar_subsolar_coordinates
 from maths.topography import horn_slope_and_aspect, rms_surface_roughness

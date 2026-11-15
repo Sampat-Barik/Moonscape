@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Optional, Tuple
 import rasterio
 
-from Backend.app.core.config import settings
-from Backend.app.core.logging import logger
+from app.core.config import settings
+from app.core.logging import logger
 
 
 class LocalStorageManager:

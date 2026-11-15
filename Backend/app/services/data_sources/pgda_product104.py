@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from affine import Affine
 
-from Backend.app.core.config import settings
-from Backend.app.services.data_sources.base import BaseDataSource
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.geospatial.raster_sampler import raster_sampler
+from app.core.config import settings
+from app.services.data_sources.base import BaseDataSource
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.geospatial.raster_sampler import raster_sampler
 
 
 # Known Artemis Candidate Site Footprints from Product 104 (Barker et al. 2023)

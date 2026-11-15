@@ -49,9 +49,9 @@ class DEMService:
 
         # Priority 1: Check if covered by verified high-res NASA Product 78 (Site 01)
         try:
-            from Backend.app.config.dataset_settings import dataset_settings
-            from Backend.app.services.data_sources.pgda_product78 import pgda_product78
-            from Backend.app.services.geospatial.raster_sampler import raster_sampler
+            from app.config.dataset_settings import dataset_settings
+            from app.services.data_sources.pgda_product78 import pgda_product78
+            from app.services.geospatial.raster_sampler import raster_sampler
 
             if pgda_product78.is_available() and pgda_product78.covers_point(lat_deg, lon_deg):
                 surf_def = dataset_settings.datasets.get("pgda78_site01_surf")
@@ -108,9 +108,9 @@ class DEMService:
         """
         # Priority 1: Check if covered by verified high-res NASA Product 78 (Site 01)
         try:
-            from Backend.app.config.dataset_settings import dataset_settings
-            from Backend.app.services.data_sources.pgda_product78 import pgda_product78
-            from Backend.app.services.geospatial.raster_sampler import raster_sampler
+            from app.config.dataset_settings import dataset_settings
+            from app.services.data_sources.pgda_product78 import pgda_product78
+            from app.services.geospatial.raster_sampler import raster_sampler
 
             if pgda_product78.is_available() and pgda_product78.covers_point(lat_deg, lon_deg):
                 surf_def = dataset_settings.datasets.get("pgda78_site01_surf")

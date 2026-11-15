@@ -15,7 +15,7 @@ from affine import Affine
 import numpy as np
 import pytest
 
-from Backend.app.services.terrain_analysis import terrain_analysis_engine
+from app.services.terrain_analysis import terrain_analysis_engine
 
 
 def test_flat_terrain_synthetic_raster():

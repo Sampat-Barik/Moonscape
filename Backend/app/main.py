@@ -35,7 +35,7 @@ from app.routes import (
 from app.services.dem_service import dem_service
 from app.services.hazard_detection import hazard_detection_service
 from app.services.site_service import site_service
-from Backend.app.services.data_management.dataset_registry import dataset_registry
+from app.services.data_management.dataset_registry import dataset_registry
 
 
 @asynccontextmanager
@@ -92,9 +92,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -118,8 +117,8 @@ app.include_router(data_downloads.router, prefix=api_prefix)
 app.include_router(external_nasa.router, prefix=api_prefix)
 
 # Direct alias for /api/coverage pointing to spatial dataset coverage
-from Backend.app.services.data_management.coverage_manager import coverage_manager
-from Backend.app.schemas.dataset_schemas import DataCoverageResponse
+from app.services.data_management.coverage_manager import coverage_manager
+from app.schemas.dataset_schemas import DataCoverageResponse
 from fastapi import Query
 
 @app.get(f"{api_prefix}/coverage", response_model=DataCoverageResponse, summary="Query spatial dataset coverage at a lunar coordinate (alias)")
@@ -131,8 +130,8 @@ def get_spatial_coverage_alias(
     return DataCoverageResponse(**report)
 
 
-from Backend.app.schemas.dataset_schemas import DatasetCatalogResponse
-from Backend.app.routes.data_catalog import get_dataset_catalog
+from app.schemas.dataset_schemas import DatasetCatalogResponse
+from app.routes.data_catalog import get_dataset_catalog
 
 @app.get(f"{api_prefix}/datasets", response_model=DatasetCatalogResponse, summary="List all registered NASA datasets (alias)")
 def get_datasets_alias() -> DatasetCatalogResponse:

@@ -16,14 +16,14 @@ from affine import Affine
 import numpy as np
 from scipy.ndimage import uniform_filter
 
-from Backend.app.core.constants import (
+from app.core.constants import (
     LOLA_NODATA_VALUE,
     SCIENTIFIC_SAFETY_DISCLAIMER,
     SLOPE_CRITICAL_MAX_DEG,
     SLOPE_IDEAL_MAX_DEG,
     SLOPE_NOMINAL_MAX_DEG,
 )
-from Backend.app.services.nasa_data import NASASpatialWindow, nasa_data_manager
+from app.services.nasa_data import NASASpatialWindow, nasa_data_manager
 from maths.geodesy import DEFAULT_MOON_RADIUS_M
 from maths.topography import (
     calculate_multi_baseline_roughness,

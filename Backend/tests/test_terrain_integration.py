@@ -1,7 +1,7 @@
 """Integration test for terrain endpoint with real NASA data hierarchy."""
 
 from fastapi.testclient import TestClient
-from Backend.app.main import app
+from app.main import app
 
 client = TestClient(app)
 

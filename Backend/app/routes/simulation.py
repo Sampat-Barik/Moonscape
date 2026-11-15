@@ -3,12 +3,12 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 from fastapi import APIRouter
-from Backend.app.schemas.simulation import (
+from app.schemas.simulation import (
     VisibilitySimulationRequest,
     VisibilitySimulationResponse,
 )
-from Backend.app.services.terrain_horizon import terrain_horizon_engine
-from Backend.app.services.visibility_simulation import visibility_simulation_service
+from app.services.terrain_horizon import terrain_horizon_engine
+from app.services.visibility_simulation import visibility_simulation_service
 from maths.illumination_geometry import find_next_sunset_and_sunrise, parse_utc_timestamp
 
 router = APIRouter(prefix="", tags=["Simulation"])

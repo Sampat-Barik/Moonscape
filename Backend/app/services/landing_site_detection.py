@@ -11,22 +11,22 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 from scipy.ndimage import find_objects, label
 
-from Backend.app.core.constants import (
+from app.core.constants import (
     MOON_RADIUS_METERS,
     SLOPE_CRITICAL_MAX_DEG,
     SLOPE_IDEAL_MAX_DEG,
     SLOPE_NOMINAL_MAX_DEG,
 )
-from Backend.app.core.logging import logger
-from Backend.app.schemas.scoring import ScoreRequest
-from Backend.app.schemas.site_detection import (
+from app.core.logging import logger
+from app.schemas.scoring import ScoreRequest
+from app.schemas.site_detection import (
     DetectLandingSitesRequest,
     DetectLandingSitesResponse,
     DetectedLandingZone,
 )
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.nasa_data import NASASpatialWindow, nasa_data_manager
-from Backend.app.services.site_scoring import site_scoring_engine
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.nasa_data import NASASpatialWindow, nasa_data_manager
+from app.services.site_scoring import site_scoring_engine
 from maths.geodesy import polar_stereo_to_latlon
 from maths.topography import horn_slope_and_aspect, rms_surface_roughness
 

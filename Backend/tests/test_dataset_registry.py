@@ -1,8 +1,8 @@
 """Tests for NASA dataset registry, manifest parsing, and lifecycle state tracking."""
 
 import pytest
-from Backend.app.config.dataset_settings import DatasetStatus, dataset_settings
-from Backend.app.services.data_management.dataset_registry import dataset_registry
+from app.config.dataset_settings import DatasetStatus, dataset_settings
+from app.services.data_management.dataset_registry import dataset_registry
 
 
 def test_manifest_datasets_loaded():

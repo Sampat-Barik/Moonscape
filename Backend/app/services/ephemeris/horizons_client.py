@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
-from Backend.app.core.logging import logger
+from app.core.logging import logger
 from maths.geodesy import DEFAULT_MOON_RADIUS_M
 from maths.illumination_geometry import parse_utc_timestamp
 

@@ -23,14 +23,14 @@ for _p in (str(_backend_dir), str(_root_dir)):
 
 import numpy as np
 
-from Backend.app.core.config import settings
-from Backend.app.core.logging import logger
-from Backend.app.schemas.ml_scoring import DatasetSampleRecord, LunarSiteFeatures
-from Backend.app.services.dem_service import dem_service
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.illumination import illumination_service
-from Backend.app.services.site_service import site_service
-from Backend.app.services.terrain_analysis import terrain_analysis_engine
+from app.core.config import settings
+from app.core.logging import logger
+from app.schemas.ml_scoring import DatasetSampleRecord, LunarSiteFeatures
+from app.services.dem_service import dem_service
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.illumination import illumination_service
+from app.services.site_service import site_service
+from app.services.terrain_analysis import terrain_analysis_engine
 from maths.scoring import compute_suitability_with_coverage, evaluate_hard_constraints, MISSION_PROFILES
 
 
@@ -109,69 +109,94 @@ class LunarDatasetGenerator:
         reg_info = GEOGRAPHIC_REGIONS.get(region_id, GEOGRAPHIC_REGIONS["shackleton_cluster"])
         split_group = reg_info["split_group"]
 
-        # 1. Query Terrain Analysis
+        # 1. Query Terrain Analysis & DEM Raster Window
+        elev_arr, transform, res_m = dem_service.read_window_around_point(lat, norm_lon, radius_m)
+        dx = res_m[0] if res_m[0] > 0 else 5.0
+        dy = res_m[1] if res_m[1] > 0 else 5.0
+
+        valid_mask = (elev_arr is not None) and (elev_arr.size > 0) and (elev_arr != -32767.0) & (~np.isnan(elev_arr)) & (elev_arr > -30000.0)
+        valid_count = int(np.sum(valid_mask)) if isinstance(valid_mask, np.ndarray) else 0
+
         res = terrain_analysis_engine.analyze_location(lat, norm_lon, radius_meters=radius_m)
 
-        if res is not None:
-            mean_elev = res.elevation.mean_elevation_m or 0.0
-            relief = res.elevation.elevation_variation_m or 0.0
-            mean_slope = res.slope.mean_slope_deg or 5.0
-            max_slope = res.slope.max_slope_deg or 12.0
-            ideal_slope = res.slope.ideal_pct
-            critical_slope = res.slope.critical_hazardous_pct
-            r15 = res.roughness.point_roughness_m or 0.25
-            vert_unc = res.metadata.get("vertical_uncertainty_m") or 1.5
-            slope_unc = res.metadata.get("slope_uncertainty_deg") or 1.2
+        from maths.topography import horn_slope_and_aspect, rms_surface_roughness
+        import scipy.ndimage
+
+        if res is not None and valid_count > 0:
+            mean_elev = float(res.elevation.mean_elevation_m or 0.0)
+            relief = float(res.elevation.elevation_variation_m or 0.0)
+            mean_slope = float(res.slope.mean_slope_deg or 5.0)
+            max_slope = float(res.slope.max_slope_deg or 12.0)
+            ideal_slope = float(res.slope.ideal_pct)
+            critical_slope = float(res.slope.critical_hazardous_pct)
+            r15 = float(res.roughness.point_roughness_m or 0.25)
+            vert_unc = float(res.metadata.get("vertical_uncertainty_m") or 1.5)
+            slope_unc = float(res.metadata.get("slope_uncertainty_deg") or 1.2)
+
+            # Exact 95th percentile slope computed from Horn slope array
+            slopes, _ = horn_slope_and_aspect(elev_arr, dx, dy)
+            valid_slopes = slopes[valid_mask]
+            p95_slope = float(np.percentile(valid_slopes, 95)) if len(valid_slopes) > 0 else mean_slope
+
+            # Multi-scale RMS roughness from real elevation window kernels
+            r60 = float(np.mean(rms_surface_roughness(elev_arr, 7)[valid_mask]))
+            r240 = float(np.mean(rms_surface_roughness(elev_arr, 15)[valid_mask]))
+
+            # Exact 2D discrete Laplacian curvature variance
+            lap = scipy.ndimage.laplace(elev_arr)
+            curv_var = float(np.var(lap[valid_mask]))
         else:
             pt_elev, _, _ = dem_service.get_elevation_at_point(lat, norm_lon)
-            mean_elev = pt_elev or -500.0
+            mean_elev = float(pt_elev or -500.0)
             relief = 150.0
             mean_slope = 6.0
             max_slope = 14.0
+            p95_slope = 10.5
             ideal_slope = 50.0
             critical_slope = 5.0
             r15 = 0.30
+            r60 = 0.55
+            r240 = 1.05
             vert_unc = 1.5
             slope_unc = 1.2
+            curv_var = 0.05
 
-        # P95 slope approximation from mean and peak
-        p95_slope = min(max_slope, round(mean_slope + 0.65 * (max_slope - mean_slope), 2))
-
-        # Multi-scale roughness approximations
-        r60 = round(r15 * 1.85, 3)
-        r240 = round(r15 * 3.40, 3)
-
-        # 2. Illumination & Environment
+        # 2. Illumination & Environment (Verified Time-Dependent Calculations)
         illum = illumination_service.analyze_illumination(lat, norm_lon, radius_m=radius_m)
-        cum_sunlight = illum.cumulative_illumination_pct or (75.0 if abs(lat) > 88.0 else 60.0)
-        inst_sunlight = illum.instantaneous_sunlit_fraction_pct or 80.0
+        cum_sunlight = float(illum.cumulative_illumination_pct if illum.cumulative_illumination_pct is not None else (75.0 if abs(lat) > 88.0 else 60.0))
+        inst_sunlight = float(illum.instantaneous_sunlit_fraction_pct if illum.instantaneous_sunlit_fraction_pct is not None else 80.0)
         is_psr = 1 if (illum.is_permanently_shadowed_region or mean_elev < -2500.0) else 0
 
-        # Sunlight duration models
         max_continuous_sun = round((cum_sunlight / 100.0) * 1500.0, 1)
         max_continuous_dark = round(max(12.0, (1.0 - cum_sunlight / 100.0) * 708.7), 1)
 
-        # 3. Earth Visibility (Comms)
-        earth_comm = illum.earth_visibility_pct or (85.0 if mean_elev > 500.0 else (65.0 if mean_elev > -1000.0 else 35.0))
+        # 3. Earth Visibility (Comms Line of Sight)
+        earth_comm = float(illum.earth_visibility_pct if illum.earth_visibility_pct is not None else (85.0 if mean_elev > 500.0 else (65.0 if mean_elev > -1000.0 else 35.0)))
 
-        # 4. Hazard Proxies
-        # Steep relief and high slopes correlate with higher crater rim and boulder density
-        slope_factor = max(0.0, (mean_slope - 4.0) / 10.0)
-        crater_density = round(0.5 + slope_factor * 3.5, 2)
-        min_crater_dist = round(max(50.0, 1200.0 - slope_factor * 900.0), 1)
-        boulder_density = round(max(0.0, slope_factor * 8.0), 2)
-        min_boulder_dist = round(max(30.0, 1500.0 - slope_factor * 1200.0), 1)
-        curv_var = round(0.02 + slope_factor * 0.15, 4)
+        # 4. Hazards & Contiguous Safe Landing Diameter
+        from app.services.landing_site_detection import landing_site_detection_service
+        from app.schemas.site_detection import DetectLandingSitesRequest
 
-        # 5. Contiguous Safe Landing Diameter
-        if max_slope <= 8.0 and r15 <= 0.35:
-            contiguous_diam = 180.0
-        elif max_slope <= 12.0 and r15 <= 0.50:
-            contiguous_diam = 75.0
-        elif max_slope <= 15.0:
-            contiguous_diam = 35.0
+        det_req = DetectLandingSitesRequest(
+            center_lat=lat,
+            center_lon=norm_lon,
+            search_radius_meters=radius_m,
+            max_slope_deg=10.0,
+            max_roughness_m=0.35,
+        )
+        det_res = landing_site_detection_service.detect_candidate_sites(det_req)
+        if det_res.candidate_zones:
+            contiguous_diam = float(det_res.candidate_zones[0].effective_diameter_m)
         else:
-            contiguous_diam = 10.0
+            contiguous_diam = 0.0
+
+        # Scientific hazard densities:
+        # DEM-derived steep-slope & curvature anomaly density
+        crater_density = round(critical_slope / 20.0, 2) if critical_slope > 0 else 0.0
+        min_crater_dist = round(max(50.0, 1000.0 - (critical_slope / 100.0) * 800.0 - (max_slope / 45.0) * 200.0), 1)
+        # Boulders: Honestly reported as unobserved by 5m/80m DEM (optical model uninstalled)
+        boulder_density = 0.0
+        min_boulder_dist = 1000.0
 
         features = LunarSiteFeatures(
             mean_elevation_m=round(mean_elev, 2),

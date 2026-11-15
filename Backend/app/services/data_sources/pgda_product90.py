@@ -4,11 +4,11 @@ from typing import Any, Dict, Optional, Tuple
 import numpy as np
 from affine import Affine
 
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.core.constants import LOLA_NODATA_VALUE
-from Backend.app.services.data_sources.base import BaseDataSource
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.geospatial.raster_sampler import raster_sampler
+from app.config.dataset_settings import dataset_settings
+from app.core.constants import LOLA_NODATA_VALUE
+from app.services.data_sources.base import BaseDataSource
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.geospatial.raster_sampler import raster_sampler
 
 
 class PGDAProduct90Source(BaseDataSource):

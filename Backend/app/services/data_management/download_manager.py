@@ -8,11 +8,11 @@ import uuid
 from typing import Dict, Optional
 import certifi
 
-from Backend.app.config.dataset_settings import DatasetDefinition, DatasetStatus
-from Backend.app.config.resource_settings import resource_settings
-from Backend.app.core.logging import logger
-from Backend.app.services.data_management.dataset_registry import dataset_registry
-from Backend.app.services.data_management.local_storage import local_storage
+from app.config.dataset_settings import DatasetDefinition, DatasetStatus
+from app.config.resource_settings import resource_settings
+from app.core.logging import logger
+from app.services.data_management.dataset_registry import dataset_registry
+from app.services.data_management.local_storage import local_storage
 
 SSL_CTX = ssl.create_default_context(cafile=certifi.where())
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) MoonscapeNASAClient/2.0"

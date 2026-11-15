@@ -14,7 +14,7 @@ from app.schemas.scoring import (
     ScoringWeights,
 )
 from app.services.site_service import site_service
-from Backend.app.services.ml.suitability_model_service import suitability_model_service
+from app.services.ml.suitability_model_service import suitability_model_service
 from maths.scoring import (
     compute_suitability_with_coverage,
     evaluate_crater_hazard_score,

@@ -9,15 +9,15 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 import numpy as np
 
-from Backend.app.core.logging import logger
-from Backend.app.schemas.simulation import (
+from app.core.logging import logger
+from app.schemas.simulation import (
     SimulationTimeStep,
     VisibilitySimulationRequest,
     VisibilitySimulationResponse,
 )
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.spice_service import spice_service
-from Backend.app.services.terrain_horizon import terrain_horizon_engine
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.spice_service import spice_service
+from app.services.terrain_horizon import terrain_horizon_engine
 from maths.earth_visibility import (
     calculate_earth_visibility_fraction,
     evaluate_communication_link,
@@ -73,7 +73,7 @@ class VisibilitySimulationService:
 
         if use_horizons:
             try:
-                from Backend.app.services.ephemeris.horizons_client import horizons_client
+                from app.services.ephemeris.horizons_client import horizons_client
                 h_res = horizons_client.query_simultaneous_ephemeris(
                     lat_deg=lat,
                     lon_deg=lon,

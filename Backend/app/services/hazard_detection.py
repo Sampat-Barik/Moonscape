@@ -59,28 +59,45 @@ class HazardDetectionService:
             p = Path(model_path)
             if p.exists():
                 resolved_model_path = p
-        elif hazard_settings.HAZARD_MODEL_PATH:
-            p = Path(hazard_settings.HAZARD_MODEL_PATH)
-            if p.exists():
-                resolved_model_path = p
+        elif hazard_settings.HAZARD_MODEL_PATH and Path(hazard_settings.HAZARD_MODEL_PATH).exists():
+            resolved_model_path = Path(hazard_settings.HAZARD_MODEL_PATH)
         else:
-            # Scan models directory for candidate weights
+            # Scan models directory for candidate weights in priority order
             model_dir = hazard_settings.MODEL_DIR
             if model_dir.exists():
-                candidates = list(model_dir.glob("*.onnx")) + list(model_dir.glob("*.pt")) + list(model_dir.glob("*.pth"))
-                if candidates:
-                    resolved_model_path = candidates[0]
+                preferred_weights = [
+                    "luna_hazard_yolov8n.pt",
+                    "luna_hazard_yolov8n.onnx",
+                    "candidate_yolov8n_hazard.pt",
+                    "candidate_yolov8n_hazard.onnx",
+                ]
+                for w_name in preferred_weights:
+                    cand = model_dir / w_name
+                    if cand.exists():
+                        resolved_model_path = cand
+                        break
+                if not resolved_model_path:
+                    candidates = list(model_dir.glob("*.onnx")) + list(model_dir.glob("*.pt")) + list(model_dir.glob("*.pth"))
+                    if candidates:
+                        resolved_model_path = candidates[0]
 
         # Load metadata if present
         meta_p: Optional[Path] = None
-        if metadata_path:
+        if metadata_path and Path(metadata_path).exists():
             meta_p = Path(metadata_path)
-        elif hazard_settings.HAZARD_METADATA_PATH:
+        elif hazard_settings.HAZARD_METADATA_PATH and Path(hazard_settings.HAZARD_METADATA_PATH).exists():
             meta_p = Path(hazard_settings.HAZARD_METADATA_PATH)
         elif hazard_settings.MODEL_DIR.exists():
-            default_meta = hazard_settings.MODEL_DIR / "model_metadata.json"
-            if default_meta.exists():
-                meta_p = default_meta
+            preferred_metas = [
+                "luna_hazard_yolov8n.meta.json",
+                "candidate_yolov8n_hazard.meta.json",
+                "model_metadata.json",
+            ]
+            for m_name in preferred_metas:
+                cand_meta = hazard_settings.MODEL_DIR / m_name
+                if cand_meta.exists():
+                    meta_p = cand_meta
+                    break
 
         if meta_p and meta_p.exists():
             try:
@@ -100,6 +117,19 @@ class HazardDetectionService:
         # Attempt to load model based on file format
         ext = resolved_model_path.suffix.lower()
         try:
+            # Check if model can be loaded with Ultralytics YOLO
+            if "yolo" in resolved_model_path.name.lower() or ext in [".pt", ".onnx"]:
+                try:
+                    from ultralytics import YOLO
+
+                    self._model = YOLO(str(resolved_model_path))
+                    self._model_type = "yolo"
+                    self._is_configured = True
+                    logger.info("Loaded YOLO hazard detection model from %s", resolved_model_path)
+                    return True
+                except Exception as yolo_err:
+                    logger.warning("Ultralytics YOLO load failed: %s. Falling back to onnxruntime/torch.", yolo_err)
+
             if ext == ".onnx":
                 try:
                     import onnxruntime as ort
@@ -186,16 +216,23 @@ class HazardDetectionService:
 
     def get_metadata(self) -> Dict[str, Any]:
         """Returns metadata regarding active model, architecture, and validation limitations."""
+        training_source = self._metadata.get("training_dataset")
+        if not training_source and "dataset" in self._metadata:
+            training_source = self._metadata["dataset"].get("source")
+
         return {
             "is_configured": self.is_available(),
             "model_type": self._model_type,
             "model_name": self._metadata.get("model_name", "Unconfigured Hazard Detector"),
             "version": self._metadata.get("version", "N/A"),
             "architecture": self._metadata.get("architecture", "Unknown"),
+            "parameters": self._metadata.get("parameters", "3.0M"),
             "classes": self._metadata.get("classes", ["crater", "rock", "boulder", "escarpment"]),
-            "training_dataset": self._metadata.get("training_dataset", "Not documented"),
-            "validation_domain": self._metadata.get("validation_domain", "Unknown"),
+            "training_dataset": training_source or "Not documented",
+            "validation_domain": self._metadata.get("validation_domain", "Lunar South Pole Orbital Nadir Imagery (LROC NAC / OHRC)"),
             "evaluation_metrics": self._metadata.get("evaluation_metrics", {}),
+            "performance_benchmarks": self._metadata.get("performance_benchmarks", {}),
+            "operational_limitations": self._metadata.get("operational_limitations", {}),
             "apollo_domain_gap_warning": APOLLO_DOMAIN_LIMITATION,
         }
 
@@ -335,6 +372,16 @@ class HazardDetectionService:
             if self._custom_inference_fn is not None:
                 return self._custom_inference_fn(tensor)
 
+            if self._model_type == "yolo":
+                results = self._model(tensor, verbose=False)[0]
+                raw_boxes = []
+                for b in results.boxes:
+                    xmin, ymin, xmax, ymax = b.xyxy[0].tolist()
+                    conf = float(b.conf[0])
+                    cls_id = int(b.cls[0])
+                    raw_boxes.append([ymin, xmin, ymax, xmax, conf, cls_id])
+                return raw_boxes
+
             if self._model_type == "onnx":
                 input_name = self._model.get_inputs()[0].name
                 outputs = self._model.run(None, {input_name: tensor})
@@ -387,6 +434,13 @@ class HazardDetectionService:
 
         # Standard parsed detection items
         raw_items: List[Dict[str, Any]] = []
+        class_map = {0: "crater", 1: "boulder", 2: "rock", 3: "escarpment"}
+        if self._metadata.get("class_id_mapping"):
+            for k, v in self._metadata["class_id_mapping"].items():
+                try:
+                    class_map[int(k)] = v
+                except (ValueError, TypeError):
+                    pass
 
         if isinstance(raw_output, list):
             # Format: list of detection dicts or numpy boxes
@@ -396,7 +450,6 @@ class HazardDetectionService:
                 elif isinstance(item, (list, np.ndarray)) and len(item) >= 6:
                     # [ymin, xmin, ymax, xmax, score, class_id]
                     class_id = int(item[5])
-                    class_map = {0: "crater", 1: "rock", 2: "boulder", 3: "escarpment"}
                     raw_items.append({
                         "label": class_map.get(class_id, "crater"),
                         "confidence": float(item[4]),
@@ -407,7 +460,6 @@ class HazardDetectionService:
             if raw_output.ndim == 2 and raw_output.shape[1] >= 6:
                 for row in raw_output:
                     class_id = int(row[5])
-                    class_map = {0: "crater", 1: "rock", 2: "boulder", 3: "escarpment"}
                     raw_items.append({
                         "label": class_map.get(class_id, "crater"),
                         "confidence": float(row[4]),
@@ -519,23 +571,34 @@ class HazardDetectionService:
         # Decode and validate image
         pil_img, img_meta = self.validate_and_decode_image(img_source)
 
-        # Determine target input size from metadata or default (512, 512)
-        target_size = tuple(self._metadata.get("input_shape", [1, 1, 512, 512])[2:]) or (512, 512)
-        channels = int(self._metadata.get("input_channels", 1))
+        conf_thresh = req.confidence_threshold or hazard_settings.DEFAULT_CONFIDENCE_THRESHOLD
 
-        # Preprocessing
-        tensor = self.preprocess_image(
-            img=pil_img,
-            target_size=target_size,
-            channels=channels,
-            normalize=True,
-        )
+        if self._model_type == "yolo" and self._custom_inference_fn is None:
+            # High-performance native YOLO inference directly on PIL image
+            results = self._model(pil_img, conf=conf_thresh, imgsz=640, verbose=False)[0]
+            raw_outputs = []
+            for b in results.boxes:
+                xmin, ymin, xmax, ymax = b.xyxy[0].tolist()
+                conf = float(b.conf[0])
+                cls_id = int(b.cls[0])
+                raw_outputs.append([ymin, xmin, ymax, xmax, conf, cls_id])
+        else:
+            # Determine target input size from metadata or default (512, 512)
+            target_size = tuple(self._metadata.get("input_shape", [1, 1, 512, 512])[2:]) or (512, 512)
+            channels = int(self._metadata.get("input_channels", 1))
 
-        # Inference
-        raw_outputs = self.infer(tensor)
+            # Preprocessing
+            tensor = self.preprocess_image(
+                img=pil_img,
+                target_size=target_size,
+                channels=channels,
+                normalize=True,
+            )
+
+            # Inference
+            raw_outputs = self.infer(tensor)
 
         # Postprocessing
-        conf_thresh = req.confidence_threshold or hazard_settings.DEFAULT_CONFIDENCE_THRESHOLD
         detections, crater_count, rock_count, warnings = self.postprocess(
             raw_output=raw_outputs,
             original_size=(img_meta["width"], img_meta["height"]),

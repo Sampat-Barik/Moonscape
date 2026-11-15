@@ -4,8 +4,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from Backend.app.services.data_management.cache_manager import cache_manager
-from Backend.app.services.geospatial.raster_sampler import raster_sampler
+from app.services.data_management.cache_manager import cache_manager
+from app.services.geospatial.raster_sampler import raster_sampler
 
 
 def test_sample_point_missing_file():

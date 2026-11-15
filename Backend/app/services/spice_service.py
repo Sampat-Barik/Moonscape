@@ -34,8 +34,8 @@ import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from Backend.app.core.config import settings
-from Backend.app.core.logging import logger
+from app.core.config import settings
+from app.core.logging import logger
 from maths.earth_visibility import (
     calculate_earth_elevation_and_azimuth,
     calculate_subearth_coordinates,

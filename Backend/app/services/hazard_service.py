@@ -24,8 +24,8 @@ from app.schemas.hazard import (
 from app.services.dem_service import dem_service
 from app.services.hazard_detection import APOLLO_DOMAIN_LIMITATION, hazard_detection_service
 from app.services.terrain_service import terrain_service
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.nasa_data import nasa_data_manager
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.nasa_data import nasa_data_manager
 from maths.curvature import laplacian_curvature, detect_crater_basins
 
 

@@ -43,6 +43,11 @@ Backend/data/lunar/temporary/
 !Backend/data/models/.gitkeep
 !Backend/data/models/*.json
 
+# Machine Learning Training Runs & Caches
+runs/
+Backend/data/runs_hazard/
+*.cache
+
 # Node & Frontend
 node_modules/
 dist/

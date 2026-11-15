@@ -186,7 +186,8 @@ const post = (body: unknown): RequestInit => ({
 
 /**
  * Central request helper: live mode → fetch, mock mode → mock fn.
- * In "auto" mode a failing live call transparently falls back to mock.
+ * In "auto" mode a network failure transparently falls back to mock.
+ * Client errors (HTTP 4xx like 422, 400, 404) are NEVER treated as network outages and are strictly re-thrown.
  * In "live" mode errors are STRICTLY re-thrown so real backend responses are verified.
  */
 async function request<T>(
@@ -199,6 +200,10 @@ async function request<T>(
     return await fetchJson<T>(path, init);
   } catch (e) {
     if (requestedMode === "auto") {
+      // Do not mask client errors (HTTP 4xx, e.g. 422 Unprocessable Entity) with mock data
+      if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
+        throw e;
+      }
       activeMode = "mock";
       return mockFn();
     }
@@ -272,7 +277,8 @@ export const api = {
       () => mock.getTerrain(latitude, longitude),
       { signal }
     );
-    const dsName = raw.dataset_info?.dataset_name || "NASA LRO LOLA DEM";
+    // Authentic dataset attribution from backend metadata; null if unmeasured/absent
+    const dsName = raw.dataset_info?.dataset_name ?? raw.dataset_name ?? null;
     return {
       ...raw,
       latitude: raw.latitude ?? latitude,
@@ -282,11 +288,11 @@ export const api = {
         raw.elevation ??
         (raw.elevation_summary
           ? {
-              mean_m: raw.elevation_summary.mean_m ?? raw.elevation_m,
-              min_m: raw.elevation_summary.min_m,
-              max_m: raw.elevation_summary.max_m,
-              std: raw.elevation_summary.std_dev_m,
-              value: raw.elevation_m,
+              mean_m: raw.elevation_summary.mean_m ?? raw.elevation_m ?? null,
+              min_m: raw.elevation_summary.min_m ?? null,
+              max_m: raw.elevation_summary.max_m ?? null,
+              std: raw.elevation_summary.std_dev_m ?? null,
+              value: raw.elevation_m ?? null,
               source: dsName,
             }
           : raw.elevation_m !== undefined
@@ -296,11 +302,11 @@ export const api = {
         raw.slope ??
         (raw.slope_summary
           ? {
-              mean_deg: raw.slope_summary.mean_deg ?? raw.slope_deg,
-              min_deg: raw.slope_summary.min_deg,
-              max_deg: raw.slope_summary.max_deg,
-              p95_deg: raw.slope_summary.max_deg,
-              value: raw.slope_deg,
+              mean_deg: raw.slope_summary.mean_deg ?? raw.slope_deg ?? null,
+              min_deg: raw.slope_summary.min_deg ?? null,
+              max_deg: raw.slope_summary.max_deg ?? null,
+              p95_deg: raw.slope_summary.p95_deg ?? null,
+              value: raw.slope_deg ?? null,
               source: dsName,
             }
           : raw.slope_deg !== undefined
@@ -310,10 +316,10 @@ export const api = {
         raw.roughness ??
         (raw.roughness_summary
           ? {
-              rms_m: raw.roughness_summary.mean_m ?? raw.roughness_m,
-              rms: raw.roughness_summary.mean_m ?? raw.roughness_m,
-              max_m: raw.roughness_summary.max_m,
-              value: raw.roughness_m,
+              rms_m: raw.roughness_summary.mean_m ?? raw.roughness_m ?? null,
+              rms: raw.roughness_summary.mean_m ?? raw.roughness_m ?? null,
+              max_m: raw.roughness_summary.max_m ?? null,
+              value: raw.roughness_m ?? null,
               source: dsName,
             }
           : raw.roughness_m !== undefined
@@ -326,10 +332,10 @@ export const api = {
               sunlight_percent: raw.solar_illumination_pct,
               sunlit_percent: raw.solar_illumination_pct,
               value: raw.solar_illumination_pct,
-              source: "NASA LRO Polar Lighting",
+              source: raw.illumination_source ?? raw.illumination?.source ?? null,
             }
           : null),
-      data_sources: raw.data_sources ?? [dsName],
+      data_sources: raw.data_sources ?? (dsName ? [dsName] : []),
     };
   },
 
@@ -351,28 +357,28 @@ export const api = {
       post(reqPayload)
     );
 
-    const dsName = raw.dataset_metadata?.dataset_name || "NASA LRO LOLA DEM (80m)";
-    const dataSources = raw.data_sources || [dsName];
+    const dsName = raw.dataset_metadata?.dataset_name ?? raw.dataset_name ?? null;
+    const dataSources = raw.data_sources || (dsName ? [dsName] : []);
 
     const elevation = raw.elevation
       ? {
           ...raw.elevation,
-          mean_m: raw.elevation.mean_value ?? raw.elevation.mean_m ?? raw.elevation.mean,
-          min_m: raw.elevation.min_value ?? raw.elevation.min_m ?? raw.elevation.min,
-          max_m: raw.elevation.max_value ?? raw.elevation.max_m ?? raw.elevation.max,
-          std: raw.elevation.std_dev ?? raw.elevation.std,
-          stddev_m: raw.elevation.std_dev ?? raw.elevation.stddev_m,
-          source: dsName,
+          mean_m: raw.elevation.mean_value ?? raw.elevation.mean_m ?? raw.elevation.mean ?? null,
+          min_m: raw.elevation.min_value ?? raw.elevation.min_m ?? raw.elevation.min ?? null,
+          max_m: raw.elevation.max_value ?? raw.elevation.max_m ?? raw.elevation.max ?? null,
+          std: raw.elevation.std_dev ?? raw.elevation.std ?? null,
+          stddev_m: raw.elevation.std_dev ?? raw.elevation.stddev_m ?? null,
+          source: raw.elevation.source ?? dsName,
         }
       : null;
 
     const slope = raw.slope
       ? {
           ...raw.slope,
-          mean_deg: raw.slope.mean_value ?? raw.slope.mean_deg ?? raw.slope.mean,
-          max_deg: raw.slope.max_value ?? raw.slope.max_deg ?? raw.slope.max,
-          p95_deg: raw.slope.p95_deg ?? (raw.slope.max_value ? raw.slope.max_value * 0.9 : null),
-          source: dsName,
+          mean_deg: raw.slope.mean_value ?? raw.slope.mean_deg ?? raw.slope.mean ?? null,
+          max_deg: raw.slope.max_value ?? raw.slope.max_deg ?? raw.slope.max ?? null,
+          p95_deg: raw.slope.p95_deg ?? raw.slope.p95_value ?? null,
+          source: raw.slope.source ?? dsName,
         }
       : null;
 
@@ -387,7 +393,7 @@ export const api = {
             rms: roughnessMean,
             mean_m: roughnessMean,
             max_m: roughnessMax,
-            source: dsName,
+            source: raw.roughness?.source ?? dsName,
           }
         : null;
 
@@ -407,7 +413,7 @@ export const api = {
           psr: ilRaw.is_permanently_shadowed_region ?? false,
           psr_nearby: ilRaw.is_permanently_shadowed_region ?? false,
           has_psr: ilRaw.is_permanently_shadowed_region ?? false,
-          source: ilRaw.source_attribution || "NASA LRO Horizon / Ephemeris",
+          source: ilRaw.source_attribution ?? ilRaw.source ?? null,
         }
       : null;
 
@@ -497,8 +503,8 @@ export const api = {
           latitude: h.latitude,
           longitude: h.longitude,
           diameter_m: h.estimated_size_m ?? (h.radius_m ? h.radius_m * 2 : null),
-          confidence: h.confidence_score ?? h.confidence,
-          severity: h.severity ?? "medium",
+          confidence: h.confidence_score ?? h.confidence ?? null,
+          severity: h.severity ?? "unclassified",
         }));
 
     const rocks: HazardItem[] =
@@ -513,9 +519,9 @@ export const api = {
           type: "rock",
           latitude: h.latitude,
           longitude: h.longitude,
-          size_m: h.estimated_size_m ?? h.diameter_m,
-          confidence: h.confidence_score ?? h.confidence,
-          severity: h.severity ?? "medium",
+          size_m: h.estimated_size_m ?? h.diameter_m ?? null,
+          confidence: h.confidence_score ?? h.confidence ?? null,
+          severity: h.severity ?? "unclassified",
         }));
 
     const limitations: string[] = Array.isArray(raw.limitations)
@@ -532,9 +538,9 @@ export const api = {
       craters,
       rocks,
       limitations,
-      model: raw.model_name ?? raw.model ?? "Morphological Curvature & Gradient Anomaly Detector v1.2",
+      model: raw.model_name ?? raw.model ?? null,
       summary: raw.summary ?? {
-        overall_hazard_level: raw.overall_hazard_level ?? "moderate",
+        overall_hazard_level: raw.overall_hazard_level ?? null,
         total_hazards: raw.total_hazards_detected ?? (craters.length + rocks.length),
         steep_slope_cells: raw.steep_slope_cells ?? 0,
       },
@@ -556,47 +562,43 @@ export const api = {
       name: s.name,
       latitude: s.latitude,
       longitude: s.longitude,
-      score: s.score ?? s.suitability_score,
-      suitability_score: s.suitability_score ?? s.score,
-      elevation_m: s.elevation_m,
+      score: s.score ?? s.suitability_score ?? null,
+      suitability_score: s.suitability_score ?? s.score ?? null,
+      elevation_m: s.elevation_m ?? null,
       elevation:
         typeof s.elevation === "object" && s.elevation !== null
           ? s.elevation
           : {
-              mean_m: s.elevation_m,
-              mean: s.elevation_m,
-              value: s.elevation_m,
+              mean_m: s.elevation_m ?? null,
+              mean: s.elevation_m ?? null,
+              value: s.elevation_m ?? null,
             },
-      mean_slope_deg: s.mean_slope_deg,
+      mean_slope_deg: s.mean_slope_deg ?? null,
       slope:
         typeof s.slope === "object" && s.slope !== null
           ? s.slope
           : {
-              mean_deg: s.mean_slope_deg,
-              mean: s.mean_slope_deg,
-              value: s.mean_slope_deg,
-              max_deg: s.max_slope_deg ?? (s.mean_slope_deg ? s.mean_slope_deg * 1.5 : null),
+              mean_deg: s.mean_slope_deg ?? null,
+              mean: s.mean_slope_deg ?? null,
+              value: s.mean_slope_deg ?? null,
+              max_deg: s.max_slope_deg ?? null,
             },
       roughness:
         typeof s.roughness === "object" && s.roughness !== null
           ? s.roughness
           : {
-              rms_m:
-                s.roughness_m ??
-                (s.mean_slope_deg ? (s.mean_slope_deg < 6.0 ? 0.3 : 0.6) : null),
-              rms:
-                s.roughness_m ??
-                (s.mean_slope_deg ? (s.mean_slope_deg < 6.0 ? 0.3 : 0.6) : null),
+              rms_m: s.roughness_m ?? null,
+              rms: s.roughness_m ?? null,
             },
-      illumination_pct: s.illumination_pct,
+      illumination_pct: s.illumination_pct ?? null,
       illumination:
         typeof s.illumination === "object" && s.illumination !== null
           ? s.illumination
           : {
-              sunlight_percent: s.illumination_pct,
-              sunlit_percent: s.illumination_pct,
-              illumination_percent: s.illumination_pct,
-              value: s.illumination_pct,
+              sunlight_percent: s.illumination_pct ?? null,
+              sunlit_percent: s.illumination_pct ?? null,
+              illumination_percent: s.illumination_pct ?? null,
+              value: s.illumination_pct ?? null,
             },
     }));
 

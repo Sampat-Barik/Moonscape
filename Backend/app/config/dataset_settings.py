@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
-from Backend.app.core.config import settings
+from app.core.config import settings
 
 
 class DatasetTier(str, Enum):
@@ -108,7 +108,7 @@ class DatasetSettings(BaseModel):
                 for k, v in dsets.items():
                     self.datasets[k] = DatasetDefinition(**v)
         except Exception as e:
-            from Backend.app.core.logging import logger
+            from app.core.logging import logger
             logger.error("Failed to parse NASA dataset manifest: %s", str(e))
 
 

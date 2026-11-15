@@ -12,13 +12,13 @@
 
 export const API_BASE_URL: string =
   ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "").replace(/\/+$/, "") ||
-  "http://localhost:8000";
+  "http://127.0.0.1:8000";
 
 export type ApiMode = "auto" | "live" | "mock";
 
 export const API_MODE: ApiMode =
-  (import.meta.env.VITE_API_MODE as ApiMode | undefined) ?? "auto";
+  (import.meta.env.VITE_API_MODE as ApiMode | undefined) ?? "live";
 
 export const REQUEST_TIMEOUT_MS: number = Number(
-  (import.meta.env.VITE_API_TIMEOUT_MS as string | undefined) ?? 10000
+  (import.meta.env.VITE_API_TIMEOUT_MS as string | undefined) ?? 30000
 );

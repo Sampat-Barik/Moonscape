@@ -13,8 +13,8 @@ from dataclasses import asdict, dataclass
 import math
 from typing import Any, Dict, List, Optional, Tuple
 
-from Backend.app.services.data_sources.lroc_nac import KNOWN_NAC_DTM_FOOTPRINTS, lroc_nac
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.data_sources.lroc_nac import KNOWN_NAC_DTM_FOOTPRINTS, lroc_nac
+from app.services.geospatial.coordinate_manager import coordinate_manager
 from maths.geodesy import haversine_lunar_distance
 
 

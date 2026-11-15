@@ -1,0 +1,11 @@
+# Lunar Hazard Detection Dataset (Craters and Boulders)
+# Strict zero-leakage geographic scene partitioning across lunar South Pole candidate sites
+path: D:/MoonScape/Backend/data/hazard_dataset
+train: images/train
+val: images/val
+test: images/test
+
+nc: 2
+names:
+  0: crater
+  1: boulder

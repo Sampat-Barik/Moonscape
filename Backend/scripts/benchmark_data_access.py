@@ -17,9 +17,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from Backend.app.services.data_management.cache_manager import cache_manager
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.geospatial.terrain_source_selector import terrain_source_selector
+from app.services.data_management.cache_manager import cache_manager
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.geospatial.terrain_source_selector import terrain_source_selector
 
 
 def get_process_memory_mb() -> float:

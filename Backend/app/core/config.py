@@ -28,18 +28,14 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # CORS Origins
+    # CORS Origins (Explicit trusted frontend dev and preview origins)
     CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
         "http://localhost:5173",
-        "http://localhost:4173",
-        "http://localhost:8080",
-        "http://localhost:8000",
-        "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
+        "http://localhost:4173",
         "http://127.0.0.1:4173",
-        "http://127.0.0.1:8080",
-        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
     ]
 
     # Data Directories and File Paths

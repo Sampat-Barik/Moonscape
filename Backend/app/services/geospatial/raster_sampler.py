@@ -8,11 +8,11 @@ import rasterio
 from affine import Affine
 from rasterio.windows import Window, from_bounds
 
-from Backend.app.config.resource_settings import resource_settings
-from Backend.app.core.constants import LOLA_NODATA_VALUE
-from Backend.app.core.logging import logger
-from Backend.app.services.data_management.cache_manager import cache_manager
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from app.config.resource_settings import resource_settings
+from app.core.constants import LOLA_NODATA_VALUE
+from app.core.logging import logger
+from app.services.data_management.cache_manager import cache_manager
+from app.services.geospatial.coordinate_manager import coordinate_manager
 
 
 class RasterSampler:

@@ -20,13 +20,13 @@ for _p in (str(_backend_dir), str(_root_dir)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from Backend.app.core.config import settings
-from Backend.app.core.logging import logger
-from Backend.app.schemas.ml_scoring import (
+from app.core.config import settings
+from app.core.logging import logger
+from app.schemas.ml_scoring import (
     LunarSiteFeatures,
     ModelPredictionResult,
 )
-from Backend.app.services.ml.model_trainer import FEATURE_NAMES
+from app.services.ml.model_trainer import FEATURE_NAMES
 from maths.scoring import evaluate_hard_constraints, MISSION_PROFILES
 
 
@@ -78,8 +78,15 @@ class LunarSuitabilityModelService:
             if self._is_loaded:
                 return True
 
-            model_path = self.models_dir / "landing_suitability_rf_v1.joblib"
-            meta_path = self.models_dir / "landing_suitability_rf_v1.meta.json"
+            model_path_v2 = self.models_dir / "landing_suitability_rf_v2.joblib"
+            meta_path_v2 = self.models_dir / "landing_suitability_rf_v2.meta.json"
+
+            if model_path_v2.exists() and meta_path_v2.exists():
+                model_path = model_path_v2
+                meta_path = meta_path_v2
+            else:
+                model_path = self.models_dir / "landing_suitability_rf_v1.joblib"
+                meta_path = self.models_dir / "landing_suitability_rf_v1.meta.json"
 
             if not model_path.exists() or not meta_path.exists():
                 logger.warning(
@@ -94,9 +101,10 @@ class LunarSuitabilityModelService:
                     self._metadata = json.load(f)
                 self._is_loaded = True
                 logger.info(
-                    "Loaded ML landing suitability model '%s' (version %s)",
+                    "Loaded ML landing suitability model '%s' (version %s) from %s",
                     self._metadata.get("model_name"),
                     self._metadata.get("version"),
+                    model_path.name,
                 )
                 return True
             except Exception as e:
@@ -104,53 +112,68 @@ class LunarSuitabilityModelService:
                 return False
 
     @staticmethod
-    def construct_features_from_dict(raw: Dict[str, Any]) -> LunarSiteFeatures:
-        """Converts heterogeneous measurement dictionary into validated 24-feature schema."""
+    def construct_features_from_dict(raw: Dict[str, Any], allow_imputation: bool = False) -> LunarSiteFeatures:
+        """Converts heterogeneous measurement dictionary into validated 24-feature schema.
+        
+        Refuses to silently invent defaults for safety-critical parameters (slope, elevation, roughness)
+        unless explicitly allowed. Preserves valid zero values.
+        """
+        critical_missing: List[str] = []
+
         slope = raw.get("mean_slope_deg")
         if slope is None:
             slope = raw.get("slope_deg")
         if slope is None:
-            slope = 7.0
-
-        max_slope = raw.get("max_slope_deg")
-        if max_slope is None:
-            max_slope = min(85.0, slope * 1.5)
-
-        p95_slope = raw.get("p95_slope_deg")
-        if p95_slope is None:
-            p95_slope = min(80.0, slope * 1.25)
+            critical_missing.append("mean_slope_deg")
+            if not allow_imputation:
+                raise ValueError("Missing safety-critical parameter: 'mean_slope_deg' or 'slope_deg' must be provided.")
+            slope = 5.0
 
         elev = raw.get("mean_elevation_m")
         if elev is None:
             elev = raw.get("elevation_m")
         if elev is None:
+            critical_missing.append("mean_elevation_m")
+            if not allow_imputation:
+                raise ValueError("Missing safety-critical parameter: 'mean_elevation_m' or 'elevation_m' must be provided.")
             elev = 0.0
 
         roughness = raw.get("roughness_15m")
         if roughness is None:
             roughness = raw.get("roughness_m")
         if roughness is None:
-            roughness = 0.35
+            critical_missing.append("roughness_15m")
+            if not allow_imputation:
+                raise ValueError("Missing safety-critical parameter: 'roughness_15m' or 'roughness_m' must be provided.")
+            roughness = 0.25
+
+        max_slope = raw.get("max_slope_deg")
+        if max_slope is None:
+            max_slope = max(slope, slope * 1.5)
+
+        p95_slope = raw.get("p95_slope_deg")
+        if p95_slope is None:
+            p95_slope = max(slope, slope * 1.25)
 
         crater_density = raw.get("crater_density_km2")
         if crater_density is None:
             craters = raw.get("crater_count")
-            crater_density = (float(craters) / 2.0) if craters is not None else 0.4
+            crater_density = (float(craters) / 2.0) if craters is not None else 0.0
 
         boulder_density = raw.get("boulder_density_km2")
         if boulder_density is None:
             rocks = raw.get("rock_count")
-            boulder_density = (float(rocks) / 5.0) if rocks is not None else 0.2
+            boulder_density = (float(rocks) / 5.0) if rocks is not None else 0.0
 
         illum = raw.get("cumulative_sunlight_pct")
         if illum is None:
             illum = raw.get("illumination_pct")
         if illum is None:
-            illum = 55.0
+            illum = 70.0
 
         comms = raw.get("earth_visibility_pct")
         if comms is None:
-            comms = 65.0
+            comms = 75.0
 
         ideal_slope = raw.get("ideal_slope_pct")
         if ideal_slope is None:
@@ -170,7 +193,7 @@ class LunarSuitabilityModelService:
 
         relief = raw.get("elevation_relief_m")
         if relief is None:
-            relief = 250.0
+            relief = 150.0
 
         rough_60 = raw.get("roughness_60m")
         if rough_60 is None:
@@ -194,7 +217,7 @@ class LunarSuitabilityModelService:
 
         min_boulder = raw.get("min_boulder_dist_m")
         if min_boulder is None:
-            min_boulder = 500.0
+            min_boulder = 1000.0
 
         curv_var = raw.get("curvature_laplacian_var")
         if curv_var is None:
@@ -341,13 +364,63 @@ class LunarSuitabilityModelService:
         features: Union[LunarSiteFeatures, Dict[str, Any]],
         mission_profile: str = "artemis_hls",
         run_monte_carlo: bool = True,
+        strict: bool = False,
     ) -> ModelPredictionResult:
         """Evaluates preliminary landing suitability using trained ML surrogate and mission constraints."""
-        # 1. Standardize features
+        critical_missing: List[str] = []
+        status = "success"
+
+        # 1. Standardize features and validate presence of critical measurements
         if isinstance(features, dict):
-            feat_obj = self.construct_features_from_dict(features)
+            raw_slope = features.get("mean_slope_deg") if features.get("mean_slope_deg") is not None else features.get("slope_deg")
+            raw_rough = features.get("roughness_15m") if features.get("roughness_15m") is not None else features.get("roughness_m")
+            raw_elev = features.get("mean_elevation_m") if features.get("mean_elevation_m") is not None else features.get("elevation_m")
+
+            if raw_slope is None:
+                critical_missing.append("mean_slope_deg")
+            if raw_rough is None:
+                critical_missing.append("roughness_15m")
+            if raw_elev is None:
+                critical_missing.append("mean_elevation_m")
+
+            # Calculate authentic data completeness percentage
+            total_features = len(FEATURE_NAMES)
+            provided_keys = sum(1 for k in FEATURE_NAMES if features.get(k) is not None)
+            alt_keys = ["slope_deg", "roughness_m", "elevation_m", "crater_count", "rock_count", "illumination_pct"]
+            extra_provided = sum(1 for k in alt_keys if features.get(k) is not None and k not in FEATURE_NAMES)
+            data_completeness = round(min(100.0, max(10.0, ((provided_keys + extra_provided) / total_features) * 100.0)), 1)
+
+            if critical_missing:
+                if strict:
+                    raise ValueError(f"Missing safety-critical landing parameters: {critical_missing}")
+                if raw_slope is None:
+                    # Slope is non-negotiable for landing safety
+                    return ModelPredictionResult(
+                        model_name=self._metadata.get("model_name", "Moonscape Lunar Landing Suitability Surrogate Model") if self._metadata else "Moonscape Lunar Landing Suitability Surrogate Model",
+                        model_version=self._metadata.get("version", "2.0.0") if self._metadata else "2.0.0",
+                        ml_suitability_score=0.0,
+                        predicted_class="disqualified",
+                        hard_constraint_status="insufficient_data",
+                        hard_constraint_violations=[f"Missing safety-critical parameter: {m}" for m in critical_missing],
+                        top_positive_features={},
+                        top_risk_features={m: -50.0 for m in critical_missing},
+                        uncertainty_score_std=50.0,
+                        confidence_interval_95=[0.0, 0.0],
+                        ranking_stability="low",
+                        data_completeness_pct=data_completeness,
+                        status="insufficient_data",
+                        missing_critical_features=critical_missing,
+                    )
+                # Elevation or roughness missing but slope provided: allow imputation with partial_data flag
+                feat_obj = self.construct_features_from_dict(features, allow_imputation=True)
+                status = "partial_data"
+            else:
+                feat_obj = self.construct_features_from_dict(features, allow_imputation=False)
+                status = "success"
         else:
             feat_obj = features
+            data_completeness = 100.0
+            status = "success"
 
         # 2. Evaluate hard mission engineering constraints
         measurements_for_constraints = {
@@ -370,8 +443,8 @@ class LunarSuitabilityModelService:
             raw_vec = np.array([[getattr(feat_obj, k) for k in FEATURE_NAMES]], dtype=np.float32)
             raw_score = float(self._model.predict(raw_vec)[0])
             raw_score = round(max(0.0, min(100.0, raw_score)), 1)
-            model_name = self._metadata.get("model_name", "RandomForest Surrogate")
-            model_version = self._metadata.get("version", "1.0.0")
+            model_name = self._metadata.get("model_name", "Moonscape Lunar Landing Suitability Surrogate Model")
+            model_version = self._metadata.get("version", "2.0.0")
         else:
             # Fallback deterministic formula
             from maths.scoring import compute_suitability_with_coverage, evaluate_slope_score, evaluate_roughness_score, evaluate_illumination_score
@@ -381,7 +454,7 @@ class LunarSuitabilityModelService:
                 "illumination": evaluate_illumination_score(feat_obj.cumulative_sunlight_pct),
             }
             comp_score, _, _, _ = compute_suitability_with_coverage(subscores, {"slope": 0.4, "roughness": 0.3, "illumination": 0.3})
-            raw_score = round(comp_score or 50.0, 1)
+            raw_score = round(comp_score if comp_score is not None else 50.0, 1)
             model_name = "Deterministic MCDA Baseline (Fallback)"
             model_version = "fallback-2.0"
 
@@ -389,8 +462,8 @@ class LunarSuitabilityModelService:
         if is_violated:
             pred_class = "disqualified"
             hard_status = "violated"
-            # Capped or preserved with disqualified label
-            final_score = min(raw_score, 45.0) if raw_score > 45.0 else raw_score
+            # Capped strictly at <= 35.0 on hard mission constraint violation
+            final_score = min(raw_score, 35.0)
         else:
             hard_status = "passed"
             final_score = raw_score
@@ -423,6 +496,9 @@ class LunarSuitabilityModelService:
             uncertainty_score_std=std_err,
             confidence_interval_95=conf_int,
             ranking_stability=stability,
+            data_completeness_pct=data_completeness,
+            status=status,
+            missing_critical_features=critical_missing,
         )
 
 

@@ -1,0 +1,131 @@
+{
+  "model_name": "Moonscape Lunar Landing Suitability Surrogate Model",
+  "model_family": "hist_gradient_boosting (MCDA Surrogate)",
+  "version": "2.0.0",
+  "model_file": "landing_suitability_rf_v2.joblib",
+  "trained_features_count": 24,
+  "feature_names": [
+    "mean_elevation_m",
+    "elevation_relief_m",
+    "mean_slope_deg",
+    "max_slope_deg",
+    "p95_slope_deg",
+    "ideal_slope_pct",
+    "critical_slope_pct",
+    "roughness_15m",
+    "roughness_60m",
+    "roughness_240m",
+    "vertical_uncertainty_m",
+    "slope_uncertainty_deg",
+    "crater_density_km2",
+    "min_crater_dist_m",
+    "boulder_density_km2",
+    "min_boulder_dist_m",
+    "curvature_laplacian_var",
+    "cumulative_sunlight_pct",
+    "instantaneous_sunlit_pct",
+    "max_continuous_sun_h",
+    "max_continuous_dark_h",
+    "is_psr",
+    "earth_visibility_pct",
+    "contiguous_diameter_m"
+  ],
+  "selected_best_model": "hist_gradient_boosting",
+  "selection_criterion": "Highest Validation R2 (strict zero-leakage geographic holdout)",
+  "training_regions": [
+    "shackleton_cluster",
+    "malapert_cluster"
+  ],
+  "validation_regions": [
+    "faustini_cluster",
+    "haworth_cluster"
+  ],
+  "heldout_unseen_regions": [
+    "nobile_heldout",
+    "de_gerlache_heldout"
+  ],
+  "spatial_leakage_audit": {
+    "train_regions": [
+      "shackleton_cluster",
+      "malapert_cluster"
+    ],
+    "validation_regions": [
+      "faustini_cluster",
+      "haworth_cluster"
+    ],
+    "heldout_test_regions": [
+      "nobile_heldout",
+      "de_gerlache_heldout"
+    ],
+    "spatial_leakage_detected": false
+  },
+  "performance_metrics": {
+    "ridge_linear": {
+      "validation_r2": 0.8435,
+      "validation_mae": 1.018,
+      "validation_rmse": 2.512,
+      "validation_spearman": 0.5115,
+      "validation_ndcg_5": 1.0,
+      "heldout_test_r2": 0.9393,
+      "heldout_test_mae": 1.203,
+      "heldout_test_rmse": 1.992,
+      "spearman_rank_correlation": 0.7448,
+      "ndcg_at_5": 1.0
+    },
+    "random_forest": {
+      "validation_r2": 0.8663,
+      "validation_mae": 0.683,
+      "validation_rmse": 2.322,
+      "validation_spearman": 0.9999,
+      "validation_ndcg_5": 1.0,
+      "heldout_test_r2": 0.9447,
+      "heldout_test_mae": 0.734,
+      "heldout_test_rmse": 1.902,
+      "spearman_rank_correlation": 0.8702,
+      "ndcg_at_5": 1.0
+    },
+    "hist_gradient_boosting": {
+      "validation_r2": 0.8688,
+      "validation_mae": 0.716,
+      "validation_rmse": 2.299,
+      "validation_spearman": 0.63,
+      "validation_ndcg_5": 1.0,
+      "heldout_test_r2": 0.8747,
+      "heldout_test_mae": 1.225,
+      "heldout_test_rmse": 2.862,
+      "spearman_rank_correlation": 0.8579,
+      "ndcg_at_5": 1.0
+    }
+  },
+  "top_feature_importances": {
+    "roughness_15m": 0.173,
+    "mean_slope_deg": 0.1352,
+    "roughness_240m": 0.1319,
+    "min_crater_dist_m": 0.1305,
+    "roughness_60m": 0.1231,
+    "critical_slope_pct": 0.111,
+    "curvature_laplacian_var": 0.0771,
+    "crater_density_km2": 0.0729,
+    "p95_slope_deg": 0.0354,
+    "elevation_relief_m": 0.0039,
+    "mean_elevation_m": 0.0018,
+    "instantaneous_sunlit_pct": 0.0017,
+    "max_slope_deg": 0.0008,
+    "max_continuous_dark_h": 0.0005,
+    "is_psr": 0.0004,
+    "ideal_slope_pct": 0.0003,
+    "max_continuous_sun_h": 0.0002,
+    "cumulative_sunlight_pct": 0.0001,
+    "vertical_uncertainty_m": 0.0,
+    "slope_uncertainty_deg": 0.0,
+    "boulder_density_km2": 0.0,
+    "min_boulder_dist_m": 0.0,
+    "earth_visibility_pct": 0.0,
+    "contiguous_diameter_m": 0.0
+  },
+  "governance": {
+    "target_type": "Deterministic MCDA Baseline Suitability Score (0-100)",
+    "label_provenance": "Category C Algorithmic Surrogate benchmarked against Category A NASA Artemis Candidate Regions",
+    "disclaimer": "Surrogate acceleration model. Output is a preliminary screening score, NOT certified landing safety."
+  }
+}

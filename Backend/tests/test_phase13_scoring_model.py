@@ -8,8 +8,8 @@ from fastapi.testclient import TestClient
 import numpy as np
 import pytest
 
-from Backend.app.schemas.ml_scoring import LunarSiteFeatures
-from Backend.app.services.ml.suitability_model_service import suitability_model_service
+from app.schemas.ml_scoring import LunarSiteFeatures
+from app.services.ml.suitability_model_service import suitability_model_service
 from maths.scoring import evaluate_hard_constraints, MISSION_PROFILES
 
 
@@ -196,7 +196,7 @@ def test_api_compare_sites_with_mission_profile(client: TestClient) -> None:
 
 def test_geographic_dataset_leakage_prevention() -> None:
     """Verifies that training, validation, and holdout datasets have zero geographic overlap."""
-    from Backend.app.services.ml.dataset_generator import dataset_generator
+    from app.services.ml.dataset_generator import dataset_generator
     recs = dataset_generator.load_saved_dataset()
 
     train_regions = {r.geographic_region for r in recs if r.split_group == "train"}

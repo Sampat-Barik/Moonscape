@@ -1,7 +1,7 @@
 """Tests for lunar coordinate management, normalizations, and south pole validations."""
 
 import pytest
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.geospatial.coordinate_manager import coordinate_manager
 
 
 def test_normalize_longitude_360():

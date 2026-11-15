@@ -1,15 +1,15 @@
 """Coverage Manager evaluating spatial intersections between lunar coordinates and NASA datasets."""
 
 from typing import Any, Dict, List
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.services.data_management.dataset_registry import dataset_registry
-from Backend.app.services.data_sources.diviner import diviner_thermal
-from Backend.app.services.data_sources.lroc_nac import lroc_nac
-from Backend.app.services.data_sources.lroc_wac import lroc_wac
-from Backend.app.services.data_sources.pgda_product104 import pgda_product104
-from Backend.app.services.data_sources.pgda_product78 import pgda_product78
-from Backend.app.services.data_sources.pgda_product90 import pgda_product90
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from app.config.dataset_settings import dataset_settings
+from app.services.data_management.dataset_registry import dataset_registry
+from app.services.data_sources.diviner import diviner_thermal
+from app.services.data_sources.lroc_nac import lroc_nac
+from app.services.data_sources.lroc_wac import lroc_wac
+from app.services.data_sources.pgda_product104 import pgda_product104
+from app.services.data_sources.pgda_product78 import pgda_product78
+from app.services.data_sources.pgda_product90 import pgda_product90
+from app.services.geospatial.coordinate_manager import coordinate_manager
 
 
 class CoverageManager:

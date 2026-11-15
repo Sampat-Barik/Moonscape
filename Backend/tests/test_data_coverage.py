@@ -3,8 +3,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from Backend.app.main import app
-from Backend.app.services.data_management.coverage_manager import coverage_manager
+from app.main import app
+from app.services.data_management.coverage_manager import coverage_manager
 
 client = TestClient(app)
 

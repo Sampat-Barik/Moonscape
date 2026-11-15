@@ -3,8 +3,8 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, Query, HTTPException
-from Backend.app.schemas.terrain import TerrainResponse
-from Backend.app.services.terrain_service import terrain_service
+from app.schemas.terrain import TerrainResponse
+from app.services.terrain_service import terrain_service
 
 router = APIRouter(prefix="", tags=["Terrain"])
 

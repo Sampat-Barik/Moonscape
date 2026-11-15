@@ -3,9 +3,9 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, Path as FPath
 
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.schemas.dataset_schemas import DownloadTaskResponse
-from Backend.app.services.data_management.download_manager import download_manager
+from app.config.dataset_settings import dataset_settings
+from app.schemas.dataset_schemas import DownloadTaskResponse
+from app.services.data_management.download_manager import download_manager
 
 router = APIRouter(prefix="/data", tags=["NASA Data Downloads"])
 

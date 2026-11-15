@@ -3,15 +3,15 @@
 from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException, Query
 
-from Backend.app.config.dataset_settings import dataset_settings
-from Backend.app.schemas.dataset_schemas import (
+from app.config.dataset_settings import dataset_settings
+from app.schemas.dataset_schemas import (
     DataCoverageResponse,
     DatasetCatalogResponse,
     DatasetItem,
     DatasetProfile,
 )
-from Backend.app.services.data_management.coverage_manager import coverage_manager
-from Backend.app.services.data_management.dataset_registry import dataset_registry
+from app.services.data_management.coverage_manager import coverage_manager
+from app.services.data_management.dataset_registry import dataset_registry
 
 router = APIRouter(prefix="/data", tags=["NASA Data Management"])
 
@@ -115,5 +115,5 @@ def discover_lroc_nac_footprints(
 
     Delineates optical boulder/crater visual detections from LOLA laser altimetry slopes.
     """
-    from Backend.app.services.data_sources.lroc_nac import lroc_nac
+    from app.services.data_sources.lroc_nac import lroc_nac
     return lroc_nac.discover_footprints(center_lat=lat, center_lon=lon, search_radius_meters=radius)

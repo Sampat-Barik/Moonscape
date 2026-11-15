@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 
 import httpx
 
-from Backend.app.core.logging import logger
+from app.core.logging import logger
 
 MOON_TREK_API_BASE = "https://trek.nasa.gov/moon/TrekServices/ws/index"
 

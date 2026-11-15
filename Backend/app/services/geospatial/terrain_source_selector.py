@@ -3,7 +3,7 @@
 from typing import Any, Dict, Optional, Tuple
 import numpy as np
 
-from Backend.app.core.constants import (
+from app.core.constants import (
     LOLA_DATASET_NAME,
     LOLA_NODATA_VALUE,
     LOLA_PRODUCT_ID,
@@ -12,11 +12,11 @@ from Backend.app.core.constants import (
     SLOPE_CRITICAL_MAX_DEG,
     SLOPE_NOMINAL_MAX_DEG,
 )
-from Backend.app.schemas.terrain import TerrainDatasetInfo, TerrainResponse
-from Backend.app.services.data_sources.pgda_product78 import pgda_product78
-from Backend.app.services.data_sources.pgda_product90 import pgda_product90
-from Backend.app.services.dem_service import dem_service
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
+from app.schemas.terrain import TerrainDatasetInfo, TerrainResponse
+from app.services.data_sources.pgda_product78 import pgda_product78
+from app.services.data_sources.pgda_product90 import pgda_product90
+from app.services.dem_service import dem_service
+from app.services.geospatial.coordinate_manager import coordinate_manager
 from maths.topography import horn_slope_and_aspect, rms_surface_roughness
 
 

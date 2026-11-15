@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 import pytest
 from fastapi.testclient import TestClient
 
-from Backend.app.services.ephemeris.horizons_client import HorizonsClient, HorizonsEphemerisPoint, HorizonsQueryResult
-from Backend.app.services.data_sources.moon_trek import MoonTrekService
-from Backend.app.services.data_sources.lroc_service import LROCService
+from app.services.ephemeris.horizons_client import HorizonsClient, HorizonsEphemerisPoint, HorizonsQueryResult
+from app.services.data_sources.moon_trek import MoonTrekService
+from app.services.data_sources.lroc_service import LROCService
 
 
 def test_horizons_client_parsing():

@@ -30,13 +30,13 @@ import threading
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
-from Backend.app.core.constants import LOLA_NODATA_VALUE, MOON_RADIUS_METERS
-from Backend.app.core.logging import logger
-from Backend.app.services.dem_service import dem_service
-from Backend.app.services.geospatial.coordinate_manager import coordinate_manager
-from Backend.app.services.geospatial.raster_sampler import raster_sampler
-from Backend.app.services.geospatial.terrain_source_selector import terrain_source_selector
-from Backend.app.config.dataset_settings import dataset_settings
+from app.core.constants import LOLA_NODATA_VALUE, MOON_RADIUS_METERS
+from app.core.logging import logger
+from app.services.dem_service import dem_service
+from app.services.geospatial.coordinate_manager import coordinate_manager
+from app.services.geospatial.raster_sampler import raster_sampler
+from app.services.geospatial.terrain_source_selector import terrain_source_selector
+from app.config.dataset_settings import dataset_settings
 
 
 @dataclass

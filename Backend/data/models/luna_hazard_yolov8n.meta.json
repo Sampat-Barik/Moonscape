@@ -1,0 +1,117 @@
+{
+  "model_name": "Moonscape Lunar South Pole Optical Hazard Detector",
+  "version": "1.0.0",
+  "architecture": "YOLOv8n-Detection",
+  "parameters": "3.0M",
+  "input_shape": [
+    1,
+    3,
+    640,
+    640
+  ],
+  "input_channels": 3,
+  "input_normalization": "pixel values scaled to [0.0, 1.0]",
+  "classes": [
+    "crater",
+    "boulder"
+  ],
+  "class_id_mapping": {
+    "0": "crater",
+    "1": "boulder"
+  },
+  "training": {
+    "base_checkpoint": "candidate_yolov8n_hazard.pt",
+    "epochs": 15,
+    "batch_size": 8,
+    "image_size": 640,
+    "optimizer": "AdamW",
+    "augmentations": {
+      "hsv_h": 0.015,
+      "hsv_s": 0.0,
+      "hsv_v": 0.1,
+      "rotation_deg": 15.0,
+      "fliplr": 0.5,
+      "flipud": 0.5,
+      "mosaic": 0.5
+    },
+    "training_time_seconds": 130.16
+  },
+  "dataset": {
+    "source": "LROC NAC (Narrow Angle Camera) / Chandrayaan-2 OHRC polar orbital frames",
+    "total_tiles": 80,
+    "total_annotated_instances": 4136,
+    "train_samples": 40,
+    "val_samples": 20,
+    "test_samples": 20,
+    "train_regions": "Shackleton Connecting Ridge & Bench (Artemis Site 01)",
+    "val_regions": "Malapert Mountain Summit Massif & Haworth Rim (Artemis Site 02)",
+    "test_regions": "de Gerlache Crater Rim 1 & 2 (Candidate Artemis Sites 03 & 04 - Zero Geographic Leakage)",
+    "spatial_resolution_mpp_range": [
+      1.2,
+      1.8
+    ],
+    "solar_incidence_deg_range": [
+      78.0,
+      84.5
+    ]
+  },
+  "evaluation_metrics": {
+    "validation_split": {
+      "overall": {
+        "precision": 0.529,
+        "recall": 0.6142,
+        "f1_score": 0.5684,
+        "mAP50": 0.5957,
+        "mAP50_95": 0.263
+      },
+      "crater": {
+        "precision": 0.4065,
+        "recall": 0.7857,
+        "f1_score": 0.5358,
+        "mAP50": 0.6217,
+        "mAP50_95": 0.2822
+      },
+      "boulder": {
+        "precision": 0.6516,
+        "recall": 0.4426,
+        "f1_score": 0.5271,
+        "mAP50": 0.5697,
+        "mAP50_95": 0.2437
+      }
+    },
+    "held_out_test_split": {
+      "overall": {
+        "precision": 0.5608,
+        "recall": 0.5627,
+        "f1_score": 0.5617,
+        "mAP50": 0.5818,
+        "mAP50_95": 0.2415
+      },
+      "crater": {
+        "precision": 0.4082,
+        "recall": 0.7552,
+        "f1_score": 0.5299,
+        "mAP50": 0.61,
+        "mAP50_95": 0.2651
+      },
+      "boulder": {
+        "precision": 0.7133,
+        "recall": 0.3702,
+        "f1_score": 0.4874,
+        "mAP50": 0.5537,
+        "mAP50_95": 0.2179
+      }
+    }
+  },
+  "performance_benchmarks": {
+    "hardware": "AMD Ryzen 9 894HX (CPU Execution)",
+    "mean_latency_ms": 18.23,
+    "p95_latency_ms": 19.92,
+    "fps": 54.9
+  },
+  "operational_limitations": {
+    "apollo_domain_warning": "Apollo surface photography (sun elevation > 15 deg, astronaut eye-level view) is invalid for orbital nadir crater/boulder mapping. This model was trained and evaluated strictly on high-resolution polar orbital imagery with grazing sun angles (solar incidence 78\u00b0-84.5\u00b0).",
+    "permanently_shadowed_regions": "Optical detection fails in zero-illumination Permanently Shadowed Regions (PSRs). DEM LiDAR roughness, slope, and radar backscatter must be used inside PSRs.",
+    "safety_critical_disclaimer": "Intended for preliminary candidate site screening and mission planning only. NOT certified for autonomous real-time landing descent or human-rated hazard avoidance."
+  }
+}
