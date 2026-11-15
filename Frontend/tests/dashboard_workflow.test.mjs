@@ -2,8 +2,9 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
+const isBackendAlive = await fetch(`${BACKEND_URL}/api/health`).then(r => r.ok).catch(() => false);
 
-describe("MOONSCAPE — DASHBOARD SCIENTIFIC PIPELINE & ADAPTER VALIDATION", () => {
+describe("MOONSCAPE — DASHBOARD SCIENTIFIC PIPELINE & ADAPTER VALIDATION", { skip: !isBackendAlive ? "Backend not running on 8000; skipping live integration tests" : false }, () => {
   test("Slope P95 is returned and matches scientific range", async () => {
     const res = await fetch(`${BACKEND_URL}/api/analysis/run`, {
       method: "POST",

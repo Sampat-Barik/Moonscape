@@ -187,8 +187,10 @@ describe("6. Coordinate Selection vs API Request Payload Contract", () => {
   });
 });
 
-describe("7. Live Backend & API Contract Integration", () => {
-  const BACKEND_URL = process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const BACKEND_URL = process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const isBackendAlive = await fetch(`${BACKEND_URL}/api/health`).then(r => r.ok).catch(() => false);
+
+describe("7. Live Backend & API Contract Integration", { skip: !isBackendAlive ? "Backend not running on 8000; skipping live integration tests" : false }, () => {
 
   test("GET /api/health returns operational status and CRS", async () => {
     try {
@@ -315,7 +317,7 @@ describe("8. Invertible Polar Stereographic Coordinate Projection (ESRI:104903)"
   });
 });
 
-describe("9. Live 3D Terrain Relief Grid Endpoint Verification (POST /api/terrain/mesh)", () => {
+describe("9. Live 3D Terrain Relief Grid Endpoint Verification (POST /api/terrain/mesh)", { skip: !isBackendAlive ? "Backend not running on 8000; skipping live integration tests" : false }, () => {
   const BACKEND_URL = "http://127.0.0.1:8000";
 
   test("POST /api/terrain/mesh returns real downsampled DEM elevation and slope matrices", async () => {

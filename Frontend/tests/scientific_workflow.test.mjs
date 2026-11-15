@@ -2,8 +2,9 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 const BACKEND_URL = "http://127.0.0.1:8000";
+const isBackendAlive = await fetch(`${BACKEND_URL}/api/health`).then(r => r.ok).catch(() => false);
 
-describe("MOONSCAPE — LIVE SCIENTIFIC WORKFLOW VALIDATION (11 CORE FEATURES)", () => {
+describe("MOONSCAPE — LIVE SCIENTIFIC WORKFLOW VALIDATION (11 CORE FEATURES)", { skip: !isBackendAlive ? "Backend not running on 8000; skipping live integration tests" : false }, () => {
   let siteAnalysisResult = null;
 
   test("Feature 1: Elevation Analysis (Real NASA LOLA Product 78 DEM)", async () => {
