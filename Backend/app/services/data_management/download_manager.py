@@ -58,6 +58,9 @@ class DownloadManager:
     def get_task(self, task_id: str) -> Optional[DownloadTask]:
         return self._tasks.get(task_id)
 
+    def get_all_tasks(self) -> list:
+        return list(self._tasks.values())
+
     def cancel_task(self, task_id: str) -> bool:
         task = self._tasks.get(task_id)
         if task and task.status in ["queued", "downloading"]:

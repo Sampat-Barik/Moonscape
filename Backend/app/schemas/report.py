@@ -19,9 +19,12 @@ class ReportGenerateRequest(BaseModel):
     @classmethod
     def reconcile_format(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            fmt = data.get("format") or data.get("output_format") or "json"
-            data["format"] = fmt.lower()
-            data["output_format"] = fmt.lower()
+            fmt = (data.get("format") or data.get("output_format") or "json").lower()
+            allowed = {"json", "pdf", "markdown", "html"}
+            if fmt not in allowed:
+                raise ValueError(f"Unsupported report format '{fmt}'. Allowed formats are: {sorted(allowed)}.")
+            data["format"] = fmt
+            data["output_format"] = fmt
         return data
 
     @model_validator(mode="after")

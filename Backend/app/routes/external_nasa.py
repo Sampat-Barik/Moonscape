@@ -15,6 +15,7 @@ from Backend.app.schemas.external_nasa import (
 from Backend.app.services.data_sources.lroc_service import lroc_service
 from Backend.app.services.data_sources.moon_trek import moon_trek_service
 from Backend.app.services.ephemeris.horizons_client import horizons_client
+from Backend.app.services.spice_service import spice_service
 from maths.illumination_geometry import parse_utc_timestamp
 
 router = APIRouter(prefix="", tags=["External NASA Integrations"])
@@ -188,3 +189,12 @@ def query_horizons_ephemeris(payload: HorizonsQueryRequest) -> HorizonsQueryResp
         query_duration_ms=res.query_duration_ms,
         error_message=res.error_message,
     )
+
+
+@router.get(
+    "/ephemeris/spice/metadata",
+    summary="Get SPICE and planetary ephemeris frame coordination metadata",
+)
+def get_spice_metadata() -> Dict[str, Any]:
+    """Returns status of SPICE kernels, body-fixed frame (MOON_ME), and projection coordination."""
+    return spice_service.get_service_metadata()

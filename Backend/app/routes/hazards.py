@@ -4,10 +4,22 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from app.schemas.hazard import HazardPredictRequest, HazardPredictResponse
-from app.services.hazard_detection import hazard_detection_service
+from app.services.hazard_detection import APOLLO_DOMAIN_LIMITATION, hazard_detection_service
 from app.services.hazard_service import hazard_service
 
 router = APIRouter(prefix="", tags=["Hazards"])
+
+
+@router.get("/hazards/status", summary="Get hazard detection engine and ML model status")
+def get_hazard_status() -> dict:
+    """Returns the operational status of the DEM and optical ML hazard inference engines."""
+    return {
+        "dem_hazard_analysis": "operational",
+        "optical_ml_model_configured": hazard_detection_service.is_available(),
+        "model_type": hazard_detection_service._model_type,
+        "metadata": hazard_detection_service.get_metadata(),
+        "disclaimer": APOLLO_DOMAIN_LIMITATION,
+    }
 
 
 @router.post("/hazards/predict", summary="Detect and predict landing hazards")

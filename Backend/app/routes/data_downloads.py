@@ -55,6 +55,16 @@ def trigger_profile_download(
 
 
 @router.get(
+    "/downloads",
+    response_model=List[DownloadTaskResponse],
+    summary="List all active and recent dataset download tasks",
+)
+def list_download_tasks() -> List[DownloadTaskResponse]:
+    """Returns a list of all current background download tasks and their progress."""
+    return [DownloadTaskResponse(**t.to_dict()) for t in download_manager.get_all_tasks()]
+
+
+@router.get(
     "/downloads/{task_id}",
     response_model=DownloadTaskResponse,
     summary="Get status, streaming speed, and progress of a download task",
