@@ -12,6 +12,7 @@ class VisibilitySimulationRequest(BaseModel):
     start_epoch_iso: Optional[str] = Field(None, description="Start UTC timestamp (ISO-8601). Defaults to current time.")
     duration_days: float = Field(14.0, ge=1.0, le=60.0, description="Simulation duration in Earth days (1 to 60 days)")
     step_hours: float = Field(2.0, ge=0.5, le=24.0, description="Time step in hours (0.5 to 24h)")
+    ephemeris_source: Optional[str] = Field("auto", description="Ephemeris provider: 'auto', 'horizons' (NASA JPL Horizons API), or 'analytical' (JPL DE421 / Meeus)")
 
     @model_validator(mode="before")
     @classmethod
@@ -70,6 +71,7 @@ class VisibilitySimulationResponse(BaseModel):
     horizon_max_deg: Optional[float] = Field(None, description="Maximum terrain obstacle elevation around site")
     horizon_mean_deg: Optional[float] = Field(None, description="Average 360-degree horizon elevation")
     terrain_dataset: Optional[str] = Field(None, description="DEM dataset utilized for radial ray-tracing")
+    ephemeris_provider: Optional[str] = Field("JPL DE421 / Meeus Analytical", description="Celestial ephemeris source utilized (JPL Horizons or DE421)")
     time_series: List[SimulationTimeStep]
     scientific_methodology: str
     caveats: List[str]

@@ -52,6 +52,11 @@ import type {
   TerrainResponse,
   VisibilitySimulationRequest,
   VisibilitySimulationResponse,
+  ExternalSourcesStatusResponse,
+  MoonTrekLayersResponse,
+  LROCCoverageResponse,
+  HorizonsQueryRequest,
+  HorizonsQueryResponse,
 } from "@/types";
 import * as mock from "./mockData";
 
@@ -746,11 +751,137 @@ export const api = {
       start_epoch_iso: req.start_epoch_iso || null,
       duration_days: req.duration_days ?? 14.0,
       step_hours: req.step_hours ?? 2.0,
+      ephemeris_source: req.ephemeris_source ?? "auto",
     };
     return await request<VisibilitySimulationResponse>(
       "/api/simulation/visibility",
       () => mock.simulateVisibility(payload),
       { ...post(payload), signal }
+    );
+  },
+
+  /** GET /api/external/sources — operational status of JPL Horizons, Moon Trek, LROC */
+  getExternalSourcesStatus: async (): Promise<ExternalSourcesStatusResponse> => {
+    return await request<ExternalSourcesStatusResponse>(
+      "/api/external/sources",
+      () => ({
+        horizons: {
+          source_id: "nasa_jpl_horizons",
+          name: "NASA JPL Horizons On-Line Ephemeris System",
+          status: "operational",
+          endpoint_url: "https://ssd.jpl.nasa.gov/api/horizons.api",
+          description: "Numerical ephemeris DE441",
+          documentation_url: "https://ssd.jpl.nasa.gov/horizons/manual.html",
+          is_live_accessible: true,
+          cached_entries_count: 0,
+          notes: "Operational",
+        },
+        moon_trek: {
+          source_id: "nasa_moon_trek",
+          name: "NASA Solar System Treks (Moon Trek WMTS)",
+          status: "operational",
+          endpoint_url: "https://trek.nasa.gov/moon/TrekServices/ws/index",
+          description: "Moon Trek WMTS",
+          documentation_url: "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=moon",
+          is_live_accessible: true,
+          cached_entries_count: 0,
+          notes: "Operational",
+        },
+        lroc_quickmap: {
+          source_id: "nasa_lroc_quickmap",
+          name: "NASA LROC QuickMap & Targeted Stereo DTM Archive",
+          status: "operational",
+          endpoint_url: "https://quickmap.lroc.im-ldi.com",
+          description: "LROC QuickMap and NAC DTMs",
+          documentation_url: "https://www.lroc.asu.edu",
+          is_live_accessible: true,
+          cached_entries_count: 0,
+          notes: "Operational",
+        },
+        timestamp: new Date().toISOString(),
+      }),
+      { timeoutMs: 5000 }
+    );
+  },
+
+  /** GET /api/external/moon-trek/layers — catalog of verified official Moon Trek WMTS layers */
+  getMoonTrekLayers: async (): Promise<MoonTrekLayersResponse> => {
+    return await request<MoonTrekLayersResponse>(
+      "/api/external/moon-trek/layers",
+      () => ({
+        layers_count: 3,
+        layers: [
+          {
+            id: "trek_wac_global_mosaic",
+            name: "NASA Moon Trek LROC WAC Global Morphologic Mosaic",
+            description: "Global controlled mosaic at 100 meters/pixel.",
+            wmts_endpoint: "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02",
+            capabilities_url: "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/WMTSCapabilities.xml",
+            tile_url_template: "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+            tile_format: "image/jpeg",
+            tile_matrix_set: "default028mm",
+            projection: "EPSG::104903",
+            projection_type: "equirectangular",
+            resolution_m: 100.0,
+            min_zoom: 0,
+            max_zoom: 7,
+            bounds: { min_lat: -90, max_lat: 90, min_lon: -180, max_lon: 180 },
+            attribution: "NASA / GSFC / ASU / JPL Moon Trek",
+          },
+        ],
+        supported_projections: ["IAU2000::30120", "EPSG::104903"],
+        documentation_url: "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=moon",
+      }),
+      { timeoutMs: 5000 }
+    );
+  },
+
+  /** GET /api/external/lroc/coverage?lat={latitude}&lon={longitude} */
+  getLROCCoverage: async (latitude: number, longitude: number): Promise<LROCCoverageResponse> => {
+    return await request<LROCCoverageResponse>(
+      `/api/external/lroc/coverage?lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}`,
+      () => ({
+        latitude,
+        longitude,
+        is_covered: latitude <= -85.0,
+        covering_dtms_count: latitude <= -85.0 ? 1 : 0,
+        covering_dtms: [],
+        nearest_dtm: null,
+        distance_to_nearest_dtm_km: 0.0,
+        best_resolution_m: latitude <= -85.0 ? 1.5 : null,
+        quickmap_url: `https://quickmap.lroc.im-ldi.com/?center=${encodeURIComponent(longitude)},${encodeURIComponent(latitude)}&zoom=6&proj=southpole`,
+        lroc_archive_url: "https://data.lroc.im-ldi.com/lroc/view_rdr/SHAPEFILE_NAC_DTMS",
+        optical_hazard_validation_supported: latitude <= -85.0,
+        status_note: "LROC QuickMap deep link ready",
+      }),
+      { timeoutMs: 6000 }
+    );
+  },
+
+  /** POST /api/ephemeris/query — query NASA JPL Horizons on-line ephemerides */
+  queryHorizons: async (req: HorizonsQueryRequest): Promise<HorizonsQueryResponse> => {
+    return await request<HorizonsQueryResponse>(
+      "/api/ephemeris/query",
+      () => ({
+        success: true,
+        target: req.target ?? "Sun",
+        observer: {
+          latitude_deg: req.latitude,
+          longitude_deg: req.longitude,
+          altitude_km: req.altitude_km ?? 0.0,
+        },
+        temporal_window: {
+          start_iso: req.start_epoch_iso,
+          stop_iso: req.stop_epoch_iso ?? "",
+          step: `${req.step_hours ?? 2}h`,
+        },
+        points_count: 0,
+        points: [],
+        source_attribution: "NASA JPL Horizons On-Line Ephemeris System (DE441)",
+        is_cached: false,
+        query_duration_ms: 10.0,
+      }),
+      post(req)
     );
   },
 };

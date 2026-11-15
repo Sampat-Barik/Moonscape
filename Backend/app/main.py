@@ -22,6 +22,7 @@ from app.routes import (
     analysis,
     data_catalog,
     data_downloads,
+    external_nasa,
     hazards,
     health,
     map,
@@ -114,6 +115,7 @@ app.include_router(reports.router, prefix=api_prefix)
 app.include_router(simulation.router, prefix=api_prefix)
 app.include_router(data_catalog.router, prefix=api_prefix)
 app.include_router(data_downloads.router, prefix=api_prefix)
+app.include_router(external_nasa.router, prefix=api_prefix)
 
 # Direct alias for /api/coverage pointing to spatial dataset coverage
 from Backend.app.services.data_management.coverage_manager import coverage_manager

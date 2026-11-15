@@ -233,6 +233,7 @@ export interface VisibilitySimulationRequest {
   start_epoch_iso?: string | null;
   duration_days?: number;
   step_hours?: number;
+  ephemeris_source?: string;
 }
 
 export interface SimulationTimeStep {
@@ -274,8 +275,139 @@ export interface VisibilitySimulationResponse {
   horizon_max_deg?: number | null;
   horizon_mean_deg?: number | null;
   terrain_dataset?: string | null;
+  ephemeris_provider?: string | null;
   time_series: SimulationTimeStep[];
   scientific_methodology: string;
   caveats: string[];
   [key: string]: unknown;
+}
+
+// ============================================================================
+// External NASA Integration Types (JPL Horizons, Moon Trek, LROC QuickMap)
+// ============================================================================
+
+export interface ExternalSourceStatus {
+  source_id: string;
+  name: string;
+  status: "operational" | "degraded" | "offline" | string;
+  endpoint_url: string;
+  description: string;
+  documentation_url: string;
+  is_live_accessible: boolean;
+  cached_entries_count: number;
+  notes: string;
+}
+
+export interface ExternalSourcesStatusResponse {
+  horizons: ExternalSourceStatus;
+  moon_trek: ExternalSourceStatus;
+  lroc_quickmap: ExternalSourceStatus;
+  timestamp: string;
+}
+
+export interface MoonTrekLayer {
+  id: string;
+  name: string;
+  description: string;
+  wmts_endpoint: string;
+  capabilities_url: string;
+  tile_url_template: string;
+  tile_format: string;
+  tile_matrix_set: string;
+  projection: string;
+  projection_type: "polar" | "equirectangular" | string;
+  resolution_m: number;
+  min_zoom: number;
+  max_zoom: number;
+  bounds: {
+    min_lat: number;
+    max_lat: number;
+    min_lon: number;
+    max_lon: number;
+  };
+  attribution: string;
+  default_opacity?: number;
+  is_active_default?: boolean;
+}
+
+export interface MoonTrekLayersResponse {
+  layers_count: number;
+  layers: MoonTrekLayer[];
+  supported_projections: string[];
+  documentation_url: string;
+}
+
+export interface LROCDTMItem {
+  name: string;
+  pds_id: string;
+  centroid: { lat: number; lon: number };
+  resolution_m: number;
+  footprint_bounds: {
+    min_lat: number;
+    max_lat: number;
+    min_lon: number;
+    max_lon: number;
+  };
+  pds_url: string;
+  [key: string]: unknown;
+}
+
+export interface LROCCoverageResponse {
+  latitude: number;
+  longitude: number;
+  is_covered: boolean;
+  covering_dtms_count: number;
+  covering_dtms: LROCDTMItem[];
+  nearest_dtm?: LROCDTMItem | null;
+  distance_to_nearest_dtm_km: number;
+  best_resolution_m?: number | null;
+  quickmap_url: string;
+  lroc_archive_url: string;
+  optical_hazard_validation_supported: boolean;
+  status_note: string;
+}
+
+export interface HorizonsQueryRequest {
+  latitude: number;
+  longitude: number;
+  altitude_km?: number;
+  target?: "Sun" | "Earth" | "both" | string;
+  start_epoch_iso: string;
+  stop_epoch_iso?: string | null;
+  duration_days?: number;
+  step_hours?: number;
+}
+
+export interface HorizonsPoint {
+  epoch_iso: string;
+  target: string;
+  target_id: string;
+  azimuth_deg: number;
+  elevation_deg: number;
+  distance_au?: number | null;
+  distance_km?: number | null;
+  range_rate_km_s?: number | null;
+  apparent_coordinates: boolean;
+  ref_body: string;
+}
+
+export interface HorizonsQueryResponse {
+  success: boolean;
+  target: string;
+  observer: {
+    latitude_deg: number;
+    longitude_deg: number;
+    altitude_km: number;
+  };
+  temporal_window: {
+    start_iso: string;
+    stop_iso: string;
+    step: string;
+  };
+  points_count: number;
+  points: HorizonsPoint[];
+  source_attribution: string;
+  is_cached: boolean;
+  query_duration_ms: number;
+  error_message?: string | null;
 }

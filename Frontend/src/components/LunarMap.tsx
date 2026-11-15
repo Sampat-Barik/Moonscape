@@ -39,6 +39,8 @@ export interface LunarMapProps {
   initialSouthPole?: boolean;
   /** Solar azimuth/diurnal simulation angle in degrees (0–360). */
   sunAngle?: number;
+  /** Active basemap layer: 'default' | 'trek_wac' */
+  activeLayer?: string;
   className?: string;
 }
 
@@ -203,6 +205,13 @@ export default function LunarMap(props: LunarMapProps) {
       apiRef.current?.focusSite(focusSiteSignal.lat, focusSiteSignal.lon);
     }
   }, [focusSiteSignal]);
+
+  // Switch basemap layer dynamically
+  useEffect(() => {
+    if (props.activeLayer && apiRef.current?.switchLayer) {
+      apiRef.current.switchLayer(props.activeLayer);
+    }
+  }, [props.activeLayer]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -486,7 +495,24 @@ export default function LunarMap(props: LunarMapProps) {
       camera.position.setLength(2.05);
     }
 
-    apiRef.current = { focusSouthPole, focusSite, syncMarkers };
+    const switchLayer = (layerId: string) => {
+      if (layerId === "trek_wac") {
+        loader.load(
+          "/api/external/moon-trek/tile/trek_wac_global_mosaic/0/0/0",
+          applyTexture,
+          undefined,
+          () => {
+            urlIndex = 0;
+            tryNextTexture();
+          }
+        );
+      } else {
+        urlIndex = 0;
+        tryNextTexture();
+      }
+    };
+
+    apiRef.current = { focusSouthPole, focusSite, syncMarkers, switchLayer };
 
     // --- resize -------------------------------------------------------------
     const ro = new ResizeObserver(() => {

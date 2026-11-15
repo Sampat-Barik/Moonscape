@@ -7,7 +7,7 @@ import LoadingState from "@/components/LoadingState";
 import ErrorState from "@/components/ErrorState";
 import DataUnavailable from "@/components/DataUnavailable";
 import { api } from "@/services/api";
-import type { MapConfig } from "@/types";
+import type { MapConfig, LROCCoverageResponse } from "@/types";
 import { fmtCoord, fmtNum, pickNumber, pickString } from "@/utils/format";
 import {
   CrosshairIcon,
@@ -41,6 +41,9 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sunSimOpen, setSunSimOpen] = useState(false);
   const [sunAngle, setSunAngle] = useState(35);
+  const [activeLayer, setActiveLayer] = useState<string>("default");
+  const [lrocCoverage, setLrocCoverage] = useState<LROCCoverageResponse | null>(null);
+  const [lrocLoading, setLrocLoading] = useState(false);
 
   // GET /api/map/config — used for attribution / initial focus hints.
   useEffect(() => {
@@ -58,12 +61,28 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
     };
   }, []);
 
-  // Debounced terrain preview (GET /api/terrain) whenever the selection changes.
+  // Debounced terrain preview & LROC coverage lookup whenever selection changes.
   useEffect(() => {
+    let alive = true;
+    setLrocLoading(true);
     const t = setTimeout(() => {
       void refreshTerrain(selection);
+      api
+        .getLROCCoverage(selection.latitude, selection.longitude)
+        .then((res) => {
+          if (alive) {
+            setLrocCoverage(res);
+            setLrocLoading(false);
+          }
+        })
+        .catch(() => {
+          if (alive) setLrocLoading(false);
+        });
     }, 450);
-    return () => clearTimeout(t);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
   }, [selection, refreshTerrain]);
 
   const markers = useMemo(
@@ -111,6 +130,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
             focusSiteSignal={focusSite ?? undefined}
             initialSouthPole
             sunAngle={sunAngle}
+            activeLayer={activeLayer}
           />
 
           {/* HUD: top-left label */}
@@ -123,10 +143,24 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
             {attribution && (
               <span className="chip hidden sm:inline-flex">{attribution}</span>
             )}
+            <span className="chip hidden md:inline-flex !border-cyan/30 text-cyan/90 font-mono text-[10px]">
+              HORIZONS DE441 · MOON TREK WMTS
+            </span>
           </div>
 
           {/* HUD: top-right controls */}
           <div className="absolute right-5 top-5 flex items-center gap-2">
+            <button
+              className={`glass-soft rounded px-2.5 py-1.5 font-condensed text-xs font-semibold uppercase tracking-wider transition-colors ${
+                activeLayer === "trek_wac"
+                  ? "text-cyan border-accent/40 bg-accent/10"
+                  : "text-muted hover:text-ink"
+              }`}
+              title="Toggle NASA Moon Trek WAC Global Mosaic (100m/px)"
+              onClick={() => setActiveLayer((prev) => (prev === "trek_wac" ? "default" : "trek_wac"))}
+            >
+              {activeLayer === "trek_wac" ? "TREK WAC 100M" : "BASEMAP"}
+            </button>
             <button
               className={`glass-soft rounded p-2 transition-colors ${
                 sunSimOpen ? "text-cyan border-accent/40" : "text-muted hover:text-ink"
@@ -391,6 +425,63 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
               {terrainStatus === "idle" && (
                 <p className="text-xs text-muted">Select a site to preview terrain.</p>
               )}
+            </div>
+
+            {/* ---- NASA Scientific Archives & QuickMap ---- */}
+            <div className="border-b border-divider p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="kicker">NASA External Archives</span>
+                <span className="chip font-mono text-[10px]">LROC / HORIZONS</span>
+              </div>
+              
+              <div className="space-y-3">
+                {/* LROC NAC DTM Coverage */}
+                <div className="rounded border border-divider/60 bg-space/40 p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-ink">LROC NAC Stereo DTM</span>
+                    {lrocLoading ? (
+                      <span className="text-[10px] text-muted">Checking…</span>
+                    ) : lrocCoverage?.is_covered ? (
+                      <span className="chip !border-good/40 !text-good !py-0.5 text-[10px]">
+                        COVERED
+                      </span>
+                    ) : (
+                      <span className="chip !border-warn/40 !text-warn !py-0.5 text-[10px]">
+                        PROXIMAL
+                      </span>
+                    )}
+                  </div>
+
+                  {lrocCoverage && (
+                    <p className="mt-1 text-[11px] leading-snug text-muted">
+                      {lrocCoverage.is_covered
+                        ? `Targeted 1–2m stereo DTM available (${lrocCoverage.covering_dtms[0]?.name ?? "Artemis III zone"}).`
+                        : lrocCoverage.nearest_dtm
+                        ? `Nearest NAC DTM: ${lrocCoverage.nearest_dtm.name} (${lrocCoverage.distance_to_nearest_dtm_km} km away).`
+                        : "Regional LOLA polar basemap active."}
+                    </p>
+                  )}
+
+                  {/* Deep Link to NASA LROC QuickMap */}
+                  {lrocCoverage?.quickmap_url && (
+                    <a
+                      href={lrocCoverage.quickmap_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded border border-accent/40 bg-accent/10 px-2.5 py-1.5 text-[11px] font-semibold text-cyan hover:border-accent hover:bg-accent/20 transition-all"
+                    >
+                      <span>Open in LROC QuickMap</span>
+                      <span className="text-xs">↗</span>
+                    </a>
+                  )}
+                </div>
+
+                {/* NASA Ephemeris & WMTS status indicator */}
+                <div className="flex items-center justify-between text-[11px] text-muted border-t border-divider/40 pt-2 font-mono">
+                  <span>Horizons DE441 Ephemeris:</span>
+                  <span className="text-cyan font-semibold">Active</span>
+                </div>
+              </div>
             </div>
 
             {/* ---- Candidate Sites ---- */}

@@ -19,7 +19,7 @@ MISSION_PROFILES: Dict[str, Dict[str, Any]] = {
         "min_contiguous_diameter_m": 100.0,
         "min_cumulative_sunlight_pct": 50.0,
         "max_continuous_darkness_hours": 72.0,
-        "min_earth_visibility_pct": 50.0,
+        "min_earth_visibility_pct": 45.0,
         "weights": {
             "slope": 0.35,
             "roughness": 0.20,

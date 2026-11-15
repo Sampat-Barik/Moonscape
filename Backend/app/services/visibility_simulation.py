@@ -65,19 +65,57 @@ class VisibilitySimulationService:
         curr_continuous_blackout = 0.0
         max_continuous_blackout = 0.0
 
+        # Query NASA JPL Horizons live ephemeris if requested or auto-available
+        use_horizons = getattr(req, "ephemeris_source", "auto") in ["horizons", "auto"]
+        horizons_sun_points = []
+        horizons_earth_points = []
+        ephem_provider_label = "JPL DE421 / Meeus Analytical"
+
+        if use_horizons:
+            try:
+                from Backend.app.services.ephemeris.horizons_client import horizons_client
+                h_res = horizons_client.query_simultaneous_ephemeris(
+                    lat_deg=lat,
+                    lon_deg=lon,
+                    start_dt=start_dt,
+                    duration_days=req.duration_days,
+                    step_hours=step_hours,
+                )
+                if h_res.get("success"):
+                    horizons_sun_points = h_res.get("sun", {}).get("points", [])
+                    horizons_earth_points = h_res.get("earth", {}).get("points", [])
+                    is_cached = h_res.get("sun", {}).get("is_cached", False)
+                    cache_note = " (cached)" if is_cached else ""
+                    ephem_provider_label = f"NASA JPL Horizons API DE441{cache_note}"
+                    logger.info("Successfully fetched %d ephemeris points from JPL Horizons", len(horizons_sun_points))
+            except Exception as exc:
+                logger.info("Horizons ephemeris bypassed (falling back to analytical): %s", exc)
+
         for i in range(steps_count):
             elapsed_h = i * step_hours
             step_dt = start_dt + timedelta(hours=elapsed_h)
 
-            # Ephemeris State via Unified SPICE / Analytical DE421 Engine
-            ephem = spice_service.get_ephemeris_state(lat, lon, step_dt)
+            # Check if Horizons has a point matching this step
+            if i < len(horizons_sun_points) and i < len(horizons_earth_points):
+                h_sun = horizons_sun_points[i]
+                h_earth = horizons_earth_points[i]
 
-            solar_elev = ephem.solar_elevation_deg
-            solar_az = ephem.solar_azimuth_deg
-            sun_dist = ephem.sun_distance_au
+                solar_elev = float(h_sun["elevation_deg"])
+                solar_az = float(h_sun["azimuth_deg"])
+                sun_dist = float(h_sun.get("distance_au") or 1.0)
 
-            earth_elev = ephem.earth_elevation_deg
-            earth_az = ephem.earth_azimuth_deg
+                earth_elev = float(h_earth["elevation_deg"])
+                earth_az = float(h_earth["azimuth_deg"])
+            else:
+                # Ephemeris State via Unified SPICE / Analytical DE421 Engine
+                ephem = spice_service.get_ephemeris_state(lat, lon, step_dt)
+
+                solar_elev = ephem.solar_elevation_deg
+                solar_az = ephem.solar_azimuth_deg
+                sun_dist = ephem.sun_distance_au
+
+                earth_elev = ephem.earth_elevation_deg
+                earth_az = ephem.earth_azimuth_deg
 
             # Query cached 360-degree radial terrain horizon mask in O(1) time
             h_sun = horizon_profile.get_horizon_elevation(solar_az)
@@ -192,6 +230,7 @@ class VisibilitySimulationService:
             horizon_max_deg=horizon_profile.max_horizon_deg,
             horizon_mean_deg=horizon_profile.mean_horizon_deg,
             terrain_dataset=horizon_profile.dataset_name,
+            ephemeris_provider=ephem_provider_label,
             time_series=time_series,
             scientific_methodology=methodology,
             caveats=caveats,
