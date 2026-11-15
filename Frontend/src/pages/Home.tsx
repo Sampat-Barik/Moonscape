@@ -57,7 +57,7 @@ function HeroSection({ navigate }: { navigate: (r: Route) => void }) {
           <div className="flex items-center gap-3">
             <span className="inline-block h-px w-6 bg-muted/60" />
             <span className="font-mono text-[0.70rem] font-medium tracking-[0.22em] text-muted uppercase">
-              // 01 · ARTEMIS CANDIDATE CORRIDORS
+              // 01 · LUNAR LANDING NAVIGATOR
             </span>
           </div>
 
@@ -128,12 +128,6 @@ function HeroSection({ navigate }: { navigate: (r: Route) => void }) {
           {/* Three.js Interactive Moon Globe */}
           <div className="relative z-10 h-full w-full">
             <CinematicMoon />
-          </div>
-
-          {/* Interactive Hint Micro-badge */}
-          <div className="pointer-events-none absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-xs border border-divider/60 bg-surface/70 px-2.5 py-1 font-mono text-[0.62rem] tracking-[0.14em] text-muted/80 backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-white/40 animate-pulse" />
-            DRAG TO ROTATE CELESTIAL AXIS
           </div>
         </motion.div>
       </div>

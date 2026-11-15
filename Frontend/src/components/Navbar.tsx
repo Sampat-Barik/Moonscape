@@ -104,31 +104,36 @@ export default function Navbar({
 
         {/* Right controls: data status + theme control */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Data status */}
-          <button
-            onClick={cycleMode}
-            title="Toggle between the live backend and mock data"
-            className="flex items-center gap-2 border border-divider/60 bg-surface/40 px-2.5 py-1 text-[0.65rem] font-mono tracking-[0.1em] text-muted hover:border-accent/40 hover:text-ink transition-colors rounded-xs"
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${modeColor}`} />
-            <span>DATA: {modeLabel}</span>
-          </button>
+          {/* // Temporarily hidden DATA: LIVE and OPTICAL controls */}
+          {false && (
+            <>
+              {/* Data status */}
+              <button
+                onClick={cycleMode}
+                title="Toggle between the live backend and mock data"
+                className="flex items-center gap-2 border border-divider/60 bg-surface/40 px-2.5 py-1 text-[0.65rem] font-mono tracking-[0.1em] text-muted hover:border-accent/40 hover:text-ink transition-colors rounded-xs"
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${modeColor}`} />
+                <span>DATA: {modeLabel}</span>
+              </button>
 
-          {/* Theme control */}
-          <button
-            onClick={toggleTheme}
-            title={`Switch to ${contrastMode === "standard" ? "High-Contrast / Radar" : "Standard"} visual profile`}
-            className="flex items-center gap-1.5 border border-divider/60 bg-surface/40 px-2.5 py-1 text-[0.65rem] font-mono tracking-[0.08em] text-muted hover:border-accent/40 hover:text-ink transition-colors rounded-xs"
-          >
-            {contrastMode === "standard" ? (
-              <MoonIcon className="h-3 w-3 text-cyan" />
-            ) : (
-              <SunIcon className="h-3 w-3 text-warn" />
-            )}
-            <span className="hidden sm:inline">
-              {contrastMode === "standard" ? "OPTICAL" : "HI-CONTRAST"}
-            </span>
-          </button>
+              {/* Theme control */}
+              <button
+                onClick={toggleTheme}
+                title={`Switch to ${contrastMode === "standard" ? "High-Contrast / Radar" : "Standard"} visual profile`}
+                className="flex items-center gap-1.5 border border-divider/60 bg-surface/40 px-2.5 py-1 text-[0.65rem] font-mono tracking-[0.08em] text-muted hover:border-accent/40 hover:text-ink transition-colors rounded-xs"
+              >
+                {contrastMode === "standard" ? (
+                  <MoonIcon className="h-3 w-3 text-cyan" />
+                ) : (
+                  <SunIcon className="h-3 w-3 text-warn" />
+                )}
+                <span className="hidden sm:inline">
+                  {contrastMode === "standard" ? "OPTICAL" : "HI-CONTRAST"}
+                </span>
+              </button>
+            </>
+          )}
 
           {/* Mobile menu toggle */}
           <button

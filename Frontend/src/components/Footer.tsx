@@ -44,8 +44,7 @@ export default function Footer() {
       </div>
       <div className="divider" />
       <div className="py-5 text-center text-[0.65rem] tracking-[0.05em] text-muted/60">
-        Preliminary decision support only — suitability scores are not a
-        certification of landing safety.
+        MoonScape 2026 · Lunar Landing Navigator
       </div>
     </footer>
   );

@@ -252,7 +252,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
           </div>
 
           {/* Segmented Control */}
-          <SegmentedControl
+          <SegmentedControl<"global" | "terrain" | "cesium">
             options={[
               {
                 value: "global",
@@ -266,12 +266,17 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                 description: "Mode B: High-Resolution LOLA 5m DEM 3D Relief",
                 icon: <MountainIcon className="h-3.5 w-3.5" />,
               },
-              {
-                value: "cesium",
-                label: "Cesium",
-                description: "Mode C: CesiumJS IAU Lunar Ellipsoid Geodesy",
-                icon: <TargetIcon className="h-3.5 w-3.5" />,
-              },
+              // Temporarily hidden Cesium mode — re-enable later
+              ...(false
+                ? [
+                    {
+                      value: "cesium" as const,
+                      label: "Cesium",
+                      description: "Mode C: CesiumJS IAU Lunar Ellipsoid Geodesy",
+                      icon: <TargetIcon className="h-3.5 w-3.5" />,
+                    },
+                  ]
+                : []),
             ]}
             value={viewMode}
             onChange={(val) => {
