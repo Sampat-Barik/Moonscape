@@ -185,7 +185,12 @@ export default function LunarMap(props: LunarMapProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const propsRef = useRef(props);
   propsRef.current = props;
-  const apiRef = useRef<{ focusSouthPole: () => void; focusSite: (lat: number, lon: number) => void; syncMarkers: () => void } | null>(null);
+  const apiRef = useRef<{
+    focusSouthPole: () => void;
+    focusSite: (lat: number, lon: number) => void;
+    syncMarkers: () => void;
+    switchLayer?: (layer: string) => void;
+  } | null>(null);
 
   const { markers, selected, focusSouthPoleSignal, focusSiteSignal } = props;
 

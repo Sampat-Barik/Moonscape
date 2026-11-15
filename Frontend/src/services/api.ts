@@ -107,10 +107,15 @@ export function setApiMode(m: ResolvedMode): void {
   requestedMode = m;
 }
 
+interface RequestOptions extends RequestInit {
+  timeoutMs?: number;
+}
+
 /** Low-level fetch wrapper with timeout, signal handling, and status code verification */
-async function fetchRaw(path: string, init?: RequestInit): Promise<Response> {
+async function fetchRaw(path: string, init?: RequestOptions): Promise<Response> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = init?.timeoutMs ?? REQUEST_TIMEOUT_MS;
+  const timer = setTimeout(() => controller.abort(), timeout);
 
   if (init?.signal) {
     if (init.signal.aborted) {
@@ -165,7 +170,7 @@ async function fetchRaw(path: string, init?: RequestInit): Promise<Response> {
   }
 }
 
-async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+async function fetchJson<T>(path: string, init?: RequestOptions): Promise<T> {
   const res = await fetchRaw(path, {
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
@@ -187,7 +192,7 @@ const post = (body: unknown): RequestInit => ({
 async function request<T>(
   path: string,
   mockFn: () => Promise<T> | T,
-  init?: RequestInit
+  init?: RequestOptions
 ): Promise<T> {
   if (activeMode === "mock") return mockFn();
   try {
