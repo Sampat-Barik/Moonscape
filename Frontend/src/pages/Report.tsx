@@ -117,7 +117,7 @@ export default function Report({ navigate }: { navigate: (r: Route) => void }) {
         <div className="mt-6 grid grid-cols-2 gap-4 rounded-lg border border-divider/60 bg-elevated/40 p-4 sm:grid-cols-4">
           <div>
             <span className="text-[10px] uppercase tracking-wider text-muted">Target Site</span>
-            <p className="mt-0.5 font-mono text-xs font-semibold text-cyan">
+            <p className="mt-0.5 font-mono text-xs font-semibold text-ink">
               {fmtCoord(selection.latitude, selection.longitude)}
             </p>
           </div>
@@ -141,14 +141,14 @@ export default function Report({ navigate }: { navigate: (r: Route) => void }) {
       {/* ================= Empty State Warning ================= */}
       {!analysis && (
         <div className="panel mb-8 flex items-start gap-4 p-6">
-          <DocIcon className="mt-1 h-6 w-6 shrink-0 text-cyan" />
+          <DocIcon className="mt-1 h-6 w-6 shrink-0 text-ink" />
           <div className="flex-1">
             <h3 className="font-display text-sm font-semibold text-ink">
               No active analysis session in memory
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               Select coordinates in the Lunar Explorer and run an analysis to automatically populate
-              this dossier. You can also paste an existing <span className="font-mono text-cyan">analysis_id</span>{" "}
+              this dossier. You can also paste an existing <span className="font-mono text-ink">analysis_id</span>{" "}
               below to retrieve historical reports.
             </p>
             <button
@@ -280,7 +280,7 @@ export default function Report({ navigate }: { navigate: (r: Route) => void }) {
               <p className="mt-3 font-mono text-xs text-muted">
                 Direct URL:{" "}
                 <a
-                  className="text-cyan underline hover:text-accent"
+                  className="text-ink underline hover:text-white"
                   href={String(report.download_url)}
                   target="_blank"
                   rel="noreferrer"

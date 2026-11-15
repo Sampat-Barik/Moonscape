@@ -60,6 +60,7 @@ class SlopeMetrics:
     source_type: str
     method: str
     units: str = "degrees"
+    p95_slope_deg: Optional[float] = None
     ideal_pct: float = 0.0
     acceptable_pct: float = 0.0
     marginal_pct: float = 0.0
@@ -237,6 +238,7 @@ class TerrainAnalysisEngine:
                 _, aspects = horn_slope_and_aspect(elev_data, dx_meters, dy_meters)
                 pt_aspect = float(aspects[center_row, center_col]) if 0 <= center_row < aspects.shape[0] else None
 
+                p95_val = float(np.percentile(valid_slopes, 95)) if valid_slopes.size > 0 else None
                 return (
                     SlopeMetrics(
                         point_slope_deg=pt_slope if pt_slope is not None else round(float(np.mean(valid_slopes)), 2),
@@ -247,6 +249,7 @@ class TerrainAnalysisEngine:
                         source_type="nasa_precomputed_product",
                         method="NASA GSFC Precomputed Topographic Slope Raster",
                         units="degrees",
+                        p95_slope_deg=round(p95_val, 2) if p95_val is not None else None,
                         ideal_pct=dist["ideal_pct"],
                         acceptable_pct=dist["acceptable_pct"],
                         marginal_pct=dist["marginal_pct"],
@@ -270,6 +273,7 @@ class TerrainAnalysisEngine:
                     source_type="horn_1981_dem_gradient",
                     method="Horn (1981) 8-Neighbor Gradient Operator on DEM",
                     units="degrees",
+                    p95_slope_deg=None,
                 ),
                 None,
             )
@@ -288,6 +292,7 @@ class TerrainAnalysisEngine:
             critical_max_deg=SLOPE_CRITICAL_MAX_DEG,
         )
 
+        p95_val = float(np.percentile(valid_slopes, 95)) if valid_slopes.size > 0 else None
         return (
             SlopeMetrics(
                 point_slope_deg=pt_slope if pt_slope is not None else round(float(np.mean(valid_slopes)), 2),
@@ -298,6 +303,7 @@ class TerrainAnalysisEngine:
                 source_type="horn_1981_dem_gradient",
                 method="Horn (1981) 8-Neighbor Gradient Operator on DEM",
                 units="degrees",
+                p95_slope_deg=round(p95_val, 2) if p95_val is not None else None,
                 ideal_pct=dist["ideal_pct"],
                 acceptable_pct=dist["acceptable_pct"],
                 marginal_pct=dist["marginal_pct"],

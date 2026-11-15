@@ -7,10 +7,11 @@ import { MenuIcon, MoonIcon, SunIcon, XIcon } from "./icons";
 const LINKS: { route: Route; label: string }[] = [
   { route: "/", label: "Home" },
   { route: "/explorer", label: "Lunar Explorer" },
-  { route: "/dashboard", label: "Analysis Dashboard" },
-  { route: "/hazards", label: "Hazard Analysis" },
-  { route: "/compare", label: "Site Comparison" },
-  { route: "/report", label: "AI Scientific Report" },
+  { route: "/dashboard", label: "Analysis" },
+  { route: "/hazards", label: "Hazards" },
+  { route: "/compare", label: "Comparison" },
+  { route: "/report", label: "Report" },
+  { route: "/credits", label: "Credits" },
 ];
 
 export default function Navbar({
@@ -58,17 +59,21 @@ export default function Navbar({
     mode === "live" ? "bg-good" : mode === "mock" ? "bg-warn" : "bg-muted animate-blink";
   const modeLabel = mode === "live" ? "LIVE" : mode === "mock" ? "MOCK" : "…";
 
+  const isHome = route === "/";
+
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "glass-nav" : "bg-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 h-16 box-border transition-all duration-200 ${
+        !isHome || scrolled
+          ? "border-b border-divider/80 bg-space/95 backdrop-blur-md shadow-xs"
+          : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-6 px-5 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-2.5 shrink-0"
+          className="flex items-center gap-2.5 shrink-0 cursor-pointer"
           aria-label="Moonscape home"
         >
           <LogoMark className="h-8 w-8" />
@@ -78,27 +83,27 @@ export default function Navbar({
         </button>
 
         {/* Desktop nav — centered */}
-        <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+        <nav className="hidden flex-1 items-center justify-center gap-0.5 xl:gap-2 lg:flex">
           {LINKS.map((l) => (
             <button
               key={l.route}
               onClick={() => navigate(l.route)}
-              className={`relative px-3 py-2 font-condensed text-[0.8rem] font-semibold tracking-[0.08em] uppercase transition-colors duration-200 ${
+              className={`relative px-2.5 xl:px-3 py-1.5 font-mono text-[0.7rem] xl:text-[0.72rem] tracking-[0.1em] uppercase transition-colors duration-150 cursor-pointer ${
                 route === l.route
-                  ? "text-accent"
+                  ? "text-ink font-semibold"
                   : "text-muted hover:text-ink"
               }`}
             >
               {l.label}
               {route === l.route && (
-                <span className="absolute inset-x-3 -bottom-[1px] h-[2px] bg-accent" />
+                <span className="absolute inset-x-2 -bottom-[1px] h-[2px] bg-ink" />
               )}
             </button>
           ))}
         </nav>
 
         {/* Right controls: data status + theme control */}
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Data status */}
           <button
             onClick={cycleMode}
@@ -148,9 +153,9 @@ export default function Navbar({
                   close();
                   navigate(l.route);
                 }}
-                className={`px-5 py-3 text-left font-condensed text-sm font-semibold tracking-[0.06em] uppercase transition-colors ${
+                className={`px-5 py-3 text-left font-mono text-xs uppercase tracking-wider transition-colors ${
                   route === l.route
-                    ? "text-accent bg-accent/5"
+                    ? "text-ink bg-white/[0.06] font-medium"
                     : "text-muted hover:text-ink hover:bg-white/[0.03]"
                 }`}
               >

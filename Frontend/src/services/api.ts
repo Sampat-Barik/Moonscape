@@ -57,6 +57,8 @@ import type {
   LROCCoverageResponse,
   HorizonsQueryRequest,
   HorizonsQueryResponse,
+  TerrainMeshRequest,
+  TerrainMeshResponse,
 } from "@/types";
 import * as mock from "./mockData";
 
@@ -377,7 +379,9 @@ export const api = {
           ...raw.slope,
           mean_deg: raw.slope.mean_value ?? raw.slope.mean_deg ?? raw.slope.mean ?? null,
           max_deg: raw.slope.max_value ?? raw.slope.max_deg ?? raw.slope.max ?? null,
-          p95_deg: raw.slope.p95_deg ?? raw.slope.p95_value ?? null,
+          p95_deg: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
+          p95_value: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
+          p95: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
           source: raw.slope.source ?? dsName,
         }
       : null;
@@ -385,6 +389,8 @@ export const api = {
     const roughnessMean =
       raw.roughness_mean_m ?? raw.roughness?.rms_m ?? raw.roughness?.mean_m ?? null;
     const roughnessMax = raw.roughness_max_m ?? raw.roughness?.max_m ?? null;
+    const roughnessBaseline = raw.roughness_baseline_m ?? raw.roughness?.baseline_m ?? null;
+    const roughnessMethod = raw.roughness_method ?? raw.roughness?.method ?? "RMS height deviation from local neighborhood mean";
     const roughness =
       roughnessMean !== null || raw.roughness
         ? {
@@ -393,6 +399,11 @@ export const api = {
             rms: roughnessMean,
             mean_m: roughnessMean,
             max_m: roughnessMax,
+            baseline_m: roughnessBaseline,
+            roughness_baseline_m: roughnessBaseline,
+            method: roughnessMethod,
+            roughness_method: roughnessMethod,
+            multi_baseline: raw.roughness_multi_baseline ?? raw.roughness?.multi_baseline ?? null,
             source: raw.roughness?.source ?? dsName,
           }
         : null;
@@ -403,13 +414,45 @@ export const api = {
       ilRaw?.instantaneous_sunlit_fraction_pct ??
       ilRaw?.sunlight_percent ??
       null;
+
+    const commStatus = ilRaw?.communication_link_status ?? ((ilRaw?.earth_visibility_pct ?? 0) > 0 ? "operational" : "blackout");
+    const earthLosText = commStatus === "operational"
+      ? "Direct LOS"
+      : commStatus === "marginal"
+      ? "Marginal LOS"
+      : "No Direct LOS (Obscured)";
+
+    const durationDays = ilRaw?.sunlight_duration_remaining_hours != null
+      ? Number((ilRaw.sunlight_duration_remaining_hours / 24).toFixed(1))
+      : (ilRaw?.sunlight_continuous_hours_max != null ? Number((ilRaw.sunlight_continuous_hours_max / 24).toFixed(1)) : null);
+
+    const nextSunsetText = ilRaw?.next_sunset_iso
+      ? `In ${(ilRaw.sunlight_duration_remaining_hours ? (ilRaw.sunlight_duration_remaining_hours / 24).toFixed(1) : "—")}d (${new Date(ilRaw.next_sunset_iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })})`
+      : (ilRaw?.is_permanently_shadowed_region
+          ? "Polar Night (Permanent)"
+          : (ilRaw?.instantaneous_sunlit_fraction_pct > 0
+              ? "Continuous (>35d)"
+              : (ilRaw ? "In Shadow" : null)));
+
     const illumination = ilRaw
       ? {
           ...ilRaw,
           sunlight_percent: sunlitPct,
           sunlit_percent: sunlitPct,
           illumination_percent: sunlitPct,
+          cumulative_pct: ilRaw.cumulative_illumination_pct ?? null,
+          instantaneous_pct: ilRaw.instantaneous_sunlit_fraction_pct ?? null,
+          sunlight_duration_days: durationDays,
+          duration_days: durationDays,
+          duration: durationDays,
+          sunlight_duration_hours: ilRaw.sunlight_duration_remaining_hours ?? null,
+          earth_visibility: earthLosText,
+          earth_visibility_state: commStatus,
+          earth_comm_los: earthLosText,
           earth_visibility_pct: ilRaw.earth_visibility_pct ?? null,
+          next_sunset: nextSunsetText,
+          next_sunset_iso: ilRaw.next_sunset_iso ?? null,
+          sunset_time: ilRaw.next_sunset_iso ?? null,
           psr: ilRaw.is_permanently_shadowed_region ?? false,
           psr_nearby: ilRaw.is_permanently_shadowed_region ?? false,
           has_psr: ilRaw.is_permanently_shadowed_region ?? false,
@@ -458,6 +501,10 @@ export const api = {
       slope,
       roughness,
       illumination,
+      earth_visibility: earthLosText,
+      earth_visibility_state: commStatus,
+      earth_visible: commStatus === "operational" || (ilRaw?.earth_visibility_pct ?? 0) > 0,
+      has_earth_los: commStatus === "operational" || (ilRaw?.earth_visibility_pct ?? 0) > 0,
       data_sources: dataSources,
       score: scoreVal,
       suitability_score: scoreVal,
@@ -888,6 +935,55 @@ export const api = {
         is_cached: false,
         query_duration_ms: 10.0,
       }),
+      post(req)
+    );
+  },
+
+  /** POST /api/terrain/mesh — extract downsampled DEM elevation and slope grid */
+  getTerrainMesh: async (req: TerrainMeshRequest): Promise<TerrainMeshResponse> => {
+    return await request<TerrainMeshResponse>(
+      "/api/terrain/mesh",
+      () => {
+        const sz = req.grid_size || 64;
+        const grid: number[][] = [];
+        const slopeGrid: number[][] = [];
+        for (let r = 0; r < sz; r++) {
+          const row: number[] = [];
+          const slopeRow: number[] = [];
+          for (let c = 0; c < sz; c++) {
+            const dr = (r - sz / 2) / sz;
+            const dc = (c - sz / 2) / sz;
+            const dist = Math.sqrt(dr * dr + dc * dc);
+            const rim = Math.exp(-Math.pow(dist - 0.28, 2) / 0.008) * 45;
+            const floor = -Math.exp(-Math.pow(dist, 2) / 0.05) * 80;
+            const elev = -1750.0 + rim + floor;
+            row.push(Math.round(elev * 10) / 10);
+            slopeRow.push(Math.round(Math.min(35, Math.abs(rim * 0.4 + floor * 0.2)) * 10) / 10);
+          }
+          grid.push(row);
+          slopeGrid.push(slopeRow);
+        }
+        return {
+          status: "ready",
+          latitude: req.latitude,
+          longitude: req.longitude,
+          radius_m: req.radius_m || 500.0,
+          grid_size: sz,
+          resolution_m: Math.round(((req.radius_m || 500.0) * 2) / sz),
+          center_x_polar_m: 0.0,
+          center_y_polar_m: 0.0,
+          min_elevation_m: -1830.0,
+          max_elevation_m: -1705.0,
+          mean_elevation_m: -1755.0,
+          relief_m: 125.0,
+          elevation_grid: grid,
+          slope_grid: slopeGrid,
+          dataset_name: "NASA LOLA 80m DEM (Simulated Mock)",
+          product_id: "LOLA_SHDR_80M",
+          crs: "ESRI:104903",
+          disclaimer: "Mock terrain relief.",
+        };
+      },
       post(req)
     );
   },

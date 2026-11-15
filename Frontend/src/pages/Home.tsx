@@ -1,8 +1,8 @@
-import { useState, useEffect, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import type { Route } from "@/hooks/useHashRoute";
-import { useReveal } from "@/hooks/useReveal";
 import { useApp } from "@/context/AppContext";
-import { fmtCoord } from "@/utils/format";
+import CinematicMoon from "@/components/CinematicMoon";
 import {
   ArrowRightIcon,
   CrosshairIcon,
@@ -11,417 +11,352 @@ import {
   ShieldIcon,
 } from "@/components/icons";
 
-/* =========================================================================
- * HOMEPAGE — Cinematic lunar landing page
- * Three sections: Hero, Editorial workflow, Cinematic CTA
- * ========================================================================= */
-
 export default function Home({ navigate }: { navigate: (r: Route) => void }) {
   return (
-    <div>
+    <div className="relative min-h-screen bg-space text-ink overflow-x-hidden selection:bg-white/20 selection:text-white">
       <HeroSection navigate={navigate} />
-      <EditorialSection navigate={navigate} />
-      <CinematicCTA navigate={navigate} />
+      <WorkflowEditorialSection navigate={navigate} />
+      <MissionDossierSummary navigate={navigate} />
     </div>
   );
 }
 
 /* ---------------------------------------------------------------------------
- * HERO — Full-viewport cinematic lunar landscape
+ * HERO SECTION — Monochromatic Cinematic Aerospace Composition
  * ------------------------------------------------------------------------- */
 function HeroSection({ navigate }: { navigate: (r: Route) => void }) {
-  const [p, setP] = useState({ x: 0, y: 0 });
-  const [loaded, setLoaded] = useState(false);
+  const [currentTimeUTC, setCurrentTimeUTC] = useState("");
 
   useEffect(() => {
-    // Trigger entrance animation after a short delay
-    const t = setTimeout(() => setLoaded(true), 100);
-    return () => clearTimeout(t);
+    const updateTime = () => {
+      const d = new Date();
+      setCurrentTimeUTC(
+        d.toISOString().replace("T", " ").substring(0, 19) + " UTC"
+      );
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  const onMove = (e: ReactMouseEvent) => {
-    setP({
-      x: e.clientX / window.innerWidth - 0.5,
-      y: e.clientY / window.innerHeight - 0.5,
-    });
-  };
-
   return (
-    <section
-      className="relative flex min-h-screen flex-col overflow-hidden"
-      onMouseMove={onMove}
-    >
-      {/* Background image with parallax */}
-      <div
-        className="absolute inset-0 will-change-transform"
-        style={{
-          transform: `translate3d(${p.x * -14}px, ${p.y * -10}px, 0) scale(1.05)`,
-          transition: "transform 0.3s ease-out",
-        }}
-      >
-        <img
-          src="/assets/hero/lunar-south-pole.jpg"
-          alt="NASA imagery of lunar South Pole terrain"
-          className="h-full w-full object-cover object-[80%_center]"
-          loading="eager"
-        />
+    <section className="relative flex min-h-[calc(100vh)] w-full items-center justify-between overflow-hidden px-6 pt-20 pb-16 lg:px-12 xl:px-16">
+      {/* Background Star Ambient Texture */}
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(255,255,255,0.035)_0%,transparent_70%)]" />
+
+      {/* Main Grid: Left Typography (45%), Right Massive 3D Moon (55%) */}
+      <div className="relative z-10 mx-auto grid w-full max-w-[1520px] grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8 xl:gap-12 min-h-[75vh]">
+        {/* LEFT COLUMN: Editorial & Mission Briefing */}
+        <motion.div
+          initial={{ opacity: 0, x: -32 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col justify-center lg:col-span-6 xl:col-span-5"
+        >
+          {/* Eyebrow Technical Label */}
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-px w-6 bg-muted/60" />
+            <span className="font-mono text-[0.70rem] font-medium tracking-[0.22em] text-muted uppercase">
+              // 01 · ARTEMIS CANDIDATE CORRIDORS
+            </span>
+          </div>
+
+          {/* Large Architectural Headline */}
+          <h1 className="mt-6 font-display text-[clamp(2.75rem,6.5vw,5.5rem)] font-bold leading-[0.94] tracking-[-0.035em] text-ink uppercase">
+            MOON<br />
+            <span className="text-gradient">SCAPE</span>
+          </h1>
+
+          {/* Elegant Project Introduction */}
+          <p className="mt-6 max-w-lg font-body text-[0.925rem] leading-[1.65] text-muted sm:text-base">
+            Precision lunar South Pole landing-site intelligence. Synthesize high-resolution
+            LOLA altimetry, grazing-angle LROC reconnaissance, and deep-learning hazard detection
+            into actionable touchdown decisions.
+          </p>
+
+          {/* Actions */}
+          <div className="mt-9 flex flex-wrap items-center gap-4">
+            <button
+              onClick={() => navigate("/explorer")}
+              className="btn-primary group"
+            >
+              <span>EXPLORE SURFACE</span>
+              <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </button>
+
+            <button
+              onClick={() => {
+                document
+                  .getElementById("editorial-workflow")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="btn-ghost"
+            >
+              MISSION DOSSIER
+            </button>
+          </div>
+
+          {/* Technical Telemetry Microcopy */}
+          <div className="mt-12 flex flex-wrap items-center gap-6 border-t border-divider/60 pt-6 font-mono text-[0.70rem] text-muted">
+            <div>
+              <span className="block text-[0.62rem] uppercase tracking-wider text-muted/60">Target Zone</span>
+              <span className="mt-0.5 block text-ink">80°S — 90°S POLAR STEREO</span>
+            </div>
+            <div className="hidden sm:block h-6 w-px bg-divider/60" />
+            <div>
+              <span className="block text-[0.62rem] uppercase tracking-wider text-muted/60">Mission Clock</span>
+              <span className="mt-0.5 block text-ink">{currentTimeUTC || "CALIBRATING…"}</span>
+            </div>
+            <div className="hidden sm:block h-6 w-px bg-divider/60" />
+            <div>
+              <span className="block text-[0.62rem] uppercase tracking-wider text-muted/60">Spatial Baseline</span>
+              <span className="mt-0.5 block text-ink">1.2 — 1.8 M/PX GSD</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* RIGHT COLUMN: Massive Photorealistic Interactive 3D Moon */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="relative flex items-center justify-center lg:col-span-6 xl:col-span-7 h-[420px] sm:h-[540px] lg:h-[680px] xl:h-[760px]"
+        >
+          {/* Subtle Ambient Radial Highlight behind the Moon */}
+          <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.06)_0%,transparent_65%)]" />
+
+          {/* Three.js Interactive Moon Globe */}
+          <div className="relative z-10 h-full w-full">
+            <CinematicMoon />
+          </div>
+
+          {/* Interactive Hint Micro-badge */}
+          <div className="pointer-events-none absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-xs border border-divider/60 bg-surface/70 px-2.5 py-1 font-mono text-[0.62rem] tracking-[0.14em] text-muted/80 backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-white/40 animate-pulse" />
+            DRAG TO ROTATE CELESTIAL AXIS
+          </div>
+        </motion.div>
       </div>
 
-      {/* Overlays for depth, negative space on the left, and readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-space via-space/80 via-45% to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-space via-transparent to-space/40" />
-      <div className="absolute inset-0 bg-gradient-to-b from-space/40 via-transparent to-space" />
-      {/* Cold blue-white atmospheric lighting near the lunar horizon & limb */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-cyan/15 via-accent/5 to-transparent" />
-      <div className="pointer-events-none absolute top-0 right-0 h-[60vh] w-[50vw] bg-[radial-gradient(ellipse_at_70%_25%,rgba(88,217,242,0.12),transparent_70%)]" />
-
-      {/* Content */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-center px-6 pb-32 pt-28 lg:px-8">
-        {/* Eyebrow */}
-        <div
-          className={`transition-all duration-700 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
+      {/* BOTTOM BAR: Quiet Vertical Section Marker & Microcopy */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
+        <button
+          onClick={() => {
+            document
+              .getElementById("editorial-workflow")
+              ?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none"
+          aria-label="Scroll to editorial workflow"
         >
-          <span className="inline-flex items-center gap-3 font-condensed text-[0.7rem] font-semibold tracking-[0.3em] text-accent uppercase">
-            <span className="h-px w-8 bg-accent" />
-            AI-ASSISTED LUNAR EXPLORATION
+          <span className="font-mono text-[0.60rem] uppercase tracking-[0.25em] text-muted/70 group-hover:text-ink transition-colors">
+            SCROLL TO INSPECT
           </span>
-        </div>
-
-        {/* Headline */}
-        <h1
-          className={`mt-7 font-display font-bold leading-[0.92] tracking-[-0.03em] text-ink transition-all duration-1000 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: "150ms" }}
-        >
-          <span className="block text-[clamp(3rem,10vw,7.5rem)]">
-            EXPLORE THE
-          </span>
-          <span className="block text-[clamp(3rem,10vw,7.5rem)] text-gradient">
-            LUNAR FRONTIER.
-          </span>
-        </h1>
-
-        {/* Supporting copy */}
-        <p
-          className={`mt-8 max-w-lg text-base leading-relaxed text-muted sm:text-[1.05rem] transition-all duration-700 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-          style={{ transitionDelay: "350ms" }}
-        >
-          Explore, analyse, and compare lunar South Pole landing sites through
-          interactive terrain visualization and AI-assisted scientific insights.
-        </p>
-
-        {/* CTAs */}
-        <div
-          className={`mt-10 flex flex-wrap items-center gap-4 transition-all duration-700 ease-out ${
-            loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-          style={{ transitionDelay: "500ms" }}
-        >
-          <button className="btn-primary" onClick={() => navigate("/explorer")}>
-            START EXPLORING
-            <ArrowRightIcon className="h-4 w-4" />
-          </button>
-          <button
-            className="btn-ghost"
-            onClick={() =>
-              document
-                .getElementById("editorial")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            DISCOVER THE MISSION
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom scroll hint */}
-      <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2">
-        <div className="h-8 w-px bg-gradient-to-b from-transparent to-accent/50" />
-        <span className="font-condensed text-[0.6rem] tracking-[0.25em] text-muted uppercase">
-          Scroll
-        </span>
+          <div className="h-8 w-px bg-gradient-to-b from-white/40 via-white/10 to-transparent group-hover:from-white group-hover:h-10 transition-all duration-300" />
+        </button>
       </div>
     </section>
   );
 }
 
 /* ---------------------------------------------------------------------------
- * EDITORIAL — "A New Perspective on the Moon"
- * Three large, visually differentiated content areas (avoiding generic 3-card grid)
+ * WORKFLOW EDITORIAL SECTION — Monochrome Architectural Layout
  * ------------------------------------------------------------------------- */
-function EditorialSection({ navigate }: { navigate: (r: Route) => void }) {
+function WorkflowEditorialSection({ navigate }: { navigate: (r: Route) => void }) {
   const { sites, setSelection } = useApp();
-  const [ref1, vis1] = useReveal<HTMLDivElement>(0.1);
-  const [ref2, vis2] = useReveal<HTMLDivElement>(0.1);
-  const [ref3, vis3] = useReveal<HTMLDivElement>(0.1);
-  const [ref4, vis4] = useReveal<HTMLDivElement>(0.1);
 
   return (
-    <section id="editorial" className="relative scroll-mt-20">
-      {/* Section header */}
-      <div
-        ref={ref1}
-        className={`mx-auto max-w-[1400px] px-6 pt-32 pb-16 lg:px-8 reveal ${vis1 ? "visible" : ""}`}
-      >
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <section id="editorial-workflow" className="relative border-t border-divider/60 bg-deep py-28 scroll-mt-16">
+      <div className="mx-auto max-w-[1440px] px-6 lg:px-12">
+        {/* Section Header */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between border-b border-divider/60 pb-12">
           <div>
-            <span className="kicker">Scientific Workflow</span>
-            <h2 className="mt-4 max-w-3xl font-display text-[clamp(2.2rem,5vw,3.75rem)] font-bold leading-[1.04] tracking-[-0.02em] text-ink">
-              A NEW PERSPECTIVE
-              <br />
-              ON THE MOON.
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-xs text-muted">// 02 · RECONNAISSANCE TO TOUCHDOWN</span>
+            </div>
+            <h2 className="mt-4 font-display text-[clamp(2.0rem,4.5vw,3.5rem)] font-bold tracking-tight text-ink uppercase">
+              A NEW PERSPECTIVE<br />ON THE MOON.
             </h2>
-            <div className="mt-5 h-px w-20 bg-accent" />
           </div>
           <p className="max-w-md font-body text-sm leading-relaxed text-muted lg:pb-1">
-            MOONSCAPE transforms raw planetary datasets into actionable landing site intelligence.
-            From orbital reconnaissance to high-resolution hazard segmentation and multi-criteria
-            matrices, each stage is engineered for rigorous mission support.
+            Raw planetary altimetry and optical orbital mosaics translated into verified terrain
+            slope, surface roughness, optical hazard density, and multi-criteria landing matrices.
           </p>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-[1400px] space-y-16 px-6 pb-32 lg:px-8">
-        {/* ===================================================================
-         * CONTENT AREA 1: EXPLORE THE LUNAR SURFACE
-         * Wide panoramic split with interactive targeting & orbital telemetry
-         * ================================================================= */}
-        <div
-          ref={ref2}
-          className={`overflow-hidden rounded-md border border-divider bg-deep reveal ${
-            vis2 ? "visible" : ""
-          }`}
-        >
-          <div className="grid lg:grid-cols-12 items-stretch">
-            {/* Left: Imagery with targeting overlay */}
-            <div className="relative aspect-[16/10] lg:aspect-auto lg:col-span-7 overflow-hidden">
+        {/* 3 Core Architectural Cards */}
+        <div className="mt-16 space-y-12">
+          {/* Item 1: 3D Surface Exploration */}
+          <div className="panel grid lg:grid-cols-12 overflow-hidden items-stretch">
+            <div className="relative aspect-[16/10] lg:aspect-auto lg:col-span-7 overflow-hidden border-b lg:border-b-0 lg:border-r border-divider/60">
               <img
                 src="/assets/lunar/lunar-landscape.jpg"
-                alt="Apollo lunar surface photograph — NASA"
-                className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                alt="NASA Apollo photographic survey archive"
+                className="h-full w-full object-cover grayscale contrast-125 transition-transform duration-700 hover:scale-105"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-deep via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-deep" />
-              {/* Telemetry reticle */}
-              <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[0.65rem] tracking-wider text-cyan bg-space/75 px-2.5 py-1 rounded-xs border border-divider">
-                    LROC NAC · 0.5 M/PX
-                  </span>
-                  <span className="font-mono text-[0.65rem] text-muted bg-space/75 px-2.5 py-1 rounded-xs border border-divider">
-                    TARGET: 89.900°S, 000.000°E
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 self-start font-mono text-[0.68rem] text-accent/90 bg-space/80 px-2 py-1 rounded-xs">
-                  <CrosshairIcon className="h-3.5 w-3.5 text-accent animate-pulse" />
-                  SHACKLETON CRATER RIM
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-surface" />
+              <div className="absolute top-4 left-4 font-mono text-[0.65rem] tracking-wider text-ink bg-surface/85 px-2.5 py-1 border border-divider">
+                SURFACE ALBEDO · POLAR стерео
               </div>
             </div>
-
-            {/* Right: Editorial description */}
             <div className="flex flex-col justify-between p-8 lg:p-12 lg:col-span-5">
               <div>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-accent">[01]</span>
-                  <span className="font-condensed text-[0.7rem] font-semibold tracking-[0.2em] text-cyan uppercase">
-                    ORBITAL RECONNAISSANCE
-                  </span>
-                </div>
-                <h3 className="mt-4 font-display text-2xl font-bold tracking-[-0.01em] text-ink sm:text-3xl">
-                  EXPLORE THE LUNAR SURFACE
+                <span className="font-mono text-xs text-muted">[STEP 01] ORBITAL RECONNAISSANCE</span>
+                <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl uppercase">
+                  3D Lunar Explorer
                 </h3>
                 <p className="mt-4 text-sm leading-relaxed text-muted">
-                  Navigate an interactive 3D globe of the Moon rendered directly in WebGL. Inspect
-                  candidate coordinates across the South Pole's ridges and permanently shadowed
-                  regions with true orbital elevation contours.
+                  Inspect candidate touchdown zones in an interactive polar stereographic 3D
+                  environment. Probe real-time topographic elevation, slope steepness, and roughness
+                  across Shackleton, Malapert, and de Gerlache craters.
                 </p>
-                <div className="mt-6 grid grid-cols-2 gap-4 border-t border-divider pt-6 font-mono text-xs">
-                  <div>
-                    <span className="block text-[0.65rem] uppercase tracking-wider text-muted">Projection</span>
-                    <span className="mt-1 block font-medium text-ink">Polar Stereographic</span>
+                <div className="mt-6 border-t border-divider/60 pt-4 font-mono text-xs text-muted space-y-2">
+                  <div className="flex justify-between">
+                    <span>Instrument:</span>
+                    <span className="text-ink">LRO LOLA Altimetry (GLD100)</span>
                   </div>
-                  <div>
-                    <span className="block text-[0.65rem] uppercase tracking-wider text-muted">Source Instrument</span>
-                    <span className="mt-1 block font-medium text-ink">LRO LOLA & LROC</span>
+                  <div className="flex justify-between">
+                    <span>Target Region:</span>
+                    <span className="text-ink">Lunar South Pole (&lt; -80° Lat)</span>
                   </div>
                 </div>
               </div>
-
               <div className="mt-8 pt-4">
                 <button
-                  className="btn-primary w-full sm:w-auto"
                   onClick={() => navigate("/explorer")}
+                  className="btn-primary w-full sm:w-auto"
                 >
                   <GlobeIcon className="h-4 w-4" />
-                  LAUNCH 3D EXPLORER
+                  <span>LAUNCH EXPLORER</span>
                   <ArrowRightIcon className="h-4 w-4" />
                 </button>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ===================================================================
-         * CONTENT AREA 2: ANALYSE TERRAIN AND HAZARDS
-         * Technical telemetry layout with elevation & detection specs
-         * ================================================================= */}
-        <div
-          ref={ref3}
-          className={`overflow-hidden rounded-md border border-divider bg-deep reveal ${
-            vis3 ? "visible" : ""
-          }`}
-        >
-          <div className="grid lg:grid-cols-12 items-stretch">
-            {/* Left: Editorial content */}
-            <div className="flex flex-col justify-between p-8 lg:p-12 lg:col-span-6 order-2 lg:order-1">
+          {/* Item 2: Optical Hazard Detection */}
+          <div className="panel grid lg:grid-cols-12 overflow-hidden items-stretch">
+            <div className="flex flex-col justify-between p-8 lg:p-12 lg:col-span-5 order-2 lg:order-1 border-t lg:border-t-0 lg:border-r border-divider/60">
               <div>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-accent">[02]</span>
-                  <span className="font-condensed text-[0.7rem] font-semibold tracking-[0.2em] text-cyan uppercase">
-                    HAZARD SEGMENTATION
-                  </span>
-                </div>
-                <h3 className="mt-4 font-display text-2xl font-bold tracking-[-0.01em] text-ink sm:text-3xl">
-                  ANALYSE TERRAIN AND HAZARDS
+                <span className="font-mono text-xs text-muted">[STEP 02] COMPUTER VISION</span>
+                <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl uppercase">
+                  Optical Hazard Analysis
                 </h3>
                 <p className="mt-4 text-sm leading-relaxed text-muted">
-                  Execute server-side terrain qualification over candidate coordinates. Receive
-                  deterministic metrics for elevation, slope angle, surface roughness, and solar
-                  illumination alongside AI-detected crater and boulder distributions.
+                  Automated crater and boulder detection executed by fine-tuned YOLOv8n models
+                  trained strictly on polar grazing-angle orbital frames with spatial resolution
+                  calibration in meters.
                 </p>
-
-                {/* Telemetry data readouts */}
-                <div className="mt-6 space-y-2 border-t border-divider pt-6">
-                  <div className="flex items-center justify-between py-1 border-b border-divider/40 font-mono text-xs">
-                    <span className="text-muted">Slope Angle Threshold</span>
-                    <span className="text-good font-medium">&lt; 10.0° (Acceptable)</span>
+                <div className="mt-6 border-t border-divider/60 pt-4 font-mono text-xs text-muted space-y-2">
+                  <div className="flex justify-between">
+                    <span>Crater Sensitivity:</span>
+                    <span className="text-ink">75.5% Recall on Unseen Test Split</span>
                   </div>
-                  <div className="flex items-center justify-between py-1 border-b border-divider/40 font-mono text-xs">
-                    <span className="text-muted">Crater / Boulder Detection</span>
-                    <span className="text-cyan font-medium">Confidence ≥ 0.85</span>
+                  <div className="flex justify-between">
+                    <span>Boulder Precision:</span>
+                    <span className="text-ink">71.3% Precision</span>
                   </div>
-                  <div className="flex items-center justify-between py-1 font-mono text-xs">
-                    <span className="text-muted">Elevation Model</span>
-                    <span className="text-ink font-medium">LOLA GLD100 DEM</span>
+                  <div className="flex justify-between">
+                    <span>Inference Latency:</span>
+                    <span className="text-ink">18.2 ms on Ryzen 9 CPU</span>
                   </div>
                 </div>
               </div>
-
-              <div className="mt-8 flex flex-wrap gap-4 pt-4">
+              <div className="mt-8 pt-4 flex flex-wrap gap-3">
                 <button
+                  onClick={() => navigate("/hazards")}
                   className="btn-primary"
-                  onClick={() => navigate("/dashboard")}
                 >
                   <ShieldIcon className="h-4 w-4" />
-                  ANALYSIS DASHBOARD
-                  <ArrowRightIcon className="h-4 w-4" />
+                  <span>RUN HAZARD DETECTOR</span>
                 </button>
                 <button
+                  onClick={() => navigate("/dashboard")}
                   className="btn-ghost"
-                  onClick={() => navigate("/hazards")}
                 >
-                  HAZARD PREDICTOR
+                  <span>DASHBOARD</span>
                 </button>
               </div>
             </div>
-
-            {/* Right: Technical visual */}
-            <div className="relative aspect-[16/10] lg:aspect-auto lg:col-span-6 overflow-hidden order-1 lg:order-2">
+            <div className="relative aspect-[16/10] lg:aspect-auto lg:col-span-7 overflow-hidden order-1 lg:order-2">
               <img
                 src="/assets/lunar/moon-terrain.jpg"
-                alt="Lunar terrain elevation data — NASA LRO"
-                className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                alt="Lunar crater elevation gradient"
+                className="h-full w-full object-cover grayscale contrast-125 transition-transform duration-700 hover:scale-105"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-deep via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:to-deep" />
-              <div className="absolute top-4 right-4 font-mono text-[0.65rem] tracking-wider text-accent bg-space/80 px-2.5 py-1 rounded-xs border border-divider">
-                ELEVATION HEATMAP &amp; CONTOUR
+              <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:to-surface" />
+              <div className="absolute top-4 right-4 font-mono text-[0.65rem] tracking-wider text-ink bg-surface/85 px-2.5 py-1 border border-divider">
+                SHADOW &amp; OBSTACLE DELINEATION
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ===================================================================
-         * CONTENT AREA 3: COMPARE POTENTIAL LANDING SITES
-         * Comparative intelligence area with live candidate site selection
-         * ================================================================= */}
-        <div
-          ref={ref4}
-          className={`overflow-hidden rounded-md border border-divider bg-deep reveal ${
-            vis4 ? "visible" : ""
-          }`}
-        >
-          <div className="p-8 lg:p-12">
-            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          {/* Item 3: Multi-Criteria Comparison */}
+          <div className="panel p-8 lg:p-12">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 border-b border-divider/60 pb-8">
               <div>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-accent">[03]</span>
-                  <span className="font-condensed text-[0.7rem] font-semibold tracking-[0.2em] text-cyan uppercase">
-                    MISSION EVALUATION
-                  </span>
-                </div>
-                <h3 className="mt-4 font-display text-2xl font-bold tracking-[-0.01em] text-ink sm:text-3xl">
-                  COMPARE POTENTIAL LANDING SITES
+                <span className="font-mono text-xs text-muted">[STEP 03] MCDA SCORING</span>
+                <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl uppercase">
+                  Candidate Site Matrix
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-                  Weigh trade-offs between candidate landing zones. Compare solar illumination,
-                  slope roughness, and Earth communications visibility side by side.
+                  Weigh trade-offs across Artemis candidate sites. Compare solar illumination, slope
+                  roughness, communication windows, and ML suitability scores side-by-side.
                 </p>
               </div>
               <button
-                className="btn-ghost self-start lg:self-end shrink-0"
                 onClick={() => navigate("/compare")}
+                className="btn-ghost shrink-0"
               >
                 <ScaleIcon className="h-4 w-4" />
-                FULL SITE MATRIX
+                <span>FULL SITE MATRIX</span>
                 <ArrowRightIcon className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Candidate Sites Quick-Selector Strip */}
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 pt-6 border-t border-divider">
-              {(sites.length > 0
-                ? sites.slice(0, 3)
-                : [
-                    { site_id: "site_001", name: "Shackleton Rim", latitude: -89.9, longitude: 0.0, description: "Rim of Shackleton crater near the south pole — prime illumination ridge." },
-                    { site_id: "site_002", name: "Connecting Ridge", latitude: -89.42, longitude: 34.0, description: "Elevated ridge between Shackleton and Faustini craters." },
-                    { site_id: "site_003", name: "Faustini Rim", latitude: -87.2, longitude: 80.0, description: "Faustini rim with direct access to permanent shadow regions." },
-                  ]
-              ).map((s) => (
+            {/* Quick Candidate Site Selector Strip */}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(sites.length > 0 ? sites.slice(0, 3) : [
+                { site_id: "site_001", name: "Shackleton Connecting Ridge", latitude: -89.9, longitude: 0.0, description: "Prime illumination ridge near the South Pole rim." },
+                { site_id: "site_002", name: "Connecting Ridge Extension", latitude: -89.42, longitude: 34.0, description: "Elevated plateau between Shackleton and Faustini." },
+                { site_id: "site_003", name: "Faustini Rim Margin", latitude: -87.2, longitude: 80.0, description: "Rim flank with direct access to permanently shadowed regions." },
+              ]).map((site) => (
                 <div
-                  key={s.site_id}
-                  className="group relative flex flex-col justify-between rounded-xs border border-divider/60 bg-surface/50 p-5 transition-all duration-300 hover:border-accent/40 hover:bg-surface/80"
+                  key={site.site_id}
+                  className="group relative flex flex-col justify-between border border-divider/60 bg-surface/40 p-5 transition-all duration-300 hover:border-white/40 hover:bg-surface/80 rounded-xs"
                 >
                   <div>
                     <div className="flex items-center justify-between font-mono text-[0.65rem] text-muted">
-                      <span className="text-cyan">{s.site_id.toUpperCase()}</span>
-                      <span>{fmtCoord(s.latitude, s.longitude)}</span>
+                      <span>{site.site_id.toUpperCase()}</span>
+                      <CrosshairIcon className="h-3 w-3 text-muted/60 group-hover:text-ink transition-colors" />
                     </div>
-                    <h4 className="mt-2 font-display text-base font-semibold text-ink group-hover:text-accent transition-colors">
-                      {s.name ?? s.site_id}
+                    <h4 className="mt-2.5 font-display text-base font-semibold text-ink group-hover:text-white transition-colors">
+                      {site.name}
                     </h4>
-                    {s.description && (
-                      <p className="mt-2 text-xs leading-relaxed text-muted line-clamp-2">
-                        {s.description}
-                      </p>
-                    )}
+                    <p className="mt-2 font-body text-xs leading-relaxed text-muted line-clamp-2">
+                      {site.description}
+                    </p>
                   </div>
-                  <button
-                    className="mt-4 flex items-center gap-1.5 self-start font-condensed text-xs font-semibold tracking-wider text-accent uppercase hover:text-cyan transition-colors"
-                    onClick={() => {
-                      setSelection({ latitude: s.latitude, longitude: s.longitude, radius_m: 500 });
-                      navigate("/explorer");
-                    }}
-                  >
-                    <span>Inspect Coordinates</span>
-                    <ArrowRightIcon className="h-3 w-3" />
-                  </button>
+                  <div className="mt-5 flex items-center justify-between border-t border-divider/60 pt-3 font-mono text-[0.68rem]">
+                    <span className="text-muted">
+                      {site.latitude.toFixed(2)}°S, {site.longitude.toFixed(2)}°E
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelection({
+                          latitude: site.latitude,
+                          longitude: site.longitude,
+                          radius_m: 500,
+                        });
+                        navigate("/explorer");
+                      }}
+                      className="text-ink hover:underline font-semibold"
+                    >
+                      INSPECT →
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -433,90 +368,40 @@ function EditorialSection({ navigate }: { navigate: (r: Route) => void }) {
 }
 
 /* ---------------------------------------------------------------------------
- * CINEMATIC CTA — "The Surface Is Only the Beginning"
- * Large lunar visual + scroll-driven subtle movement + CTA
+ * MISSION DOSSIER SUMMARY & CALL TO ACTION
  * ------------------------------------------------------------------------- */
-function CinematicCTA({ navigate }: { navigate: (r: Route) => void }) {
-  const [ref, vis] = useReveal<HTMLElement>(0.1);
-  const [offsetY, setOffsetY] = useState(0);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
-
-    let ticking = false;
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            // Subtle scroll-driven movement
-            const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-            setOffsetY((progress - 0.5) * 35);
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [ref]);
-
+function MissionDossierSummary({ navigate }: { navigate: (r: Route) => void }) {
   return (
-    <section
-      ref={ref}
-      className={`relative overflow-hidden reveal ${vis ? "visible" : ""}`}
-    >
-      {/* Background with scroll-driven movement */}
-      <div
-        className="absolute inset-0 will-change-transform"
-        style={{
-          transform: `translate3d(0, ${offsetY}px, 0) scale(1.08)`,
-          transition: "transform 0.1s linear",
-        }}
-      >
-        <img
-          src="/images/hero-bg.jpg"
-          alt="Lunar surface panoramic view"
-          className="h-full w-full object-cover opacity-35"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-space via-space/80 to-space/90" />
-      </div>
-
-      <div className="relative z-10 mx-auto flex max-w-[1400px] flex-col items-center px-6 py-40 text-center lg:px-8 lg:py-52">
-        <span className="kicker">Begin Your Analysis</span>
-        <h2 className="mt-5 max-w-4xl font-display text-[clamp(2.2rem,5.5vw,4.25rem)] font-bold leading-[1.04] tracking-[-0.02em] text-ink">
-          THE SURFACE IS ONLY
-          <br />
-          THE BEGINNING.
+    <section className="relative border-t border-divider/60 bg-space py-24 px-6 lg:px-12">
+      <div className="mx-auto max-w-4xl text-center">
+        <span className="font-mono text-xs uppercase tracking-[0.25em] text-muted">
+          // 03 · READY FOR RECONNAISSANCE
+        </span>
+        <h2 className="mt-4 font-display text-[clamp(2.0rem,4vw,3.25rem)] font-bold tracking-tight text-ink uppercase">
+          INITIATE LUNAR MISSION ANALYSIS
         </h2>
-        <p className="mt-6 max-w-lg text-base leading-relaxed text-muted">
-          Interactive terrain visualization, AI-powered hazard detection, and scientific
-          site comparison — engineered for aerospace mission support.
+        <p className="mt-4 mx-auto max-w-xl text-sm leading-relaxed text-muted">
+          Select target coordinates across the lunar South Pole, execute real LOLA digital
+          elevation modeling, detect touchdown hazards, and generate AI-explained scientific dossiers.
         </p>
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
+
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
           <button
-            className="btn-primary"
             onClick={() => navigate("/explorer")}
+            className="btn-primary"
           >
             <GlobeIcon className="h-4 w-4" />
-            LAUNCH EXPLORER
+            <span>LAUNCH 3D EXPLORER</span>
             <ArrowRightIcon className="h-4 w-4" />
           </button>
           <button
+            onClick={() => navigate("/credits")}
             className="btn-ghost"
-            onClick={() => navigate("/report")}
           >
-            AI SCIENTIFIC REPORTS
+            <span>DATA PROVENANCE &amp; CREDITS</span>
           </button>
         </div>
       </div>
-
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-space to-transparent" />
     </section>
   );
 }

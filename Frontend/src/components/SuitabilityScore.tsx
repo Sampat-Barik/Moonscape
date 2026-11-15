@@ -55,9 +55,9 @@ export default function SuitabilityScore({
   return (
     <div className="panel p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-200">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accentsoft">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <h3 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-ink font-display">
+          <span className="flex h-8 w-8 items-center justify-center rounded border border-divider/60 bg-surface/70 text-ink">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
               <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" />
             </svg>
           </span>
@@ -70,11 +70,11 @@ export default function SuitabilityScore({
         <svg viewBox="0 0 200 118" className="w-56 shrink-0">
           <defs>
             <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#159EEA" />
-              <stop offset="100%" stopColor="#58D9F2" />
+              <stop offset="0%" stopColor="#777777" />
+              <stop offset="100%" stopColor="#FFFFFF" />
             </linearGradient>
           </defs>
-          <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#112033" strokeWidth="12" strokeLinecap="round" />
+          <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#262626" strokeWidth="12" strokeLinecap="round" />
           {frac !== null && (
             <path
               d="M 20 110 A 80 80 0 0 1 180 110"

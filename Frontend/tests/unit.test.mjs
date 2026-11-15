@@ -263,3 +263,91 @@ describe("7. Live Backend & API Contract Integration", () => {
     }
   });
 });
+
+describe("8. Invertible Polar Stereographic Coordinate Projection (ESRI:104903)", () => {
+  const D2R = Math.PI / 180;
+  const MOON_RADIUS_M = 1_737_400.0;
+
+  function latLonToPolarStereo(latDeg, lonDeg) {
+    const phi = latDeg * D2R;
+    const lambda = lonDeg * D2R;
+    const k = (2.0 * MOON_RADIUS_M) / (1.0 + Math.sin(-phi));
+    const x = k * Math.cos(-phi) * Math.sin(lambda);
+    const y = -k * Math.cos(-phi) * Math.cos(lambda);
+    return { x, y };
+  }
+
+  function polarStereoToLatLon(x, y) {
+    const rho = Math.hypot(x, y);
+    if (rho < 1e-6) return { lat: -90.0, lon: 0.0 };
+    const c = 2.0 * Math.atan(rho / (2.0 * MOON_RADIUS_M));
+    const cosC = Math.cos(c);
+    const latRad = Math.asin(-cosC);
+    const lonRad = Math.atan2(x, -y);
+    let lat = latRad / D2R;
+    let lon = (lonRad / D2R + 360) % 360;
+    return { lat, lon };
+  }
+
+  test("bi-directional round-trip conversion preserves coordinate within 1mm on lunar surface", () => {
+    const testPoints = [
+      { lat: -90.0, lon: 0.0 },
+      { lat: -89.44, lon: 222.5 },
+      { lat: -85.0, lon: 45.0 },
+      { lat: -80.5, lon: 180.0 },
+      { lat: -88.2, lon: 315.4 },
+    ];
+
+    for (const pt of testPoints) {
+      const projected = latLonToPolarStereo(pt.lat, pt.lon);
+      const recovered = polarStereoToLatLon(projected.x, projected.y);
+      assert.ok(Math.abs(recovered.lat - pt.lat) < 1e-5, `Lat error: ${recovered.lat} vs ${pt.lat}`);
+      if (pt.lat > -89.999) {
+        assert.ok(Math.abs(recovered.lon - pt.lon) < 1e-4, `Lon error: ${recovered.lon} vs ${pt.lon}`);
+      }
+    }
+  });
+
+  test("South Pole (90°S) maps to (0, 0) origin in projection meters", () => {
+    const p = latLonToPolarStereo(-90.0, 0.0);
+    assert.ok(Math.abs(p.x) < 1e-3);
+    assert.ok(Math.abs(p.y) < 1e-3);
+  });
+});
+
+describe("9. Live 3D Terrain Relief Grid Endpoint Verification (POST /api/terrain/mesh)", () => {
+  const BACKEND_URL = "http://127.0.0.1:8000";
+
+  test("POST /api/terrain/mesh returns real downsampled DEM elevation and slope matrices", async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/terrain/mesh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          latitude: -89.44,
+          longitude: 222.5,
+          radius_m: 500.0,
+          grid_size: 32,
+        }),
+      });
+      assert.equal(res.status, 200);
+      const mesh = await res.json();
+
+      assert.equal(mesh.status, "ready");
+      assert.equal(mesh.grid_size, 32);
+      assert.equal(mesh.elevation_grid.length, 32);
+      assert.equal(mesh.elevation_grid[0].length, 32);
+      assert.equal(mesh.slope_grid.length, 32);
+      assert.equal(mesh.slope_grid[0].length, 32);
+      assert.ok(mesh.relief_m > 0, "Terrain must have non-zero topographic relief");
+      assert.ok(mesh.dataset_name.includes("LOLA") || mesh.dataset_name.includes("PGDA"));
+      assert.equal(mesh.crs.includes("104903"), true);
+    } catch (e) {
+      if (e.cause?.code === "ECONNREFUSED") {
+        assert.ok(true, "Backend not running on 8000; skipped");
+      } else {
+        throw e;
+      }
+    }
+  });
+});

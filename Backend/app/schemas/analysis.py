@@ -58,6 +58,7 @@ class TopographicStats(BaseModel):
     median_value: Optional[float] = None
     std_dev: Optional[float] = None
     variation: Optional[float] = None  # Relief (max - min)
+    p95_value: Optional[float] = Field(None, description="95th percentile value")
     units: str
 
 

@@ -43,6 +43,7 @@ import type {
   ScoreResponse,
   Site,
   TerrainResponse,
+  TerrainMeshResponse,
   VisibilitySimulationRequest,
   VisibilitySimulationResponse,
 } from "@/types";
@@ -83,6 +84,11 @@ export interface AppContextValue {
   terrainStatus: Status;
   terrainError: string | null;
   refreshTerrain: (sel?: Selection) => Promise<void>;
+
+  terrainMesh: TerrainMeshResponse | null;
+  terrainMeshStatus: Status;
+  terrainMeshError: string | null;
+  fetchTerrainMesh: (sel?: Selection, gridSize?: number) => Promise<TerrainMeshResponse | null>;
 
   analysis: AnalysisResponse | null;
   analysisStatus: Status;
@@ -189,9 +195,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [terrainStatus, setTerrainStatus] = useState<Status>("idle");
   const [terrainError, setTerrainError] = useState<string | null>(null);
 
-  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(() =>
-    loadJSON<AnalysisResponse>(LS_ANALYSIS)
-  );
+  const [terrainMesh, setTerrainMesh] = useState<TerrainMeshResponse | null>(null);
+  const [terrainMeshStatus, setTerrainMeshStatus] = useState<Status>("idle");
+  const [terrainMeshError, setTerrainMeshError] = useState<string | null>(null);
+
+  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(() => {
+    const cached = loadJSON<AnalysisResponse>(LS_ANALYSIS);
+    const sel = loadJSON<Selection>(LS_SELECTION) ?? DEFAULT_SELECTION;
+    if (cached) {
+      const cachedLat = cached.latitude ?? (cached as any).center_lat;
+      const cachedLon = cached.longitude ?? (cached as any).center_lon;
+      const match =
+        cachedLat !== undefined &&
+        cachedLon !== undefined &&
+        Math.abs(cachedLat - sel.latitude) < 0.001 &&
+        Math.abs(cachedLon - sel.longitude) < 0.001;
+      if (match) return cached;
+    }
+    return null;
+  });
   const [analysisStatus, setAnalysisStatus] = useState<Status>("idle");
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
@@ -305,6 +327,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const fetchTerrainMesh = useCallback(async (sel?: Selection, gridSize: number = 64) => {
+    const s = sel ?? selectionRef.current;
+    setTerrainMeshStatus("loading");
+    setTerrainMeshError(null);
+    try {
+      const data = await api.getTerrainMesh({
+        latitude: s.latitude,
+        longitude: s.longitude,
+        radius_m: s.radius_m,
+        grid_size: gridSize,
+      });
+      setTerrainMesh(data);
+      setTerrainMeshStatus("ready");
+      return data;
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 499) {
+        return null;
+      }
+      const msg = errMsg(e);
+      setTerrainMeshError(msg);
+      setTerrainMeshStatus("error");
+      return null;
+    }
+  }, []);
+
   // Update selection with automatic invalidation of stale location-dependent metrics
   const setSelection = useCallback(
     (s: Selection) => {
@@ -321,7 +368,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       if (coordChanged) {
-        // Invalidate stale scores, hazards, simulations, and detected zones from previous locations
+        // Invalidate stale scores, hazards, simulations, analysis, and detected zones from previous locations
         setScore(null);
         setScoreStatus("idle");
         setHazards(null);
@@ -330,6 +377,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSimulationStatus("idle");
         setDetectedZones([]);
         setDetectStatus("idle");
+        setTerrainMesh(null);
+        setTerrainMeshStatus("idle");
+        setAnalysis(null);
+        setAnalysisStatus("idle");
+        try {
+          localStorage.removeItem(LS_ANALYSIS);
+        } catch {
+          /* ignore */
+        }
 
         // Debounce network coverage check by 200ms to avoid flooding backend during rapid scrubbing
         if (coverageDebounceRef.current) {
@@ -523,6 +579,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       terrainStatus,
       terrainError,
       refreshTerrain,
+      terrainMesh,
+      terrainMeshStatus,
+      terrainMeshError,
+      fetchTerrainMesh,
       analysis,
       analysisStatus,
       analysisError,
@@ -576,6 +636,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       terrainStatus,
       terrainError,
       refreshTerrain,
+      terrainMesh,
+      terrainMeshStatus,
+      terrainMeshError,
+      fetchTerrainMesh,
       analysis,
       analysisStatus,
       analysisError,

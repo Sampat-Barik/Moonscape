@@ -43,6 +43,7 @@ class SlopeSummary(BaseModel):
     min_deg: Optional[float] = Field(None, description="Minimum slope within radius (degrees)")
     max_deg: Optional[float] = Field(None, description="Maximum slope within radius (degrees)")
     mean_deg: Optional[float] = Field(None, description="Mean slope within radius (degrees)")
+    p95_deg: Optional[float] = Field(None, description="95th percentile slope within radius (degrees)")
     std_dev_deg: Optional[float] = Field(None, description="Slope standard deviation (degrees)")
     method: str = Field(..., description="Method used (NASA precomputed raster or Horn 1981 gradient)")
     units: str = "degrees"
@@ -96,3 +97,38 @@ class TerrainResponse(BaseModel):
     total_pixels_in_disc: Optional[int] = Field(None, description="Total raster cells within physical radius disc")
     valid_pixels_in_disc: Optional[int] = Field(None, description="Valid non-nodata cells within physical radius disc")
     nodata_pixels_in_disc: Optional[int] = Field(None, description="Nodata cells within physical radius disc")
+
+
+class TerrainMeshRequest(BaseModel):
+    """Input payload for extracting downsampled 3D elevation and slope meshes."""
+
+    lat: Optional[float] = Field(None, ge=-90.0, le=-80.0, description="Latitude in degrees (-90 to -80)")
+    latitude: Optional[float] = Field(None, ge=-90.0, le=-80.0, description="Alias for lat")
+    lon: Optional[float] = Field(None, ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)")
+    longitude: Optional[float] = Field(None, ge=-180.0, le=360.0, description="Alias for lon")
+    radius_m: Optional[float] = Field(500.0, ge=20.0, le=25000.0, description="Physical radius in meters")
+    radius_meters: Optional[float] = Field(None, ge=20.0, le=25000.0, description="Alias for radius_m")
+    grid_size: Optional[int] = Field(64, ge=16, le=128, description="Grid dimension (N x N elevation samples, default 64)")
+
+
+class TerrainMeshResponse(BaseModel):
+    """3D elevation grid, slope gradient, and relief metadata for client-side rendering."""
+
+    status: str = "ready"
+    latitude: float
+    longitude: float
+    radius_m: float
+    grid_size: int
+    resolution_m: float
+    center_x_polar_m: float
+    center_y_polar_m: float
+    min_elevation_m: float
+    max_elevation_m: float
+    mean_elevation_m: float
+    relief_m: float
+    elevation_grid: list[list[float]]
+    slope_grid: list[list[float]]
+    dataset_name: str
+    product_id: str
+    crs: str
+    disclaimer: str

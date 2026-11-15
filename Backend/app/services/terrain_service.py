@@ -27,6 +27,7 @@ from app.schemas.terrain import (
     RoughnessSummary,
     SlopeSummary,
     TerrainDatasetInfo,
+    TerrainMeshResponse,
     TerrainResponse,
 )
 from app.services.geospatial.coordinate_manager import coordinate_manager
@@ -134,6 +135,7 @@ class TerrainService:
             min_deg=res.slope.min_slope_deg,
             max_deg=res.slope.max_slope_deg,
             mean_deg=res.slope.mean_slope_deg,
+            p95_deg=res.slope.p95_slope_deg,
             std_dev_deg=res.slope.std_dev_deg,
             method=res.slope.method,
             units=res.slope.units,
@@ -266,6 +268,7 @@ class TerrainService:
             mean_value=res.slope.mean_slope_deg,
             median_value=res.slope.point_slope_deg,
             std_dev=res.slope.std_dev_deg,
+            p95_value=res.slope.p95_slope_deg,
             units=res.slope.units,
         )
 
@@ -340,6 +343,131 @@ class TerrainService:
 
         analysis_store.save(run_result)
         return run_result
+
+    def get_terrain_mesh(
+        self,
+        lat: float,
+        lon: float,
+        radius_m: float = 500.0,
+        grid_size: int = 64,
+    ) -> TerrainMeshResponse:
+        """Extracts downsampled elevation and slope grids for 3D terrain relief visualization."""
+        from app.services.dem_service import dem_service
+        from app.services.nasa_data import nasa_data_manager
+        import scipy.ndimage
+
+        # Validate coordinate
+        is_valid, _ = coordinate_manager.validate_coordinates(lat, lon)
+        if not is_valid or not coordinate_manager.is_in_south_pole_zone(lat):
+            cx, cy = coordinate_manager.to_polar_stereographic(lat, lon)
+            empty_grid = [[0.0] * grid_size for _ in range(grid_size)]
+            return TerrainMeshResponse(
+                status="outside_polar_zone",
+                latitude=lat,
+                longitude=lon,
+                radius_m=radius_m,
+                grid_size=grid_size,
+                resolution_m=round((radius_m * 2.0) / grid_size, 2),
+                center_x_polar_m=round(cx, 1),
+                center_y_polar_m=round(cy, 1),
+                min_elevation_m=0.0,
+                max_elevation_m=0.0,
+                mean_elevation_m=0.0,
+                relief_m=0.0,
+                elevation_grid=empty_grid,
+                slope_grid=empty_grid,
+                dataset_name=LOLA_DATASET_NAME,
+                product_id=LOLA_PRODUCT_ID,
+                crs="ESRI:104903 (Lunar South Polar Stereographic)",
+                disclaimer="Coordinates outside supported lunar South Pole region (80°S-90°S).",
+            )
+
+        cx, cy = coordinate_manager.to_polar_stereographic(lat, lon)
+        win = nasa_data_manager.get_spatial_window(lat, lon, radius_m)
+
+        if win is None or win.elevation_data is None or win.elevation_data.size == 0:
+            pt_elev, _, _ = dem_service.get_elevation_at_point(lat, lon)
+            base_elev = float(pt_elev if pt_elev is not None else 0.0)
+            flat_grid = [[round(base_elev, 2)] * grid_size for _ in range(grid_size)]
+            zero_slope = [[0.0] * grid_size for _ in range(grid_size)]
+            return TerrainMeshResponse(
+                status="single_point_fallback",
+                latitude=lat,
+                longitude=lon,
+                radius_m=radius_m,
+                grid_size=grid_size,
+                resolution_m=round((radius_m * 2.0) / grid_size, 2),
+                center_x_polar_m=round(cx, 1),
+                center_y_polar_m=round(cy, 1),
+                min_elevation_m=round(base_elev, 2),
+                max_elevation_m=round(base_elev, 2),
+                mean_elevation_m=round(base_elev, 2),
+                relief_m=0.0,
+                elevation_grid=flat_grid,
+                slope_grid=zero_slope,
+                dataset_name=LOLA_DATASET_NAME,
+                product_id=LOLA_PRODUCT_ID,
+                crs="ESRI:104903",
+                disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
+            )
+
+        elev = win.elevation_data.astype(np.float32).copy()
+        nodata_mask = (elev <= -30000.0) | (elev == LOLA_NODATA_VALUE) | np.isnan(elev)
+
+        if np.all(nodata_mask):
+            base_elev = 0.0
+            elev.fill(base_elev)
+        elif np.any(nodata_mask):
+            valid_mean = float(np.mean(elev[~nodata_mask]))
+            elev[nodata_mask] = valid_mean
+
+        # Calculate slope if not already present
+        if win.slope_data is not None and win.slope_data.shape == elev.shape:
+            slope = win.slope_data.astype(np.float32).copy()
+            slope_nodata = (slope < 0) | np.isnan(slope)
+            if np.any(slope_nodata):
+                slope[slope_nodata] = 0.0
+        else:
+            slope, _ = horn_slope_and_aspect(elev, win.dx_meters, win.dy_meters)
+
+        # Resample to grid_size x grid_size
+        r_in, c_in = elev.shape
+        zoom_r = float(grid_size) / max(r_in, 1)
+        zoom_c = float(grid_size) / max(c_in, 1)
+
+        resampled_elev = scipy.ndimage.zoom(elev, (zoom_r, zoom_c), order=1)
+        resampled_slope = scipy.ndimage.zoom(slope, (zoom_r, zoom_c), order=1)
+
+        # Ensure exact shape
+        resampled_elev = resampled_elev[:grid_size, :grid_size]
+        resampled_slope = resampled_slope[:grid_size, :grid_size]
+
+        min_e = float(np.min(resampled_elev))
+        max_e = float(np.max(resampled_elev))
+        mean_e = float(np.mean(resampled_elev))
+        relief = float(max_e - min_e)
+        eff_res = (radius_m * 2.0) / grid_size
+
+        return TerrainMeshResponse(
+            status="ready",
+            latitude=lat,
+            longitude=lon,
+            radius_m=radius_m,
+            grid_size=grid_size,
+            resolution_m=round(eff_res, 2),
+            center_x_polar_m=round(cx, 1),
+            center_y_polar_m=round(cy, 1),
+            min_elevation_m=round(min_e, 2),
+            max_elevation_m=round(max_e, 2),
+            mean_elevation_m=round(mean_e, 2),
+            relief_m=round(relief, 2),
+            elevation_grid=[[round(float(v), 2) for v in row] for row in resampled_elev],
+            slope_grid=[[round(float(v), 1) for v in row] for row in resampled_slope],
+            dataset_name=win.dataset_name,
+            product_id=win.product_id,
+            crs=win.crs,
+            disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
+        )
 
 
 terrain_service = TerrainService()

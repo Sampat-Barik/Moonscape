@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 
 /** All application routes (hash-based, no extra dependency). */
-export const ROUTES = ["/", "/explorer", "/dashboard", "/hazards", "/compare", "/report"] as const;
+export const ROUTES = [
+  "/",
+  "/explorer",
+  "/dashboard",
+  "/hazards",
+  "/compare",
+  "/report",
+  "/credits",
+] as const;
 export type Route = (typeof ROUTES)[number];
 
 function parseHash(): Route {

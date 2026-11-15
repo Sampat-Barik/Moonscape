@@ -15,7 +15,7 @@ function ConfidenceBar({ value }: { value: number | null }) {
     <span className="flex items-center gap-2">
       <span className="h-1.5 w-20 overflow-hidden rounded bg-elevated">
         <span
-          className="block h-full rounded bg-gradient-to-r from-accent to-cyan"
+          className="block h-full rounded bg-gradient-to-r from-[#737373] to-[#F1F1EF]"
           style={{ width: `${pct}%` }}
         />
       </span>
@@ -59,7 +59,7 @@ function ItemTable({
             <tbody>
               {items.map((it, idx) => (
                 <tr key={it.id ?? idx} className="border-t border-divider hover:bg-white/5">
-                  <td className="px-3 py-2 font-mono text-cyan">{it.id ?? `#${idx + 1}`}</td>
+                  <td className="px-3 py-2 font-mono text-ink font-semibold">{it.id ?? `#${idx + 1}`}</td>
                   {columns.map((c) => (
                     <td key={c.label} className="px-3 py-2 font-mono text-slate-200">
                       {c.render(it)}
@@ -137,7 +137,7 @@ export default function HazardPanel({
           <p className="mt-1.5 kicker text-[10px]">rocks detected</p>
         </div>
         <div className="panel p-5 text-center">
-          <p className="truncate font-mono text-sm text-cyan">{model ?? "model not reported"}</p>
+          <p className="truncate font-mono text-sm text-ink">{model ?? "model not reported"}</p>
           <p className="mt-1.5 kicker text-[10px]">detection model</p>
         </div>
       </div>
@@ -156,8 +156,8 @@ export default function HazardPanel({
       )}
 
       <div className="panel p-5">
-        <h3 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-200">
-          <ShieldIcon className="h-4 w-4 text-accentsoft" /> Detection overlay
+        <h3 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-ink">
+          <ShieldIcon className="h-4 w-4 text-ink" /> Detection overlay
         </h3>
         {overlay ? (
           <div className="mt-3">

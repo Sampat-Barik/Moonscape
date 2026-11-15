@@ -20,8 +20,8 @@ export default function Footer() {
           </p>
         </div>
         <div>
-          <h4 className="font-condensed text-[0.7rem] font-semibold tracking-[0.2em] text-accent uppercase">
-            Backend Status
+          <h4 className="font-mono text-[0.68rem] tracking-[0.2em] text-ink uppercase">
+            Backend Telemetry
           </h4>
           <p className="mt-3 font-mono text-xs text-muted">
             API: {API_BASE_URL}
@@ -32,13 +32,13 @@ export default function Footer() {
           </p>
         </div>
         <div>
-          <h4 className="font-condensed text-[0.7rem] font-semibold tracking-[0.2em] text-accent uppercase">
-            Data &amp; Credits
+          <h4 className="font-mono text-[0.68rem] tracking-[0.2em] text-ink uppercase">
+            Data Provenance
           </h4>
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            Imagery: NASA/GSFC/ASU (LRO LROC, LOLA). Apollo mission photographs
-            courtesy NASA. 3D globe rendered with three.js. Moonscape is an
-            independent educational project — not affiliated with or endorsed by NASA.
+            Imagery: NASA/GSFC/ASU (LRO LROC, LOLA). 3D lunar planetary visualization
+            rendered with Three.js &amp; CesiumJS. Independent educational mission analysis project —
+            not affiliated with NASA.
           </p>
         </div>
       </div>

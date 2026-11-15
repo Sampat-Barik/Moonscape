@@ -411,3 +411,35 @@ export interface HorizonsQueryResponse {
   query_duration_ms: number;
   error_message?: string | null;
 }
+
+// ============================================================================
+// 3D Terrain Elevation Mesh (Mode B Detailed Terrain Relief)
+// ============================================================================
+
+export interface TerrainMeshRequest {
+  latitude: number;
+  longitude: number;
+  radius_m?: number;
+  grid_size?: number;
+}
+
+export interface TerrainMeshResponse {
+  status: string;
+  latitude: number;
+  longitude: number;
+  radius_m: number;
+  grid_size: number;
+  resolution_m: number;
+  center_x_polar_m: number;
+  center_y_polar_m: number;
+  min_elevation_m: number;
+  max_elevation_m: number;
+  mean_elevation_m: number;
+  relief_m: number;
+  elevation_grid: number[][];
+  slope_grid: number[][];
+  dataset_name: string;
+  product_id: string;
+  crs: string;
+  disclaimer: string;
+}

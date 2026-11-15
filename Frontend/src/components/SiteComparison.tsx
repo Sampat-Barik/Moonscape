@@ -140,7 +140,7 @@ export default function SiteComparison() {
               <>
                 <button
                   type="button"
-                  className="chip cursor-pointer transition-colors hover:border-accent/40 hover:text-cyan"
+                  className="chip cursor-pointer transition-colors hover:border-ink/40 hover:text-ink"
                   onClick={selectAll}
                 >
                   Select All ({sites.length})
@@ -191,24 +191,24 @@ export default function SiteComparison() {
                   onClick={() => toggle(s.site_id)}
                   type="button"
                   className={`group relative rounded border p-4 text-left transition-all ${active
-                      ? "border-accent/60 bg-accent/8 shadow-[0_0_20px_-6px_rgba(21,158,234,0.3)]"
-                      : "border-divider bg-transparent hover:border-accent/30 hover:bg-elevated/40"
+                      ? "border-ink/60 bg-white/5 shadow-[0_0_20px_-6px_rgba(255,255,255,0.12)]"
+                      : "border-divider bg-transparent hover:border-white/30 hover:bg-elevated/40"
                     }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="font-display text-sm font-semibold text-ink group-hover:text-cyan">
+                    <span className="font-display text-sm font-semibold text-ink group-hover:text-white">
                       {s.name ?? s.site_id}
                     </span>
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${active
-                          ? "border-accent bg-accent text-space"
-                          : "border-divider text-transparent group-hover:border-accent/50"
+                          ? "border-ink bg-ink text-space"
+                          : "border-divider text-transparent group-hover:border-white/40"
                         }`}
                     >
                       <CheckIcon className="h-3.5 w-3.5" />
                     </span>
                   </div>
-                  <p className="mt-1 font-mono text-xs text-cyan">
+                  <p className="mt-1 font-mono text-xs text-muted">
                     {fmtCoord(s.latitude, s.longitude)}
                   </p>
                   {s.description && (
@@ -271,7 +271,7 @@ export default function SiteComparison() {
                         <div className="font-display font-semibold text-ink">
                           {s.name ?? s.site_id}
                         </div>
-                        <div className="mt-0.5 font-mono text-[11px] font-normal text-cyan">
+                        <div className="mt-0.5 font-mono text-[11px] font-normal text-muted">
                           {typeof s.latitude === "number" && typeof s.longitude === "number"
                             ? fmtCoord(s.latitude, s.longitude)
                             : "coords n/a"}
@@ -307,7 +307,7 @@ export default function SiteComparison() {
                                 <div>
                                   <div className="flex items-center gap-2">
                                     <span
-                                      className={`font-mono text-base font-semibold ${isBest ? "text-cyan" : "text-ink"
+                                      className={`font-mono text-base font-semibold ${isBest ? "text-white" : "text-ink"
                                         }`}
                                     >
                                       {fmtNum(v, m.digits ?? 2)}
@@ -316,7 +316,7 @@ export default function SiteComparison() {
                                       </span>
                                     </span>
                                     {isBest && (
-                                      <span className="rounded bg-accent/15 px-1.5 py-0.5 font-condensed text-[10px] uppercase tracking-wider text-cyan">
+                                      <span className="rounded border border-white/20 bg-white/10 px-1.5 py-0.5 font-condensed text-[10px] uppercase tracking-wider text-white">
                                         Advantage
                                       </span>
                                     )}
@@ -325,7 +325,7 @@ export default function SiteComparison() {
                                     <div className="mt-1.5 h-1 w-28 overflow-hidden rounded bg-elevated">
                                       <div
                                         className={`h-full rounded ${isBest
-                                            ? "bg-gradient-to-r from-accent to-cyan"
+                                            ? "bg-gradient-to-r from-[#888888] to-[#F1F1EF]"
                                             : "bg-muted/40"
                                           }`}
                                         style={{ width: `${pct}%` }}

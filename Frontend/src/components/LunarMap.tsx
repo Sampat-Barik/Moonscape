@@ -113,16 +113,16 @@ function makeRingTexture(color: string, size = 128): THREE.CanvasTexture {
   return t;
 }
 
-function makeLabelTexture(text: string, color = "#58D9F2"): THREE.CanvasTexture {
+function makeLabelTexture(text: string, color = "#F1F1EF"): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 512;
   c.height = 96;
   const ctx = c.getContext("2d")!;
-  ctx.font = "600 46px 'Space Grotesk', sans-serif";
+  ctx.font = "600 44px 'Space Grotesk', sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.shadowColor = "rgba(88,217,242,0.9)";
-  ctx.shadowBlur = 18;
+  ctx.shadowColor = "rgba(0,0,0,0.9)";
+  ctx.shadowBlur = 12;
   ctx.fillStyle = color;
   ctx.fillText(text, 256, 48);
   const t = new THREE.CanvasTexture(c);
@@ -307,7 +307,7 @@ export default function LunarMap(props: LunarMapProps) {
     group.add(
       new THREE.LineSegments(
         gratGeo,
-        new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.09 })
+        new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.12 })
       )
     );
 
@@ -322,11 +322,11 @@ export default function LunarMap(props: LunarMapProps) {
     group.add(
       new THREE.Line(
         ringGeo,
-        new THREE.LineBasicMaterial({ color: 0x58D9F2, transparent: true, opacity: 0.55 })
+        new THREE.LineBasicMaterial({ color: 0xD4D4D0, transparent: true, opacity: 0.65 })
       )
     );
     const spLabel = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: makeLabelTexture("SOUTH POLE"), transparent: true, depthWrite: false })
+      new THREE.SpriteMaterial({ map: makeLabelTexture("SOUTH POLE", "#F1F1EF"), transparent: true, depthWrite: false })
     );
     spLabel.position.copy(latLonToVec3(-90, 0, 1.06));
     spLabel.scale.set(0.5, 0.094, 1);
@@ -340,7 +340,7 @@ export default function LunarMap(props: LunarMapProps) {
       const { markers: ms = [], selected: sel } = propsRef.current;
       for (const m of ms) {
         const s = new THREE.Sprite(
-          new THREE.SpriteMaterial({ map: makeDotTexture(m.color ?? "#fbbf24"), transparent: true, depthWrite: false })
+          new THREE.SpriteMaterial({ map: makeDotTexture(m.color ?? "#E5E5E2"), transparent: true, depthWrite: false })
         );
         s.position.copy(latLonToVec3(m.lat, m.lon, 1.012));
         s.scale.set(0.05, 0.05, 1);
@@ -349,12 +349,12 @@ export default function LunarMap(props: LunarMapProps) {
       }
       if (sel) {
         const dot = new THREE.Sprite(
-          new THREE.SpriteMaterial({ map: makeDotTexture("#159EEA"), transparent: true, depthWrite: false })
+          new THREE.SpriteMaterial({ map: makeDotTexture("#FFFFFF"), transparent: true, depthWrite: false })
         );
         dot.position.copy(latLonToVec3(sel.lat, sel.lon, 1.016));
         dot.scale.set(0.075, 0.075, 1);
         const ring = new THREE.Sprite(
-          new THREE.SpriteMaterial({ map: makeRingTexture("#58D9F2"), transparent: true, depthWrite: false })
+          new THREE.SpriteMaterial({ map: makeRingTexture("#FFFFFF"), transparent: true, depthWrite: false })
         );
         ring.position.copy(latLonToVec3(sel.lat, sel.lon, 1.014));
         ring.scale.set(0.17, 0.17, 1);

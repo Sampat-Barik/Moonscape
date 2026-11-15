@@ -222,6 +222,15 @@ class LandingSiteDetectionService:
             f"derived from {window.dataset_name} ({window.dx_meters:.1f}m resolution)."
         )
 
+        warnings: List[str] = []
+        if total_detected == 0:
+            warnings.append("No contiguous regions met the required landing footprint diameter.")
+        if window.dx_meters > req.min_landing_diameter_meters:
+            warnings.append(
+                f"DEM pixel resolution ({window.dx_meters:.1f}m) is coarser than requested minimum landing diameter "
+                f"({req.min_landing_diameter_meters:.1f}m). Sub-pixel boulder hazards (<{window.dx_meters:.1f}m) require LROC NAC DTM stereo validation."
+            )
+
         return DetectLandingSitesResponse(
             status="success" if total_detected > 0 else "no_sites_found",
             center_lat=req.center_lat,
@@ -232,7 +241,7 @@ class LandingSiteDetectionService:
             dataset_metadata=dataset_meta,
             summary=summary,
             mission_profile=profile,
-            warnings=[] if total_detected > 0 else ["No contiguous regions met the required landing footprint diameter."],
+            warnings=warnings,
         )
 
 

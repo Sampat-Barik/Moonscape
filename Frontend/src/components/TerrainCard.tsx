@@ -45,10 +45,10 @@ export default function TerrainCard({
     <div className="panel p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-cyan">
+          <span className="flex h-9 w-9 items-center justify-center rounded border border-divider/60 bg-surface/70 text-ink">
             {icon}
           </span>
-          <h3 className="text-sm font-semibold tracking-wide text-slate-200">{title}</h3>
+          <h3 className="text-sm font-semibold tracking-wide text-ink font-display">{title}</h3>
         </div>
         <span
           className={`h-2 w-2 rounded-full ${available ? "bg-good" : "bg-warn"}`}

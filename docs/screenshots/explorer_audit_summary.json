@@ -1,0 +1,93 @@
+{
+  "viewports": [
+    {
+      "name": "1920px",
+      "width": 1920,
+      "height": 1080,
+      "metrics": {
+        "headerHeight": 64,
+        "toolbarTop": 64,
+        "toolbarHeight": 52,
+        "sidebarWidth": 380,
+        "hasCanvas": true,
+        "isOverlapping": false
+      },
+      "screenshot": "explorer_1920px.png"
+    },
+    {
+      "name": "1440px",
+      "width": 1440,
+      "height": 900,
+      "metrics": {
+        "headerHeight": 64,
+        "toolbarTop": 64,
+        "toolbarHeight": 52,
+        "sidebarWidth": 380,
+        "hasCanvas": true,
+        "isOverlapping": false
+      },
+      "screenshot": "explorer_1440px.png"
+    },
+    {
+      "name": "1280px",
+      "width": 1280,
+      "height": 800,
+      "metrics": {
+        "headerHeight": 64,
+        "toolbarTop": 64,
+        "toolbarHeight": 52,
+        "sidebarWidth": 380,
+        "hasCanvas": true,
+        "isOverlapping": false
+      },
+      "screenshot": "explorer_1280px.png"
+    },
+    {
+      "name": "1024px",
+      "width": 1024,
+      "height": 768,
+      "metrics": {
+        "headerHeight": 64,
+        "toolbarTop": 64,
+        "toolbarHeight": 52,
+        "sidebarWidth": 380,
+        "hasCanvas": true,
+        "isOverlapping": false
+      },
+      "screenshot": "explorer_1024px.png"
+    },
+    {
+      "name": "768px",
+      "width": 768,
+      "height": 1024,
+      "metrics": {
+        "headerHeight": 64,
+        "toolbarTop": 64,
+        "toolbarHeight": 52,
+        "sidebarWidth": 360,
+        "hasCanvas": true,
+        "isOverlapping": false
+      },
+      "screenshot": "explorer_768px.png"
+    },
+    {
+      "name": "390px",
+      "width": 390,
+      "height": 844,
+      "metrics": {
+        "headerHeight": 64,
+        "toolbarTop": 64,
+        "toolbarHeight": 52,
+        "sidebarWidth": 390,
+        "hasCanvas": true,
+        "isOverlapping": false
+      },
+      "screenshot": "explorer_390px.png"
+    }
+  ],
+  "modeSwitching": {},
+  "popovers": {},
+  "errors": [
+    "[Log Error] Failed to load resource: net::ERR_NAME_NOT_RESOLVED"
+  ]
+}

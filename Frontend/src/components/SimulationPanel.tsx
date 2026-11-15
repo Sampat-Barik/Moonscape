@@ -159,8 +159,8 @@ export default function SimulationPanel() {
             key={p.label}
             className={`chip cursor-pointer transition-all ${
               epochInput === p.epoch
-                ? "!border-accent !text-cyan bg-accent/10"
-                : "hover:!border-accent/40 hover:!text-cyan"
+                ? "!border-ink !text-ink bg-white/10"
+                : "hover:!border-ink/40 hover:!text-ink"
             }`}
             onClick={() => handlePreset(p)}
           >
@@ -255,7 +255,7 @@ export default function SimulationPanel() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <div className="rounded-lg border border-divider/60 bg-elevated/40 p-3 text-center">
               <span className="text-[10px] uppercase tracking-wider text-muted block">Sunlight</span>
-              <p className="mt-1 font-mono text-xl font-semibold text-cyan">
+              <p className="mt-1 font-mono text-xl font-semibold text-ink">
                 {fmtNum(simulation.sunlight_percentage, 1)}%
               </p>
               <span className="text-[10px] text-muted font-mono">{fmtNum(simulation.total_sunlight_hours, 0)} hrs</span>
@@ -290,7 +290,7 @@ export default function SimulationPanel() {
             </div>
             <div className="rounded-lg border border-divider/60 bg-elevated/40 p-3 text-center">
               <span className="text-[10px] uppercase tracking-wider text-muted block">Combined Ops</span>
-              <p className="mt-1 font-mono text-xl font-semibold text-accent">
+              <p className="mt-1 font-mono text-xl font-semibold text-ink">
                 {simulation.combined_ops_percentage !== null && simulation.combined_ops_percentage !== undefined
                   ? `${fmtNum(simulation.combined_ops_percentage, 1)}%`
                   : "n/a"}
@@ -306,8 +306,8 @@ export default function SimulationPanel() {
                 Solar Elevation &amp; Earth Line-of-Sight Time Series
               </span>
               <div className="flex items-center gap-4 text-[11px] font-mono">
-                <span className="flex items-center gap-1.5 text-cyan">
-                  <span className="h-2 w-3 rounded-sm bg-cyan inline-block" /> Sun Elevation (deg)
+                <span className="flex items-center gap-1.5 text-ink">
+                  <span className="h-2 w-3 rounded-sm bg-ink inline-block" /> Sun Elevation (deg)
                 </span>
                 <span className="flex items-center gap-1.5 text-good">
                   <span className="h-2 w-3 rounded-sm bg-good inline-block" /> Earth Elevation (deg)
@@ -333,9 +333,10 @@ export default function SimulationPanel() {
                     />
                     <text
                       x={padLeft - 6}
-                      y={getY(deg) + 3}
+                      y={getY(deg)}
+                      dominantBaseline="middle"
                       textAnchor="end"
-                      fill="#91A4B8"
+                      fill="#999999"
                       fontSize="9"
                       fontFamily="'IBM Plex Mono', monospace"
                     >
@@ -357,7 +358,7 @@ export default function SimulationPanel() {
                       y={padTop}
                       width={Math.max(1, nextX - x)}
                       height={chartH}
-                      fill={isDay ? "rgba(88,217,242,0.04)" : "rgba(10,15,30,0.15)"}
+                      fill={isDay ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.35)"}
                     />
                   );
                 })}
@@ -367,7 +368,7 @@ export default function SimulationPanel() {
                   <path
                     d={earthPath}
                     fill="none"
-                    stroke="#10b981"
+                    stroke="#4ade80"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -379,7 +380,7 @@ export default function SimulationPanel() {
                   <path
                     d={sunPath}
                     fill="none"
-                    stroke="#38bdf8"
+                    stroke="#FFFFFF"
                     strokeWidth="2.2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -396,7 +397,7 @@ export default function SimulationPanel() {
                       x={getX(idx)}
                       y={svgHeight - 8}
                       textAnchor="middle"
-                      fill="#91A4B8"
+                      fill="#999999"
                       fontSize="9"
                       fontFamily="'IBM Plex Mono', monospace"
                     >

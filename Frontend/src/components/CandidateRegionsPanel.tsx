@@ -19,11 +19,13 @@ export default function CandidateRegionsPanel() {
 
   const [maxSlope, setMaxSlope] = useState(8.0);
   const [minDiameter, setMinDiameter] = useState(50.0);
+  const [maxRoughness, setMaxRoughness] = useState(1.5);
 
   const handleDetect = () => {
     void runDetectSites(selection, {
       max_slope_deg: maxSlope,
       min_landing_diameter_meters: minDiameter,
+      max_roughness_m: maxRoughness,
     });
   };
 
@@ -64,7 +66,7 @@ export default function CandidateRegionsPanel() {
       </div>
 
       {/* Detection constraints controls */}
-      <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg border border-divider/60 bg-elevated/30 p-3 sm:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-4 rounded-lg border border-divider/60 bg-elevated/30 p-3 sm:grid-cols-5">
         <div>
           <label className="text-[10px] uppercase tracking-wider text-muted block">Max Slope</label>
           <div className="mt-1 flex items-center gap-1.5">
@@ -75,34 +77,57 @@ export default function CandidateRegionsPanel() {
               step="0.5"
               value={maxSlope}
               onChange={(e) => setMaxSlope(Number(e.target.value))}
-              className="input !py-1 !px-2 text-xs font-mono w-20"
+              className="input !py-1 !px-2 text-xs font-mono w-16"
             />
-            <span className="text-xs text-muted">deg</span>
+            <span className="text-xs text-muted">°</span>
           </div>
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-wider text-muted block">Min Diameter</label>
+          <label className="text-[10px] uppercase tracking-wider text-muted block">Max Rough</label>
           <div className="mt-1 flex items-center gap-1.5">
             <input
               type="number"
-              min="20"
-              max="200"
-              step="10"
-              value={minDiameter}
-              onChange={(e) => setMinDiameter(Number(e.target.value))}
-              className="input !py-1 !px-2 text-xs font-mono w-20"
+              min="0.1"
+              max="5.0"
+              step="0.1"
+              value={maxRoughness}
+              onChange={(e) => setMaxRoughness(Number(e.target.value))}
+              className="input !py-1 !px-2 text-xs font-mono w-16"
             />
             <span className="text-xs text-muted">m</span>
           </div>
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-wider text-muted block">Search Radius</label>
+          <label className="text-[10px] uppercase tracking-wider text-muted block">Min Diam</label>
+          <div className="mt-1 flex items-center gap-1.5">
+            <input
+              type="number"
+              min="20"
+              max="500"
+              step="10"
+              value={minDiameter}
+              onChange={(e) => setMinDiameter(Number(e.target.value))}
+              className="input !py-1 !px-2 text-xs font-mono w-16"
+            />
+            <span className="text-xs text-muted">m</span>
+          </div>
+        </div>
+        <div>
+          <label className="text-[10px] uppercase tracking-wider text-muted block">Radius</label>
           <p className="mt-1 text-xs font-mono text-ink">{selection.radius_m || 1500} m</p>
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-wider text-muted block">Detection Status</label>
-          <p className="mt-1 text-xs font-mono text-cyan">
-            {detectedZones.length > 0 ? `${detectedZones.length} safe zones` : "No active scan"}
+          <label className="text-[10px] uppercase tracking-wider text-muted block">Status</label>
+          <p className="mt-1 text-xs font-mono text-ink">
+            {detectStatus === "loading"
+              ? "Scanning…"
+              : detectStatus === "ready"
+              ? detectedZones.length > 0
+                ? `${detectedZones.length} safe zone(s)`
+                : "Scan complete (0 zones)"
+              : detectStatus === "error"
+              ? "Scan failed"
+              : "No active scan"}
           </p>
         </div>
       </div>
@@ -124,9 +149,14 @@ export default function CandidateRegionsPanel() {
       )}
 
       {detectStatus === "ready" && detectedZones.length === 0 && (
-        <p className="mt-5 text-center text-xs text-muted">
-          No contiguous landing patches with diameter &ge; {minDiameter}m and slope &le; {maxSlope}° were found in this {selection.radius_m}m radius window.
-        </p>
+        <div className="mt-5 rounded-lg border border-divider/60 bg-elevated/20 p-4 text-center">
+          <p className="text-xs text-muted">
+            No contiguous landing patches with diameter &ge; {minDiameter}m, slope &le; {maxSlope}°, and roughness &le; {maxRoughness}m were found in this {selection.radius_m}m radius window.
+          </p>
+          <p className="mt-1 text-[11px] text-muted/70">
+            DEM resolution baseline exceeds local crater micro-relief constraints or slopes exceed limit. Try expanding search radius or targeting flatter plateau terrain.
+          </p>
+        </div>
       )}
 
       {detectedZones.length > 0 && (
@@ -149,7 +179,7 @@ export default function CandidateRegionsPanel() {
                 {detectedZones.slice(0, 8).map((zone) => (
                   <tr key={zone.zone_id} className="hover:bg-white/5 transition-colors">
                     <td className="px-3 py-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded bg-accent/15 text-[11px] font-semibold text-cyan">
+                      <span className="flex h-5 w-5 items-center justify-center rounded border border-divider/60 bg-surface/70 text-[11px] font-semibold text-ink">
                         #{zone.safety_rank}
                       </span>
                     </td>

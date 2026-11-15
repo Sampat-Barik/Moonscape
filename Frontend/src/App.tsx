@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Hazards from "@/pages/Hazards";
 import Compare from "@/pages/Compare";
 import Report from "@/pages/Report";
+import Credits from "@/pages/Credits";
 
 export default function App() {
   return (
@@ -36,14 +37,15 @@ function Shell() {
       <div className="relative z-10 flex min-h-screen flex-col">
         <Navbar route={route} navigate={navigate} />
 
-        {/* Explorer is full-screen (manages its own layout), other pages get pt-16 */}
-        <main className={`flex-1 ${isHome || isExplorer ? "" : "pt-16"}`}>
+        {/* Home manages hero offset; Explorer and other views start cleanly below Level 1 navigation */}
+        <main className={`flex-1 ${isHome ? "" : "pt-16 flex flex-col min-h-0"}`}>
           {route === "/" && <Home navigate={navigate} />}
           {route === "/explorer" && <Explorer navigate={navigate} />}
           {route === "/dashboard" && <Dashboard navigate={navigate} />}
           {route === "/hazards" && <Hazards navigate={navigate} />}
           {route === "/compare" && <Compare navigate={navigate} />}
           {route === "/report" && <Report navigate={navigate} />}
+          {route === "/credits" && <Credits navigate={navigate} />}
         </main>
 
         {/* No footer on Explorer (full-screen mode) */}

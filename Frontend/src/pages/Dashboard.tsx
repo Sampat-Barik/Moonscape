@@ -39,6 +39,7 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
     coverage,
     detectStatus,
     runDetectSites,
+    simulation,
     simulationStatus,
     runSimulation,
   } = useApp();
@@ -144,6 +145,16 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
   const sourceOf = (block: object | null) => pickString(block, ["source", "dataset"]) ?? globalSources;
   const psr = pickBool(il, ["psr", "psr_nearby", "has_psr"]);
 
+  const analysisLat = analysis?.latitude ?? (analysis as any)?.center_lat;
+  const analysisLon = analysis?.longitude ?? (analysis as any)?.center_lon;
+  const isStale =
+    analysis &&
+    analysisLat !== undefined &&
+    analysisLon !== undefined &&
+    (Math.abs(analysisLat - selection.latitude) > 0.0005 ||
+      Math.abs(analysisLon - selection.longitude) > 0.0005 ||
+      Math.abs((analysis.radius_m ?? (analysis as any).radius_meters ?? 0) - selection.radius_m) > 1);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
 
@@ -171,7 +182,7 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
 
       {/* ===== Location context strip ===== */}
       <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-divider pb-4 text-[13px] text-muted">
-        <span className="font-mono text-cyan">{fmtCoord(selection.latitude, selection.longitude)}</span>
+        <span className="font-mono text-ink font-semibold">{fmtCoord(selection.latitude, selection.longitude)}</span>
         <span>radius: <span className="font-mono text-ink">{selection.radius_m} m</span></span>
         {coverage && (
           <span className="flex items-center gap-2">
@@ -194,6 +205,25 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
         )}
         {globalSources && <span>sources: <span className="text-ink">{globalSources}</span></span>}
       </div>
+
+      {/* Stale location warning */}
+      {isStale && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warn/40 bg-warn/10 p-4 text-xs text-warn">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold uppercase tracking-wider">Analysis Stale:</span>
+            <span>
+              Metrics displayed are for previous coordinate ({fmtCoord(analysis.latitude ?? 0, analysis.longitude ?? 0)}). New coordinates selected ({fmtCoord(selection.latitude, selection.longitude)}).
+            </span>
+          </div>
+          <button
+            className="btn-primary !py-1 !px-3 !text-xs shrink-0"
+            onClick={onReRun}
+            disabled={analysisStatus === "loading"}
+          >
+            Re-run Analysis Now
+          </button>
+        </div>
+      )}
 
       {/* Re-run feedback */}
       {analysisStatus === "loading" && (
@@ -233,8 +263,9 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
           source={sourceOf(sl)}
           stats={[
             { label: "Max", value: pickNumber(sl, ["max_deg", "max"]), unit: "°", digits: 1 },
-            { label: "P95", value: pickNumber(sl, ["p95_deg", "p95"]), unit: "°", digits: 1 },
+            { label: "P95", value: pickNumber(sl, ["p95_deg", "p95_value", "p95"]), unit: "°", digits: 1 },
           ]}
+          note={pickString(sl, ["method"]) ?? "Horn (1981) 8-neighbor gradient operator on DEM"}
         />
         <TerrainCard
           title="Roughness"
@@ -244,26 +275,54 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
           digits={2}
           available={rg !== null && rg !== undefined}
           source={sourceOf(rg)}
-          stats={[{ label: "Max", value: pickNumber(rg, ["max_m", "max"]), unit: "m" }]}
+          stats={[
+            { label: "Max", value: pickNumber(rg, ["max_m", "max"]), unit: "m", digits: 2 },
+            { label: "Baseline", value: pickNumber(rg, ["baseline_m", "roughness_baseline_m"]), unit: "m", digits: 0 },
+          ]}
+          note={pickString(rg, ["method", "roughness_method"]) ?? "RMS height deviation from local neighborhood mean"}
         />
         <TerrainCard
           title="Illumination & Comm"
           icon={<SunIcon className="h-5 w-5" />}
-          value={pickNumber(il, ["sunlight_percent", "sunlit_percent", "illumination_percent", "percent_sunlit", "percent", "value"])}
+          value={pickNumber(il, ["sunlight_percent", "sunlit_percent", "cumulative_illumination_pct", "illumination_percent", "percent_sunlit", "percent", "value"])}
           unit="% sunlit"
           digits={1}
           available={il !== null && il !== undefined}
           source={sourceOf(il)}
           stats={[
             { label: "Solar elevation", value: pickNumber(il, ["solar_elevation_deg", "solar_elevation", "sun_elevation_deg"]), unit: "°", digits: 1 },
-            { label: "Duration", value: pickNumber(il, ["sunlight_duration_days", "duration_days", "duration"]), unit: "days", digits: 1 },
+            {
+              label: simulationStatus === "ready" && simulation ? "Duration (sim)" : "Duration",
+              value:
+                simulationStatus === "ready" && simulation
+                  ? Number((simulation.total_sunlight_hours / 24).toFixed(1))
+                  : pickNumber(il, ["sunlight_duration_days", "duration_days", "duration"]),
+              unit: "days",
+              digits: 1,
+            },
           ]}
           extras={[
             { label: "PSR nearby", text: psr === null ? null : psr ? "yes" : "no" },
-            { label: "Earth Comm LOS", text: pickString(analysis, ["earth_visibility", "earth_visibility_state"]) ?? (pickBool(analysis, ["earth_visible", "has_earth_los"]) !== null ? (pickBool(analysis, ["earth_visible", "has_earth_los"]) ? "Direct LOS" : "Obscured") : null) },
-            { label: "Next sunset", text: pickString(il, ["sunset_time", "next_sunset", "sunset"]) },
+            {
+              label: "Earth Comm LOS",
+              text:
+                pickString(analysis, ["earth_visibility", "earth_visibility_state"]) ??
+                pickString(il, ["earth_visibility", "communication_link_status", "earth_visibility_state"]) ??
+                (pickBool(analysis, ["earth_visible", "has_earth_los"]) !== null
+                  ? (pickBool(analysis, ["earth_visible", "has_earth_los"]) ? "Direct LOS" : "Obscured")
+                  : null),
+            },
+            {
+              label: "Next sunset",
+              text: pickString(il, ["next_sunset", "next_sunset_iso", "sunset_time", "sunset"]),
+            },
           ]}
-          note={pickString(il, ["note", "description"])}
+          note={
+            pickString(il, ["time_period_evaluated", "description", "note"]) ??
+            (pickNumber(il, ["cumulative_illumination_pct", "sunlight_percent"]) !== null
+              ? "Multi-year cumulative solar ground truth (Barker et al. 2021). Instantaneous LOS evaluated via ephemeris & DEM."
+              : null)
+          }
         />
       </div>
 
@@ -315,11 +374,11 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
         <span className="kicker mb-4 block">Next Steps</span>
         <div className="grid gap-3 sm:grid-cols-3">
           <button
-            className="panel group flex items-center justify-between gap-3 p-5 text-left transition-colors hover:border-accent/40"
+            className="panel group flex items-center justify-between gap-3 p-5 text-left transition-colors hover:border-white/30"
             onClick={() => void goHazards()}
           >
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-accent/10 text-cyan">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-white/10 bg-white/5 text-ink">
                 <ShieldIcon className="h-5 w-5" />
               </span>
               <span>
@@ -327,14 +386,14 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
                 <span className="block text-[11px] text-muted">POST /api/hazards/predict</span>
               </span>
             </span>
-            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-cyan" />
+            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-white" />
           </button>
           <button
-            className="panel group flex items-center justify-between gap-3 p-5 text-left transition-colors hover:border-accent/40"
+            className="panel group flex items-center justify-between gap-3 p-5 text-left transition-colors hover:border-white/30"
             onClick={() => navigate("/report")}
           >
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-accent/10 text-cyan">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-white/10 bg-white/5 text-ink">
                 <SparkIcon className="h-5 w-5" />
               </span>
               <span>
@@ -342,14 +401,14 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
                 <span className="block text-[11px] text-muted">POST /api/ai/explain</span>
               </span>
             </span>
-            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-cyan" />
+            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-white" />
           </button>
           <button
-            className="panel group flex items-center justify-between gap-3 p-5 text-left transition-colors hover:border-accent/40"
+            className="panel group flex items-center justify-between gap-3 p-5 text-left transition-colors hover:border-white/30"
             onClick={() => navigate("/compare")}
           >
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-accent/10 text-cyan">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-white/10 bg-white/5 text-ink">
                 <TableIcon className="h-5 w-5" />
               </span>
               <span>
@@ -357,7 +416,7 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
                 <span className="block text-[11px] text-muted">POST /api/sites/compare</span>
               </span>
             </span>
-            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-cyan" />
+            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted transition-transform group-hover:translate-x-1 group-hover:text-white" />
           </button>
         </div>
       </div>

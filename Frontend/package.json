@@ -8,11 +8,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/unit.test.mjs"
+    "test": "node --test tests/unit.test.mjs tests/scientific_workflow.test.mjs tests/dashboard_workflow.test.mjs"
   },
   "dependencies": {
     "@types/three": "^0.187.0",
+    "cesium": "^1.147.0",
     "clsx": "2.1.1",
+    "motion": "^14.14.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tailwind-merge": "3.4.0",

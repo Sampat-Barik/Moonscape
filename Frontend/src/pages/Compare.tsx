@@ -15,7 +15,7 @@ export default function Compare({ navigate }: { navigate: (r: Route) => void }) 
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
             Evaluate candidate lunar South Pole landing sites side by side using real LOLA
             altimetry, surface slope gradients, and preliminary suitability scores (
-            <span className="font-mono text-cyan">POST /api/sites/compare</span>).
+            <span className="chip font-mono !py-0.5 !px-1.5 text-[11px]">POST /api/sites/compare</span>).
           </p>
         </div>
         <button

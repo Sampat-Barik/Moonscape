@@ -1,0 +1,142 @@
+{
+  "pages": [
+    {
+      "name": "home",
+      "route": "/#/",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/",
+      "webglCanvases": 2,
+      "bodyHeight": 4456,
+      "screenshot": "page_home_desktop.png"
+    },
+    {
+      "name": "explorer",
+      "route": "/#/explorer",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/explorer",
+      "webglCanvases": 2,
+      "bodyHeight": 1080,
+      "screenshot": "page_explorer_desktop.png"
+    },
+    {
+      "name": "dashboard",
+      "route": "/#/dashboard",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/dashboard",
+      "webglCanvases": 1,
+      "bodyHeight": 1341,
+      "screenshot": "page_dashboard_desktop.png"
+    },
+    {
+      "name": "hazards",
+      "route": "/#/hazards",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/hazards",
+      "webglCanvases": 1,
+      "bodyHeight": 1080,
+      "screenshot": "page_hazards_desktop.png"
+    },
+    {
+      "name": "compare",
+      "route": "/#/compare",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/compare",
+      "webglCanvases": 1,
+      "bodyHeight": 1117,
+      "screenshot": "page_compare_desktop.png"
+    },
+    {
+      "name": "report",
+      "route": "/#/report",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/report",
+      "webglCanvases": 1,
+      "bodyHeight": 1412,
+      "screenshot": "page_report_desktop.png"
+    },
+    {
+      "name": "credits",
+      "route": "/#/credits",
+      "title": "Moonscape — Lunar South Pole Landing-Site Analysis",
+      "url": "http://localhost:5173/#/credits",
+      "webglCanvases": 1,
+      "bodyHeight": 6799,
+      "screenshot": "page_credits_desktop.png"
+    }
+  ],
+  "errors": [
+    "[Log Error] Failed to load resource: net::ERR_NAME_NOT_RESOLVED"
+  ],
+  "fpsEstimates": {},
+  "threeContexts": 0,
+  "responsiveChecks": [
+    {
+      "viewport": "laptop_1280",
+      "page": "home",
+      "screenshot": "page_home_laptop_1280.png"
+    },
+    {
+      "viewport": "laptop_1280",
+      "page": "explorer",
+      "screenshot": "page_explorer_laptop_1280.png"
+    },
+    {
+      "viewport": "laptop_1280",
+      "page": "credits",
+      "screenshot": "page_credits_laptop_1280.png"
+    },
+    {
+      "viewport": "mobile_390",
+      "page": "home",
+      "screenshot": "page_home_mobile_390.png"
+    },
+    {
+      "viewport": "mobile_390",
+      "page": "explorer",
+      "screenshot": "page_explorer_mobile_390.png"
+    },
+    {
+      "viewport": "mobile_390",
+      "page": "credits",
+      "screenshot": "page_credits_mobile_390.png"
+    }
+  ],
+  "consoleLogs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    }
+  ]
+}

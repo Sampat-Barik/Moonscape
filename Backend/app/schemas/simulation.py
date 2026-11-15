@@ -20,12 +20,30 @@ class VisibilitySimulationRequest(BaseModel):
         if isinstance(data, dict):
             if "latitude" in data and "lat" not in data:
                 data["lat"] = data["latitude"]
+            elif "center_lat" in data and "lat" not in data:
+                data["lat"] = data["center_lat"]
+
             if "longitude" in data and "lon" not in data:
                 data["lon"] = data["longitude"]
+            elif "center_lon" in data and "lon" not in data:
+                data["lon"] = data["center_lon"]
+
             if "start_epoch" in data and "start_epoch_iso" not in data:
                 data["start_epoch_iso"] = data["start_epoch"]
+            elif "start_time_iso" in data and "start_epoch_iso" not in data:
+                data["start_epoch_iso"] = data["start_time_iso"]
+            elif "start_time" in data and "start_epoch_iso" not in data:
+                data["start_epoch_iso"] = data["start_time"]
+            elif "epoch" in data and "start_epoch_iso" not in data:
+                data["start_epoch_iso"] = data["epoch"]
+
             if "step" in data and "step_hours" not in data:
                 data["step_hours"] = data["step"]
+            elif "time_step_hours" in data and "step_hours" not in data:
+                data["step_hours"] = data["time_step_hours"]
+
+            if "duration" in data and "duration_days" not in data:
+                data["duration_days"] = data["duration"]
         return data
 
 
