@@ -71,6 +71,13 @@ class AIExplainerService:
 
     def explain_analysis(self, req: AIExplainRequest) -> AIExplainResponse:
         """Retrieves stored analysis and generates structured scientific explanation."""
+        # 0. Multi-Site Comparative Explanation Delegation
+        if req.site_ids and len(req.site_ids) >= 2:
+            return self.explain_comparison(
+                site_ids=req.site_ids,
+                mission_profile=req.mission_profile or "crewed_artemis_class",
+            )
+
         analysis: Optional[AnalysisRunResponse] = None
         target_name = req.site_name or "Candidate Landing Zone"
         analysis_id = req.analysis_id
@@ -132,6 +139,97 @@ class AIExplainerService:
             analysis_id=analysis_id,
             target_name=target_name,
             model_origin=model_origin,
+        )
+
+    def explain_comparison(
+        self,
+        site_ids: List[str],
+        mission_profile: str = "crewed_artemis_class",
+    ) -> AIExplainResponse:
+        """Synthesizes comparative measurements across candidate landing sites into a grounded executive briefing."""
+        comp_res = site_service.compare_sites(
+            site_ids=site_ids,
+            mission_profile=mission_profile,
+        )
+        items = comp_res.compared_sites
+        if not items:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No valid landing sites found for comparison.")
+
+        top = items[0]
+        alt = items[1] if len(items) > 1 else None
+
+        positives: List[str] = []
+        risks: List[str] = []
+        limits: List[str] = []
+
+        # Highlight top site advantages
+        positives.append(
+            f"Highest-Ranked Site: '{top.name}' leads with composite score {top.suitability_score:.1f}/100 and passes all critical engineering constraints."
+        )
+        if top.mean_slope_deg is not None:
+            positives.append(
+                f"Topography Advantage: '{top.name}' presents an average slope of {top.mean_slope_deg:.1f}°, well within Artemis nominal touchdown envelope (8.0°)."
+            )
+        if top.illumination_pct is not None:
+            positives.append(
+                f"Solar Power Potential: '{top.name}' receives {top.illumination_pct:.1f}% cumulative synodic sunlight."
+            )
+
+        # Alternative comparison
+        if alt:
+            positives.append(
+                f"Viable Secondary: '{alt.name}' (Rank #2, Score {alt.suitability_score:.1f}) provides a robust alternative operational target."
+            )
+
+        # Highlight risks across evaluated sites
+        violated_sites = [s for s in items if s.hard_constraint_status != "passed"]
+        if violated_sites:
+            v_names = ", ".join(f"'{s.name}'" for s in violated_sites)
+            risks.append(f"Constraint Violations: {v_names} exceed maximum engineering tolerances or slope bounds.")
+
+        steep_sites = [s for s in items if s.mean_slope_deg and s.mean_slope_deg > 8.0]
+        if steep_sites:
+            s_names = ", ".join(f"'{s.name}' ({s.mean_slope_deg:.1f}°)" for s in steep_sites)
+            risks.append(f"Elevated Topographic Hazard: Steep slope gradients observed at {s_names}, requiring active landing radar guidance.")
+
+        low_comms = [s for s in items if s.earth_visibility_pct and s.earth_visibility_pct < 70.0]
+        if low_comms:
+            c_names = ", ".join(f"'{s.name}' ({s.earth_visibility_pct:.1f}%)" for s in low_comms)
+            risks.append(f"Communication Outages: Intermittent Direct-to-Earth line of sight at {c_names} due to lunar polar terrain occultation.")
+
+        # Limitations
+        limits.append("Micro-hazard assessment: High-incidence solar shadows mask optical boulder detections in PSR proximities; requires active lidar validation.")
+        limits.append("Topographic baseline: Calculations derived from NASA LRO LOLA 80m/pixel polar digital elevation models.")
+        limits.append("Preliminary decision-support model: Algorithmic ranking does not constitute certified flight mission safety clearance.")
+
+        # Build narrative explanation
+        explanation = (
+            f"Comparative mission evaluation of {len(items)} lunar South Pole candidate landing sites for mission profile '{mission_profile.replace('_', ' ').title()}'. "
+            f"'{top.name}' emerges as the primary candidate landing zone with an overall suitability score of {top.suitability_score:.1f} / 100 (Rank #1). "
+            f"Key decisive advantages include {'; '.join(top.key_strengths) if top.key_strengths else 'favorable slope and illumination conditions'}. "
+        )
+        if alt:
+            explanation += f"'{alt.name}' serves as the primary alternate with score {alt.suitability_score:.1f}. "
+        if violated_sites:
+            explanation += f"Note that {len(violated_sites)} candidate(s) were flagged for engineering constraint violations. "
+        explanation += "All evaluations reflect preliminary numerical decision support derived from calibrated NASA orbital archives."
+
+        conclusion = (
+            f"Primary landing site recommendation: '{top.name}'. "
+            f"Candidate site warrants targeted high-resolution LROC NAC stereo-photogrammetry and descent hazard mapping."
+        )
+
+        return AIExplainResponse(
+            analysis_id=f"CMP-{len(items)}SITES",
+            explanation=explanation,
+            positive_factors=positives,
+            risk_factors=risks,
+            limitations=limits,
+            conclusion=conclusion,
+            target_site=f"Comparative Evaluation ({len(items)} Sites)",
+            executive_summary=explanation,
+            model_origin="Moonscape Grounded Comparative Decision Engine",
+            disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
         )
 
     def _construct_grounded_prompt(

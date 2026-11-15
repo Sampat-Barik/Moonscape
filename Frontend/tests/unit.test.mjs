@@ -139,9 +139,10 @@ describe("6. Coordinate Selection vs API Request Payload Contract", () => {
   const PRESETS = [
     { label: "South Pole", lat: -90, lon: 0 },
     { label: "Shackleton Rim", lat: -89.9, lon: 0 },
-    { label: "Connecting Ridge", lat: -89.42, lon: 34 },
-    { label: "Faustini Rim", lat: -87.2, lon: 80 },
-    { label: "Malapert Massif", lat: -86.5, lon: 0 },
+    { label: "Connecting Ridge", lat: -89.44, lon: 222.5 },
+    { label: "Faustini Rim", lat: -87.1, lon: 77.0 },
+    { label: "Malapert Massif", lat: -84.9, lon: 12.9 },
+    { label: "de Gerlache Rim", lat: -88.5, lon: 271.7 },
   ];
 
   test("all quick presets are strictly within the South Pole region [-90, -80]", () => {

@@ -16,6 +16,8 @@
  */
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { TargetIcon } from "./icons";
 
 export interface MapMarker {
   lat: number;
@@ -190,7 +192,13 @@ export default function LunarMap(props: LunarMapProps) {
     focusSite: (lat: number, lon: number) => void;
     syncMarkers: () => void;
     switchLayer?: (layer: string) => void;
+    zoomIn: () => void;
+    zoomOut: () => void;
   } | null>(null);
+
+  const handleZoomIn = () => apiRef.current?.zoomIn();
+  const handleZoomOut = () => apiRef.current?.zoomOut();
+  const handleResetView = () => apiRef.current?.focusSouthPole();
 
   const { markers, selected, focusSouthPoleSignal, focusSiteSignal } = props;
 
@@ -224,7 +232,12 @@ export default function LunarMap(props: LunarMapProps) {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.setSize(mount.clientWidth, mount.clientHeight, false);
+    renderer.setClearColor(0x000000, 0);
+    renderer.domElement.style.display = "block";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+    renderer.domElement.style.outline = "none";
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -234,7 +247,38 @@ export default function LunarMap(props: LunarMapProps) {
       0.1,
       100
     );
-    camera.position.set(0, 0.35, 2.9);
+
+    // Calculate dynamic Fit Globe distance ensuring the Moon occupies ~74% of the limiting viewport dimension
+    const calculateFitDistance = (w: number, h: number, radius = 1.0) => {
+      const aspect = w / Math.max(h, 1);
+      const tanHalfFov = Math.tan((42 / 2) * (Math.PI / 180));
+      const fillRatio = 0.74;
+      const hDist = radius / (fillRatio * tanHalfFov);
+      const wDist = radius / (fillRatio * tanHalfFov * aspect);
+      return Math.max(hDist, wDist);
+    };
+
+    const initialFitDist = calculateFitDistance(
+      mount.clientWidth || window.innerWidth,
+      mount.clientHeight || window.innerHeight,
+      1.0
+    );
+
+    // Position camera along +Z axis directly facing origin (0, 0, 0)
+    camera.position.set(0, 0, initialFitDist);
+    camera.lookAt(0, 0, 0);
+
+    // Three.js OrbitControls: industry-standard orbiting anchored to globe origin (0, 0, 0)
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enablePan = false; // Strictly lock pan so target never drifts from (0, 0, 0)
+    controls.minDistance = 1.35; // Surface clearance margin at R = 1.0
+    controls.maxDistance = 6.0;
+    controls.zoomToCursor = false; // Zoom strictly scales toward origin (0, 0, 0)
+    controls.rotateSpeed = 0.65;
+    controls.zoomSpeed = 0.85;
 
     // Lighting: hemisphere for subtle sky fill + directional sun + subtle fill
     const hemi = new THREE.HemisphereLight(0x9fb8d4, 0x1a2a3a, 0.45);
@@ -364,23 +408,18 @@ export default function LunarMap(props: LunarMapProps) {
     };
     syncMarkers();
 
-    // --- interaction: drag rotate / wheel zoom / click pick ----------------
+    // --- interaction: raycasting & OrbitControls ---------------------------
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
-    let down = false;
-    let moved = 0;
-    let lastX = 0;
-    let lastY = 0;
-    let velX = 0;
-    let velY = 0;
-    let touchStartDist = 0;
-    let initialCamDist = 0;
+    let downPos = { x: 0, y: 0 };
+    let downTime = 0;
     let anim: {
-      from: THREE.Quaternion;
-      to: THREE.Quaternion;
+      fromQuat: THREE.Quaternion;
+      toQuat: THREE.Quaternion;
+      fromDist: number;
+      toDist: number;
       t: number;
-      camFrom: number;
-      camTo: number;
+      duration: number;
     } | null = null;
 
     const pick = (e: PointerEvent): { lat: number; lon: number } | null => {
@@ -410,94 +449,70 @@ export default function LunarMap(props: LunarMapProps) {
     };
 
     const onPointerDown = (e: PointerEvent) => {
-      down = true;
-      moved = 0;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      renderer.domElement.setPointerCapture(e.pointerId);
+      downTime = performance.now();
+      downPos = { x: e.clientX, y: e.clientY };
+      // Cancel ongoing fly-to animation when user interacts directly
+      if (anim) anim = null;
     };
-    const onPointerMove = (e: PointerEvent) => {
-      if (!down) return;
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      moved += Math.abs(dx) + Math.abs(dy);
-      if (propsRef.current.interactive !== false) {
-        // Cancel any pending fly-to animation when user manually rotates
-        if (anim && moved > 4) anim = null;
-        velX = dx * 0.005;
-        velY = dy * 0.005;
-        const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), velX);
-        const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), velY);
-        group.quaternion.premultiply(qy).premultiply(qx);
-      }
-    };
+
     const onPointerUp = (e: PointerEvent) => {
-      down = false;
-      if (moved < 6 && propsRef.current.interactive !== false && propsRef.current.onSelect) {
+      const elapsed = performance.now() - downTime;
+      const dist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+      // Treat as selection click only if pointer did not drag (< 5px)
+      if (dist < 5 && elapsed < 450 && propsRef.current.interactive !== false && propsRef.current.onSelect) {
         const ll = pick(e);
         if (ll) propsRef.current.onSelect(ll.lat, ll.lon);
       }
     };
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const d = camera.position.length();
-      camera.position.setLength(THREE.MathUtils.clamp(d * (1 + e.deltaY * 0.0011), 1.25, 5));
-    };
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        touchStartDist = Math.hypot(dx, dy);
-        initialCamDist = camera.position.length();
-      }
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && touchStartDist > 0) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const dist = Math.hypot(dx, dy);
-        const factor = touchStartDist / Math.max(dist, 1);
-        camera.position.setLength(THREE.MathUtils.clamp(initialCamDist * factor, 1.25, 5));
-      }
-    };
-
+    // Isolate wheel zoom from outer page / sidebar scrolling
     const el = renderer.domElement;
-    el.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    const onCanvasWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
 
-    // --- South Pole focus ---------------------------------------------------
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("wheel", onCanvasWheel, { passive: false });
+
+    // --- South Pole & Site Focus System ------------------------------------
     const southPoleQuat = new THREE.Quaternion().setFromUnitVectors(
       new THREE.Vector3(0, -1, 0),
       new THREE.Vector3(0, 0, 1)
     );
+
     const focusSouthPole = () => {
+      const w = mount.clientWidth || window.innerWidth;
+      const h = mount.clientHeight || window.innerHeight;
+      const fitDist = calculateFitDistance(w, h, 1.0);
       anim = {
-        from: group.quaternion.clone(),
-        to: southPoleQuat.clone(),
+        fromQuat: group.quaternion.clone(),
+        toQuat: southPoleQuat.clone(),
+        fromDist: camera.position.length(),
+        toDist: fitDist,
         t: 0,
-        camFrom: camera.position.length(),
-        camTo: 2.05,
+        duration: 1.0,
       };
     };
+
     const focusSite = (lat: number, lon: number) => {
+      const w = mount.clientWidth || window.innerWidth;
+      const h = mount.clientHeight || window.innerHeight;
+      const fitDist = calculateFitDistance(w, h, 1.0);
+      const siteDist = Math.min(2.40, fitDist * 0.72);
       anim = {
-        from: group.quaternion.clone(),
-        to: quatForLatLon(lat, lon),
+        fromQuat: group.quaternion.clone(),
+        toQuat: quatForLatLon(lat, lon),
+        fromDist: camera.position.length(),
+        toDist: siteDist,
         t: 0,
-        camFrom: camera.position.length(),
-        camTo: 2.4,
+        duration: 1.0,
       };
     };
+
     if (propsRef.current.initialSouthPole) {
       group.quaternion.copy(southPoleQuat);
-      camera.position.setLength(2.05);
     }
 
     const switchLayer = (layerId: string) => {
@@ -517,53 +532,75 @@ export default function LunarMap(props: LunarMapProps) {
       }
     };
 
-    apiRef.current = { focusSouthPole, focusSite, syncMarkers, switchLayer };
+    const zoomIn = () => {
+      anim = null;
+      const currentDist = camera.position.length();
+      const newDist = THREE.MathUtils.clamp(currentDist * 0.82, controls.minDistance, controls.maxDistance);
+      camera.position.setLength(newDist);
+      camera.lookAt(0, 0, 0);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    };
 
-    // --- resize -------------------------------------------------------------
+    const zoomOut = () => {
+      anim = null;
+      const currentDist = camera.position.length();
+      const newDist = THREE.MathUtils.clamp(currentDist * 1.20, controls.minDistance, controls.maxDistance);
+      camera.position.setLength(newDist);
+      camera.lookAt(0, 0, 0);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    };
+
+    apiRef.current = { focusSouthPole, focusSite, syncMarkers, switchLayer, zoomIn, zoomOut };
+
+    // --- resize observer with layout isolation ------------------------------
     const ro = new ResizeObserver(() => {
       const w = mount.clientWidth;
       const h = mount.clientHeight;
       if (!w || !h) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(w, h, false);
+      controls.update();
     });
     ro.observe(mount);
 
-    // --- render loop ----------------------------------------------------------
+    // --- render loop with damping & target locking ---------------------------
     let raf = 0;
     let prev = performance.now();
     const loop = (now: number) => {
       const dt = Math.min((now - prev) / 1000, 0.05);
       prev = now;
       const t = now * 0.001;
-      if (propsRef.current.autoRotate && !down) {
+
+      if (propsRef.current.autoRotate && !anim) {
         const qAuto = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dt * 0.06);
         group.quaternion.premultiply(qAuto);
       }
 
-      // Update solar lighting azimuth for time-based diurnal cycle simulation
+      // Update solar lighting azimuth for diurnal simulation
       if (typeof propsRef.current.sunAngle === "number") {
         const rad = propsRef.current.sunAngle * D2R;
         sun.position.set(4 * Math.cos(rad), 1.5, 4 * Math.sin(rad));
       }
 
-      // Apply smooth damping when released
-      if (!down && !anim && (Math.abs(velX) > 1e-5 || Math.abs(velY) > 1e-5)) {
-        const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), velX);
-        const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), velY);
-        group.quaternion.premultiply(qy).premultiply(qx);
-        velX *= 0.92;
-        velY *= 0.92;
+      if (anim) {
+        anim.t += dt / anim.duration;
+        const k = anim.t >= 1 ? 1 : 1 - Math.pow(1 - anim.t, 3);
+        group.quaternion.slerpQuaternions(anim.fromQuat, anim.toQuat, k);
+        const d = THREE.MathUtils.lerp(anim.fromDist, anim.toDist, k);
+        camera.position.set(0, 0, d);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+        if (anim.t >= 1) anim = null;
+      } else {
+        // Enforce lock to origin: camera target strictly anchored to Moon's world center
+        if (controls.target.lengthSq() > 1e-6) controls.target.set(0, 0, 0);
+        controls.update();
       }
 
-      if (anim) {
-        anim.t += dt / 1.4;
-        const k = anim.t >= 1 ? 1 : 1 - Math.pow(1 - anim.t, 3);
-        group.quaternion.slerpQuaternions(anim.from, anim.to, k);
-        camera.position.setLength(THREE.MathUtils.lerp(anim.camFrom, anim.camTo, k));
-        if (anim.t >= 1) anim = null;
-      }
       // Pulse the selection ring
       markerGroup.children.forEach((child) => {
         if (child.userData.isPulseRing) {
@@ -571,6 +608,7 @@ export default function LunarMap(props: LunarMapProps) {
           child.scale.setScalar(0.17 * pulse);
         }
       });
+
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
     };
@@ -581,11 +619,9 @@ export default function LunarMap(props: LunarMapProps) {
       cancelAnimationFrame(raf);
       ro.disconnect();
       el.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("wheel", onCanvasWheel);
+      controls.dispose();
       scene.traverse((o) => {
         const obj = o as THREE.Mesh | THREE.Line | THREE.Sprite;
         if (obj.geometry) obj.geometry.dispose();
@@ -605,9 +641,46 @@ export default function LunarMap(props: LunarMapProps) {
   return (
     <div
       ref={mountRef}
-      className={props.className ?? "h-full w-full"}
+      className={`relative ${props.className ?? "h-full w-full"}`}
       style={{ touchAction: "none" }}
       aria-label="Interactive 3D map of the Moon"
-    />
+    >
+      {/* Viewport Zoom & Framing HUD Controls */}
+      {props.interactive !== false && (
+        <div className="absolute top-4 left-4 z-20 flex flex-col items-center gap-1 pointer-events-auto">
+          <div className="flex flex-col rounded-sm border border-divider/70 bg-[#161616]/90 backdrop-blur-md shadow-md overflow-hidden">
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              className="flex h-7 w-7 items-center justify-center font-mono text-sm font-semibold text-ink/80 hover:text-ink hover:bg-white/10 transition-colors cursor-pointer"
+              title="Zoom in closer to lunar surface"
+              aria-label="Zoom in"
+            >
+              +
+            </button>
+            <div className="h-px w-full bg-divider/40" />
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              className="flex h-7 w-7 items-center justify-center font-mono text-sm font-semibold text-ink/80 hover:text-ink hover:bg-white/10 transition-colors cursor-pointer"
+              title="Zoom out for macroscopic lunar disk"
+              aria-label="Zoom out"
+            >
+              −
+            </button>
+            <div className="h-px w-full bg-divider/40" />
+            <button
+              type="button"
+              onClick={handleResetView}
+              className="flex h-7 w-7 items-center justify-center text-ink/80 hover:text-ink hover:bg-white/10 transition-colors cursor-pointer p-1.5"
+              title="Reset orientation and center South Pole (89.44°S)"
+              aria-label="Reset view to South Pole"
+            >
+              <TargetIcon className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

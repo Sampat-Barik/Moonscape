@@ -4,7 +4,9 @@ import type { TerrainMeshResponse, DetectedLandingZone, HazardItem } from "@/typ
 import { fmtCoord, fmtNum } from "@/utils/format";
 import LoadingState from "./LoadingState";
 import {
+  AlertIcon,
   CrosshairIcon,
+  MountainIcon,
   RefreshIcon,
 } from "./icons";
 
@@ -32,24 +34,21 @@ export function polarStereoToLatLon(x: number, y: number): { lat: number; lon: n
   if (rho < 1e-6) {
     return { lat: -90.0, lon: 0.0 };
   }
-  const c = 2.0 * Math.atan(rho / (2.0 * MOON_RADIUS_M));
-  const cosC = Math.cos(c);
-  const latRad = Math.asin(-cosC);
-  const lonRad = Math.atan2(x, -y);
-
-  let lat = latRad / D2R;
-  let lon = lonRad / D2R;
+  const colat_rad = 2.0 * Math.atan(rho / (2.0 * MOON_RADIUS_M));
+  const lat = (colat_rad - Math.PI / 2.0) / D2R;
+  let lon = Math.atan2(x, y) / D2R;
   lon = ((lon % 360) + 360) % 360;
   return { lat, lon };
 }
 
 /** Convert Lat/Lon to Polar Stereographic meters (ESRI:104903) */
 export function latLonToPolarStereo(latDeg: number, lonDeg: number): { x: number; y: number } {
-  const phi = latDeg * D2R;
-  const lambda = lonDeg * D2R;
-  const k = (2.0 * MOON_RADIUS_M) / (1.0 + Math.sin(-phi));
-  const x = k * Math.cos(-phi) * Math.sin(lambda);
-  const y = -k * Math.cos(-phi) * Math.cos(lambda);
+  const lat_rad = latDeg * D2R;
+  const lon_rad = lonDeg * D2R;
+  const colat_rad = (Math.PI / 2.0) + lat_rad;
+  const r = 2.0 * MOON_RADIUS_M * Math.tan(colat_rad / 2.0);
+  const x = r * Math.sin(lon_rad);
+  const y = r * Math.cos(lon_rad);
   return { x, y };
 }
 
@@ -69,6 +68,7 @@ export default function RegionalTerrainViewer({
   const [activeLayer, setActiveLayer] = useState<TerrainLayerMode>("monochrome");
   const [reliefExaggeration, setReliefExaggeration] = useState<number>(1.5);
   const [showProfile, setShowProfile] = useState<boolean>(false);
+  const [webglError, setWebglError] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<{
     elev: number;
     slope: number;
@@ -109,35 +109,56 @@ export default function RegionalTerrainViewer({
     const meanElev = meshData.mean_elevation_m;
     const relief = Math.max(1.0, maxElev - minElev);
 
-    // Three.js Scene Setup
-    const width = mount.clientWidth;
-    const height = mount.clientHeight;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Three.js Scene Setup with safe WebGL initialization
+    const width = Math.max(mount.clientWidth, 100);
+    const height = Math.max(mount.clientHeight, 100);
+    const aspect = width / height;
+
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    } catch (err) {
+      setWebglError(err instanceof Error ? err.message : "WebGL context initialization failed.");
+      return;
+    }
+
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     mount.appendChild(renderer.domElement);
 
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      setWebglError("WebGL context was lost. Click retry to re-initialize 3D terrain.");
+    };
+    renderer.domElement.addEventListener("webglcontextlost", onContextLost);
+
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x090909);
 
-    const camera = new THREE.PerspectiveCamera(40, width / Math.max(height, 1), 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
     // Position camera in local units: world size is normalized to 10.0 units
     const WORLD_SIZE = 10.0;
     camera.position.set(0, WORLD_SIZE * 0.9, WORLD_SIZE * 1.25);
     camera.lookAt(0, 0, 0);
 
+    // Guaranteed Ambient Illumination so terrain geometry is never in pitch-black shadow
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambientLight);
+
     // Dynamic Vacuum Sun Lighting
-    const sunLight = new THREE.DirectionalLight(0xfff8f0, 2.8);
+    const sunLight = new THREE.DirectionalLight(0xfff8f0, 2.5);
     const sunRad = sunAngle * D2R;
     sunLight.position.set(
       WORLD_SIZE * 2 * Math.cos(sunRad),
-      WORLD_SIZE * 0.8,
+      WORLD_SIZE * 1.2,
       WORLD_SIZE * 2 * Math.sin(sunRad)
     );
+    sunLight.target.position.set(0, 0, 0);
     scene.add(sunLight);
+    scene.add(sunLight.target);
 
     // Earthshine ambient fill
-    const earthshine = new THREE.HemisphereLight(0x3a3a3a, 0x111111, 0.45);
+    const earthshine = new THREE.HemisphereLight(0x4a4a50, 0x1a1a20, 0.4);
     scene.add(earthshine);
 
     const terrainGroup = new THREE.Group();
@@ -370,6 +391,7 @@ export default function RegionalTerrainViewer({
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       camDistance *= 1 + e.deltaY * 0.001;
       updateCamera();
     };
@@ -392,7 +414,7 @@ export default function RegionalTerrainViewer({
     const ro = new ResizeObserver(() => {
       const w = mount.clientWidth;
       const h = mount.clientHeight;
-      if (!w || !h) return;
+      if (!w || !h || w <= 0 || h <= 0) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -402,6 +424,7 @@ export default function RegionalTerrainViewer({
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      renderer.domElement.removeEventListener("webglcontextlost", onContextLost);
       el.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
@@ -433,10 +456,37 @@ export default function RegionalTerrainViewer({
         </div>
       )}
 
+      {/* WebGL Context / Renderer Failure */}
+      {webglError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-space/90 p-6 z-30">
+          <div className="panel max-w-md p-6 text-center border-bad/40">
+            <AlertIcon className="h-8 w-8 text-bad mx-auto mb-3" />
+            <h4 className="font-display text-sm font-semibold text-bad">
+              WebGL Renderer Unavailable
+            </h4>
+            <p className="mt-2 text-xs text-muted leading-relaxed">
+              {webglError}
+            </p>
+            {onRefresh && (
+              <button
+                className="btn-primary mt-4 !px-4 !py-2 !text-xs cursor-pointer"
+                onClick={() => {
+                  setWebglError(null);
+                  onRefresh();
+                }}
+              >
+                <RefreshIcon className="h-4 w-4" /> Re-initialize WebGL
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Error / No Data Banner */}
-      {error && (
+      {error && !webglError && (
         <div className="absolute inset-0 flex items-center justify-center bg-space/90 p-6 z-30">
           <div className="panel max-w-md p-6 text-center border-warn/40">
+            <AlertIcon className="h-8 w-8 text-warn mx-auto mb-3" />
             <h4 className="font-display text-sm font-semibold text-warn">
               Terrain Relief Grid Offline
             </h4>
@@ -444,8 +494,43 @@ export default function RegionalTerrainViewer({
               {error}
             </p>
             {onRefresh && (
-              <button className="btn-primary mt-4 !px-4 !py-2 !text-xs" onClick={onRefresh}>
+              <button className="btn-primary mt-4 !px-4 !py-2 !text-xs cursor-pointer" onClick={onRefresh}>
                 <RefreshIcon className="h-4 w-4" /> Retry Query
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Target Outside Polar Zone */}
+      {meshData && meshData.status === "outside_polar_zone" && !loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-space/90 p-6 z-30">
+          <div className="panel max-w-md p-6 text-center border-warn/40">
+            <AlertIcon className="h-8 w-8 text-warn mx-auto mb-3" />
+            <h4 className="font-display text-sm font-semibold text-warn">
+              Target Outside Polar Zone
+            </h4>
+            <p className="mt-2 text-xs text-muted leading-relaxed">
+              Coordinates {fmtCoord(meshData.latitude, meshData.longitude)} fall outside the supported lunar South Pole exploration boundary (-90° to -70°). 3D polar stereographic relief meshes are restricted to polar latitudes.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Standby State: Ready to load DEM */}
+      {!meshData && !loading && !error && !webglError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-space/90 p-6 z-30">
+          <div className="panel max-w-md p-6 text-center border-divider">
+            <MountainIcon className="h-8 w-8 text-muted mx-auto mb-3" />
+            <h4 className="font-display text-sm font-semibold text-ink">
+              3D Lunar Relief Mesh Ready
+            </h4>
+            <p className="mt-2 text-xs text-muted leading-relaxed">
+              Select any candidate preset or click below to extract the 3D DEM elevation matrix for {fmtCoord(selectedCoord.lat, selectedCoord.lon)} (R = {selectedCoord.radius_m}m).
+            </p>
+            {onRefresh && (
+              <button className="btn-primary mt-4 !px-4 !py-2 !text-xs cursor-pointer" onClick={onRefresh}>
+                <RefreshIcon className="h-4 w-4" /> Load 3D Terrain Relief
               </button>
             )}
           </div>
@@ -461,9 +546,8 @@ export default function RegionalTerrainViewer({
           {(["monochrome", "elevation", "slope", "wireframe"] as TerrainLayerMode[]).map((mode) => (
             <button
               key={mode}
-              className={`glass-soft rounded px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors ${
-                activeLayer === mode ? "text-ink border-white/40 bg-white/10" : "text-muted hover:text-ink"
-              }`}
+              className={`glass-soft rounded px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors ${activeLayer === mode ? "text-ink border-white/40 bg-white/10" : "text-muted hover:text-ink"
+                }`}
               onClick={() => setActiveLayer(mode)}
             >
               {mode}
@@ -473,9 +557,8 @@ export default function RegionalTerrainViewer({
 
         <div className="flex items-center gap-2 pointer-events-auto">
           <button
-            className={`glass-soft rounded px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors ${
-              showProfile ? "text-ink border-white/40 bg-white/10" : "text-muted hover:text-ink"
-            }`}
+            className={`glass-soft rounded px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors ${showProfile ? "text-ink border-white/40 bg-white/10" : "text-muted hover:text-ink"
+              }`}
             onClick={() => setShowProfile((v) => !v)}
           >
             TRANSECT PROFILE
@@ -485,9 +568,8 @@ export default function RegionalTerrainViewer({
             {[1.0, 1.5, 2.5].map((scale) => (
               <button
                 key={scale}
-                className={`cursor-pointer transition-colors ${
-                  reliefExaggeration === scale ? "text-ink font-bold underline" : "hover:text-ink"
-                }`}
+                className={`cursor-pointer transition-colors ${reliefExaggeration === scale ? "text-ink font-bold underline" : "hover:text-ink"
+                  }`}
                 onClick={() => setReliefExaggeration(scale)}
               >
                 {scale}x
@@ -545,9 +627,22 @@ export default function RegionalTerrainViewer({
             </div>
           )}
 
-          <div className="glass-soft rounded px-3 py-1.5 text-right">
+          <div className="glass-soft rounded px-3 py-1.5 text-right space-y-0.5">
+            <div className="flex items-center justify-end gap-1.5">
+              {meshData.has_high_res ? (
+                <span className="inline-block px-1.5 py-0.5 text-[9px] font-mono text-good border border-good/40 rounded">
+                  5m HIGH-RES DEM
+                </span>
+              ) : (
+                <span className="inline-block px-1.5 py-0.5 text-[9px] font-mono text-muted border border-divider/40 rounded">
+                  BROAD-AREA DEM
+                </span>
+              )}
+            </div>
             <p className="font-mono text-[10px] text-ink font-semibold">{meshData.dataset_name}</p>
-            <p className="font-mono text-[9px] text-muted">Res: {meshData.resolution_m}m · CRS: {meshData.crs}</p>
+            <p className="font-mono text-[9px] text-muted">
+              {meshData.source_tier ? `${meshData.source_tier} · ` : ""}Res: {meshData.resolution_m}m · CRS: {meshData.crs}
+            </p>
           </div>
         </div>
       )}

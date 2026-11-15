@@ -86,7 +86,9 @@ class HazardService:
             if lat_match and lon_match:
                 tile_p = self._images_dir / split / f"{sample_id}.png"
                 if tile_p.exists():
-                    return item, tile_p
+                    matched_item = dict(item)
+                    matched_item["coverage_state"] = "exact_frame_processed"
+                    return matched_item, tile_p
 
         # 2. Proximity search (within 5 km of tile centroid for marginal coverage)
         for item in manifest:
@@ -100,7 +102,9 @@ class HazardService:
                 sample_id = item.get("sample_id")
                 tile_p = self._images_dir / split / f"{sample_id}.png"
                 if tile_p.exists():
-                    return item, tile_p
+                    matched_item = dict(item)
+                    matched_item["coverage_state"] = "proximity_frame_cataloged"
+                    return matched_item, tile_p
 
         return None
 
@@ -197,17 +201,26 @@ class HazardService:
                     # Linear geodetic mapping within tile bounds
                     d_lat = max(b_lat) - (py / max(1, img_h)) * (max(b_lat) - min(b_lat))
                     d_lon = min(b_lon) + (px / max(1, img_w)) * (max(b_lon) - min(b_lon))
+                    is_crater = d.label.lower() == "crater"
+                    feat_id = f"CR-{len(craters_list) + 1:02d}" if is_crater else f"RK-{len(rocks_list) + 1:02d}"
+                    feat_sz = d.estimated_size_m or 0.0
 
                     h_item = HazardItem(
-                        hazard_type="crater" if d.label.lower() == "crater" else "boulder",
-                        latitude=round(d_lat, 4),
-                        longitude=round(d_lon, 4),
-                        estimated_size_m=d.estimated_size_m or 0.0,
+                        id=feat_id,
+                        hazard_type="crater" if is_crater else "boulder",
+                        latitude=round(d_lat, 5),
+                        longitude=round(d_lon, 5),
+                        estimated_size_m=feat_sz,
+                        measurement_name="Feature Diameter" if is_crater else "Bounding Span",
+                        measurement_unit="m",
+                        measurement_value=feat_sz,
                         severity=d.severity or "medium",
-                        confidence_score=d.confidence,
+                        confidence_score=round(float(d.confidence), 4),
+                        confidence_type="model_confidence",
+                        detection_method="YOLOv8n Polar Neural Detector",
                         source=f"LROC_optical_{optical_product_id}",
                     )
-                    if d.label.lower() == "crater":
+                    if is_crater:
                         craters_list.append(h_item)
                     else:
                         rocks_list.append(h_item)
@@ -274,90 +287,200 @@ class HazardService:
 
                 def _cell_to_latlon(r_idx: int, c_idx: int, off_x: float, off_y: float) -> Tuple[float, float]:
                     if transform is not None:
-                        px = transform.c + c_idx * transform.a + r_idx * transform.b
-                        py = transform.f + c_idx * transform.d + r_idx * transform.e
+                        px = transform.c + (c_idx + 0.5) * transform.a + (r_idx + 0.5) * transform.b
+                        py = transform.f + (c_idx + 0.5) * transform.d + (r_idx + 0.5) * transform.e
                         calc_lat, calc_lon = coordinate_manager.from_polar_stereographic(px, py)
-                        return round(calc_lat, 4), round(calc_lon, 4)
+                        return round(calc_lat, 5), round(calc_lon, 5)
                     m_per_deg_lat = MOON_RADIUS_METERS * math.pi / 180.0
                     m_per_deg_lon = m_per_deg_lat * max(0.005, math.cos(math.radians(target_lat)))
-                    return round(target_lat + (off_y / m_per_deg_lat), 4), round(target_lon + (off_x / m_per_deg_lon), 4)
+                    return round(target_lat + (off_y / m_per_deg_lat), 5), round(target_lon + (off_x / m_per_deg_lon), 5)
 
-                # A. Large DEM-derived depression candidates (Scientific resolution rule: diameter >= 2*dx)
+                # A. Large DEM-derived depression candidates (diameter >= 2*dx)
                 crater_mask = valid_mask & detect_crater_basins(curvature, threshold=15.0)
                 crater_indices = np.argwhere(crater_mask)
-                sampled_craters = crater_indices[:: max(1, len(crater_indices) // 5)] if len(crater_indices) > 0 else []
+                sampled_craters = []
+                if len(crater_indices) > 0:
+                    selected_basin_coords = []
+                    for r, c in crater_indices:
+                        offset_y = (rows // 2 - r) * dy
+                        offset_x = (c - cols // 2) * dx
+                        dist = math.sqrt(offset_x**2 + offset_y**2)
+                        if dist > target_radius:
+                            continue
+                        too_close = False
+                        for prev_r, prev_c in selected_basin_coords:
+                            if math.sqrt((r - prev_r)**2 + (c - prev_c)**2) * dx < (3.0 * dx):
+                                too_close = True
+                                break
+                        if not too_close:
+                            selected_basin_coords.append((r, c))
+                            sampled_craters.append((r, c))
+                            if len(sampled_craters) >= 6:
+                                break
 
-                for r, c in sampled_craters[:6]:
+                for dep_idx, (r, c) in enumerate(sampled_craters, start=1):
                     offset_y = (rows // 2 - r) * dy
                     offset_x = (c - cols // 2) * dx
-                    dist = math.sqrt(offset_x**2 + offset_y**2)
-                    if dist > target_radius:
-                        continue
-
                     raw_dia = float(np.abs(curvature[r, c]) * 1.8)
-                    # When pixel size is coarser than minimum diameter, mark size as uncalibrated rather than fabricating
                     est_dia = raw_dia if raw_dia >= (2.0 * dx) else None
-
                     h_lat, h_lon = _cell_to_latlon(r, c, offset_x, offset_y)
                     conf = min(0.92, max(0.40, float(curvature[r, c] / 50.0)))
+                    dia_val = round(est_dia, 1) if est_dia is not None else 0.0
 
                     topographic_hazards.append(
                         HazardItem(
+                            id=f"DEP-{dep_idx:02d}",
                             hazard_type="morphological_depression",
                             latitude=h_lat,
                             longitude=h_lon,
-                            estimated_size_m=round(est_dia, 1) if est_dia is not None else 0.0,
+                            estimated_size_m=dia_val,
+                            measurement_name="Basin Diameter",
+                            measurement_unit="m",
+                            measurement_value=dia_val,
                             severity="high" if (est_dia and est_dia > 50.0) else "medium",
                             confidence_score=round(conf, 2),
+                            confidence_type="heuristic_indicator",
+                            detection_method="DEM Laplacian Curvature",
                             source="DEM_Laplacian_curvature",
                         )
                     )
 
-                # B. Surface roughness obstacle risk (Do NOT label as individual boulders)
+                # B. Surface roughness obstacle risk (Grouped / spatially separated patches)
                 roughness_threshold = 0.5 * (1.0 / boulder_sens)
                 rough_mask = valid_mask & (roughness > roughness_threshold)
                 rough_indices = np.argwhere(rough_mask)
-                sampled_rough = rough_indices[:: max(1, len(rough_indices) // 5)] if len(rough_indices) > 0 else []
+                sampled_rough = []
+                if len(rough_indices) > 0:
+                    selected_rough_coords = []
+                    sorted_rough = sorted(rough_indices, key=lambda rc: roughness[rc[0], rc[1]], reverse=True)
+                    for r, c in sorted_rough:
+                        offset_y = (rows // 2 - r) * dy
+                        offset_x = (c - cols // 2) * dx
+                        dist = math.sqrt(offset_x**2 + offset_y**2)
+                        if dist > target_radius:
+                            continue
+                        too_close = False
+                        for prev_r, prev_c in selected_rough_coords:
+                            if math.sqrt((r - prev_r)**2 + (c - prev_c)**2) * dx < max(100.0, 3.0 * dx):
+                                too_close = True
+                                break
+                        if not too_close:
+                            selected_rough_coords.append((r, c))
+                            sampled_rough.append((r, c))
+                            if len(sampled_rough) >= 4:
+                                break
 
-                for r, c in sampled_rough[:4]:
+                for rough_idx, (r, c) in enumerate(sampled_rough, start=1):
                     offset_y = (rows // 2 - r) * dy
                     offset_x = (c - cols // 2) * dx
-                    dist = math.sqrt(offset_x**2 + offset_y**2)
-                    if dist > target_radius:
-                        continue
-
                     r_val = float(roughness[r, c])
                     h_lat, h_lon = _cell_to_latlon(r, c, offset_x, offset_y)
+                    r_num = round(r_val, 2)
+                    conf = round(min(0.88, 0.50 + (r_val / 5.0)), 2)
 
                     topographic_hazards.append(
                         HazardItem(
+                            id=f"ROUGH-{rough_idx:02d}",
                             hazard_type="surface_roughness_anomaly",
                             latitude=h_lat,
                             longitude=h_lon,
-                            estimated_size_m=round(r_val, 2),
+                            estimated_size_m=r_num,
+                            measurement_name="RMS Surface Roughness",
+                            measurement_unit="m",
+                            measurement_value=r_num,
                             severity="high" if r_val > 1.0 else "medium",
-                            confidence_score=round(min(0.88, 0.50 + (r_val / 5.0)), 2),
+                            confidence_score=conf,
+                            confidence_type="heuristic_indicator",
+                            detection_method="DEM RMS Height Deviation",
                             source="DEM_RMS_roughness",
                         )
                     )
 
-                # C. Steep slope cells (> 15 deg)
+                # C. Steep slope cells (> 15 deg) — Grouped into physical escarpment features
                 steep_mask = valid_mask & (slopes > SLOPE_CRITICAL_MAX_DEG)
                 steep_count = int(np.sum(steep_mask))
                 if steep_count > 0:
-                    steep_indices = np.argwhere(steep_mask)
-                    for r, c in steep_indices[:4]:
-                        offset_y = (rows // 2 - r) * dy
-                        offset_x = (c - cols // 2) * dx
-                        h_lat, h_lon = _cell_to_latlon(r, c, offset_x, offset_y)
+                    labeled_array, num_features = None, 0
+                    try:
+                        import scipy.ndimage
+                        labeled_array, num_features = scipy.ndimage.label(steep_mask, structure=np.ones((3, 3)))
+                    except Exception as nd_err:
+                        logger.warning("scipy.ndimage unavailable for escarpment clustering: %s", nd_err)
+
+                    escarpment_components = []
+                    if labeled_array is not None and num_features > 0:
+                        for feat_id in range(1, num_features + 1):
+                            comp = (labeled_array == feat_id)
+                            c_count = int(np.sum(comp))
+                            if c_count == 0:
+                                continue
+                            comp_slopes = np.where(comp, slopes, -1.0)
+                            peak_r, peak_c = np.unravel_index(np.argmax(comp_slopes), slopes.shape)
+                            pk_slope = float(slopes[peak_r, peak_c])
+                            mn_slope = float(np.mean(slopes[comp]))
+                            offset_y = (rows // 2 - peak_r) * dy
+                            offset_x = (peak_c - cols // 2) * dx
+                            dist = math.sqrt(offset_x**2 + offset_y**2)
+                            feat_extent = math.sqrt(c_count * dx * dy)
+                            if dist > (target_radius + max(100.0, feat_extent / 2.0)):
+                                continue
+                            pk_lat, pk_lon = _cell_to_latlon(peak_r, peak_c, offset_x, offset_y)
+                            escarpment_components.append({
+                                "cell_count": c_count,
+                                "peak_slope": pk_slope,
+                                "mean_slope": mn_slope,
+                                "extent_m": feat_extent,
+                                "lat": pk_lat,
+                                "lon": pk_lon,
+                                "dist": dist,
+                            })
+                        escarpment_components.sort(key=lambda f: (f["peak_slope"], f["cell_count"]), reverse=True)
+                    else:
+                        steep_indices = np.argwhere(steep_mask)
+                        selected_steep = []
+                        for r, c in steep_indices:
+                            offset_y = (rows // 2 - r) * dy
+                            offset_x = (c - cols // 2) * dx
+                            dist = math.sqrt(offset_x**2 + offset_y**2)
+                            if dist > target_radius:
+                                continue
+                            too_close = False
+                            for prev_r, prev_c in selected_steep:
+                                if math.sqrt((r - prev_r)**2 + (c - prev_c)**2) * dx < max(150.0, 3.0 * dx):
+                                    too_close = True
+                                    break
+                            if not too_close:
+                                selected_steep.append((r, c))
+                                pk_lat, pk_lon = _cell_to_latlon(r, c, offset_x, offset_y)
+                                escarpment_components.append({
+                                    "cell_count": 1,
+                                    "peak_slope": float(slopes[r, c]),
+                                    "mean_slope": float(slopes[r, c]),
+                                    "extent_m": float(dx),
+                                    "lat": pk_lat,
+                                    "lon": pk_lon,
+                                    "dist": dist,
+                                })
+
+                    for esc_idx, esc in enumerate(escarpment_components[:4], start=1):
+                        pk_slope = round(esc["peak_slope"], 1)
+                        sev = "critical" if pk_slope >= 20.0 else "high"
                         topographic_hazards.append(
                             HazardItem(
+                                id=f"ESC-{esc_idx:02d}",
                                 hazard_type="escarpment",
-                                latitude=h_lat,
-                                longitude=h_lon,
-                                estimated_size_m=round(float(slopes[r, c]), 1),
-                                severity="critical",
-                                confidence_score=0.98,
+                                latitude=esc["lat"],
+                                longitude=esc["lon"],
+                                estimated_size_m=pk_slope,
+                                measurement_name="Peak Slope Gradient",
+                                measurement_unit="deg",
+                                measurement_value=pk_slope,
+                                feature_extent_m=round(esc["extent_m"], 1),
+                                cell_count=esc["cell_count"],
+                                severity=sev,
+                                confidence_score=1.0,
+                                confidence_type="deterministic_gradient",
+                                detection_method="DEM Horn 8-Neighbor Slope Gradient",
                                 source="DEM_Horn_slope",
                             )
                         )
@@ -422,6 +545,8 @@ class HazardService:
             source_product_id=optical_product_id,
             source_resolution_m=optical_res_m,
             optical_status=optical_status,
+            optical_provenance_state=optical_match[0].get("coverage_state", "exact_frame_processed") if (optical_match and optical_status == "success") else ("outside_coverage" if coverage_zone in ["outside", "invalid"] else "unavailable"),
+            dem_provenance_state="measured_lola_dem" if is_measured else "calibrated_sample_baseline",
             coverage_zone=coverage_zone,
             warnings=warnings,
             model_name="Moonscape Lunar South Pole Optical Hazard Detector (YOLOv8n) & DEM Morphological Curvature Engine",

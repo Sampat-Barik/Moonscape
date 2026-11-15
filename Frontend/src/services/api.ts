@@ -290,52 +290,52 @@ export const api = {
         raw.elevation ??
         (raw.elevation_summary
           ? {
-              mean_m: raw.elevation_summary.mean_m ?? raw.elevation_m ?? null,
-              min_m: raw.elevation_summary.min_m ?? null,
-              max_m: raw.elevation_summary.max_m ?? null,
-              std: raw.elevation_summary.std_dev_m ?? null,
-              value: raw.elevation_m ?? null,
-              source: dsName,
-            }
+            mean_m: raw.elevation_summary.mean_m ?? raw.elevation_m ?? null,
+            min_m: raw.elevation_summary.min_m ?? null,
+            max_m: raw.elevation_summary.max_m ?? null,
+            std: raw.elevation_summary.std_dev_m ?? null,
+            value: raw.elevation_m ?? null,
+            source: dsName,
+          }
           : raw.elevation_m !== undefined
-          ? { mean_m: raw.elevation_m, value: raw.elevation_m, source: dsName }
-          : null),
+            ? { mean_m: raw.elevation_m, value: raw.elevation_m, source: dsName }
+            : null),
       slope:
         raw.slope ??
         (raw.slope_summary
           ? {
-              mean_deg: raw.slope_summary.mean_deg ?? raw.slope_deg ?? null,
-              min_deg: raw.slope_summary.min_deg ?? null,
-              max_deg: raw.slope_summary.max_deg ?? null,
-              p95_deg: raw.slope_summary.p95_deg ?? null,
-              value: raw.slope_deg ?? null,
-              source: dsName,
-            }
+            mean_deg: raw.slope_summary.mean_deg ?? raw.slope_deg ?? null,
+            min_deg: raw.slope_summary.min_deg ?? null,
+            max_deg: raw.slope_summary.max_deg ?? null,
+            p95_deg: raw.slope_summary.p95_deg ?? null,
+            value: raw.slope_deg ?? null,
+            source: dsName,
+          }
           : raw.slope_deg !== undefined
-          ? { mean_deg: raw.slope_deg, value: raw.slope_deg, source: dsName }
-          : null),
+            ? { mean_deg: raw.slope_deg, value: raw.slope_deg, source: dsName }
+            : null),
       roughness:
         raw.roughness ??
         (raw.roughness_summary
           ? {
-              rms_m: raw.roughness_summary.mean_m ?? raw.roughness_m ?? null,
-              rms: raw.roughness_summary.mean_m ?? raw.roughness_m ?? null,
-              max_m: raw.roughness_summary.max_m ?? null,
-              value: raw.roughness_m ?? null,
-              source: dsName,
-            }
+            rms_m: raw.roughness_summary.mean_m ?? raw.roughness_m ?? null,
+            rms: raw.roughness_summary.mean_m ?? raw.roughness_m ?? null,
+            max_m: raw.roughness_summary.max_m ?? null,
+            value: raw.roughness_m ?? null,
+            source: dsName,
+          }
           : raw.roughness_m !== undefined
-          ? { rms_m: raw.roughness_m, value: raw.roughness_m, source: dsName }
-          : null),
+            ? { rms_m: raw.roughness_m, value: raw.roughness_m, source: dsName }
+            : null),
       illumination:
         raw.illumination ??
         (raw.solar_illumination_pct !== undefined
           ? {
-              sunlight_percent: raw.solar_illumination_pct,
-              sunlit_percent: raw.solar_illumination_pct,
-              value: raw.solar_illumination_pct,
-              source: raw.illumination_source ?? raw.illumination?.source ?? null,
-            }
+            sunlight_percent: raw.solar_illumination_pct,
+            sunlit_percent: raw.solar_illumination_pct,
+            value: raw.solar_illumination_pct,
+            source: raw.illumination_source ?? raw.illumination?.source ?? null,
+          }
           : null),
       data_sources: raw.data_sources ?? (dsName ? [dsName] : []),
     };
@@ -364,26 +364,26 @@ export const api = {
 
     const elevation = raw.elevation
       ? {
-          ...raw.elevation,
-          mean_m: raw.elevation.mean_value ?? raw.elevation.mean_m ?? raw.elevation.mean ?? null,
-          min_m: raw.elevation.min_value ?? raw.elevation.min_m ?? raw.elevation.min ?? null,
-          max_m: raw.elevation.max_value ?? raw.elevation.max_m ?? raw.elevation.max ?? null,
-          std: raw.elevation.std_dev ?? raw.elevation.std ?? null,
-          stddev_m: raw.elevation.std_dev ?? raw.elevation.stddev_m ?? null,
-          source: raw.elevation.source ?? dsName,
-        }
+        ...raw.elevation,
+        mean_m: raw.elevation.mean_value ?? raw.elevation.mean_m ?? raw.elevation.mean ?? null,
+        min_m: raw.elevation.min_value ?? raw.elevation.min_m ?? raw.elevation.min ?? null,
+        max_m: raw.elevation.max_value ?? raw.elevation.max_m ?? raw.elevation.max ?? null,
+        std: raw.elevation.std_dev ?? raw.elevation.std ?? null,
+        stddev_m: raw.elevation.std_dev ?? raw.elevation.stddev_m ?? null,
+        source: raw.elevation.source ?? dsName,
+      }
       : null;
 
     const slope = raw.slope
       ? {
-          ...raw.slope,
-          mean_deg: raw.slope.mean_value ?? raw.slope.mean_deg ?? raw.slope.mean ?? null,
-          max_deg: raw.slope.max_value ?? raw.slope.max_deg ?? raw.slope.max ?? null,
-          p95_deg: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
-          p95_value: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
-          p95: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
-          source: raw.slope.source ?? dsName,
-        }
+        ...raw.slope,
+        mean_deg: raw.slope.mean_value ?? raw.slope.mean_deg ?? raw.slope.mean ?? null,
+        max_deg: raw.slope.max_value ?? raw.slope.max_deg ?? raw.slope.max ?? null,
+        p95_deg: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
+        p95_value: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
+        p95: raw.slope.p95_value ?? raw.slope.p95_deg ?? raw.slope.p95 ?? null,
+        source: raw.slope.source ?? dsName,
+      }
       : null;
 
     const roughnessMean =
@@ -394,18 +394,18 @@ export const api = {
     const roughness =
       roughnessMean !== null || raw.roughness
         ? {
-            ...(typeof raw.roughness === "object" && raw.roughness !== null ? raw.roughness : {}),
-            rms_m: roughnessMean,
-            rms: roughnessMean,
-            mean_m: roughnessMean,
-            max_m: roughnessMax,
-            baseline_m: roughnessBaseline,
-            roughness_baseline_m: roughnessBaseline,
-            method: roughnessMethod,
-            roughness_method: roughnessMethod,
-            multi_baseline: raw.roughness_multi_baseline ?? raw.roughness?.multi_baseline ?? null,
-            source: raw.roughness?.source ?? dsName,
-          }
+          ...(typeof raw.roughness === "object" && raw.roughness !== null ? raw.roughness : {}),
+          rms_m: roughnessMean,
+          rms: roughnessMean,
+          mean_m: roughnessMean,
+          max_m: roughnessMax,
+          baseline_m: roughnessBaseline,
+          roughness_baseline_m: roughnessBaseline,
+          method: roughnessMethod,
+          roughness_method: roughnessMethod,
+          multi_baseline: raw.roughness_multi_baseline ?? raw.roughness?.multi_baseline ?? null,
+          source: raw.roughness?.source ?? dsName,
+        }
         : null;
 
     const ilRaw = raw.illumination;
@@ -419,8 +419,8 @@ export const api = {
     const earthLosText = commStatus === "operational"
       ? "Direct LOS"
       : commStatus === "marginal"
-      ? "Marginal LOS"
-      : "No Direct LOS (Obscured)";
+        ? "Marginal LOS"
+        : "No Direct LOS (Obscured)";
 
     const durationDays = ilRaw?.sunlight_duration_remaining_hours != null
       ? Number((ilRaw.sunlight_duration_remaining_hours / 24).toFixed(1))
@@ -429,35 +429,35 @@ export const api = {
     const nextSunsetText = ilRaw?.next_sunset_iso
       ? `In ${(ilRaw.sunlight_duration_remaining_hours ? (ilRaw.sunlight_duration_remaining_hours / 24).toFixed(1) : "—")}d (${new Date(ilRaw.next_sunset_iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })})`
       : (ilRaw?.is_permanently_shadowed_region
-          ? "Polar Night (Permanent)"
-          : (ilRaw?.instantaneous_sunlit_fraction_pct > 0
-              ? "Continuous (>35d)"
-              : (ilRaw ? "In Shadow" : null)));
+        ? "Polar Night (Permanent)"
+        : (ilRaw?.instantaneous_sunlit_fraction_pct > 0
+          ? "Continuous (>35d)"
+          : (ilRaw ? "In Shadow" : null)));
 
     const illumination = ilRaw
       ? {
-          ...ilRaw,
-          sunlight_percent: sunlitPct,
-          sunlit_percent: sunlitPct,
-          illumination_percent: sunlitPct,
-          cumulative_pct: ilRaw.cumulative_illumination_pct ?? null,
-          instantaneous_pct: ilRaw.instantaneous_sunlit_fraction_pct ?? null,
-          sunlight_duration_days: durationDays,
-          duration_days: durationDays,
-          duration: durationDays,
-          sunlight_duration_hours: ilRaw.sunlight_duration_remaining_hours ?? null,
-          earth_visibility: earthLosText,
-          earth_visibility_state: commStatus,
-          earth_comm_los: earthLosText,
-          earth_visibility_pct: ilRaw.earth_visibility_pct ?? null,
-          next_sunset: nextSunsetText,
-          next_sunset_iso: ilRaw.next_sunset_iso ?? null,
-          sunset_time: ilRaw.next_sunset_iso ?? null,
-          psr: ilRaw.is_permanently_shadowed_region ?? false,
-          psr_nearby: ilRaw.is_permanently_shadowed_region ?? false,
-          has_psr: ilRaw.is_permanently_shadowed_region ?? false,
-          source: ilRaw.source_attribution ?? ilRaw.source ?? null,
-        }
+        ...ilRaw,
+        sunlight_percent: sunlitPct,
+        sunlit_percent: sunlitPct,
+        illumination_percent: sunlitPct,
+        cumulative_pct: ilRaw.cumulative_illumination_pct ?? null,
+        instantaneous_pct: ilRaw.instantaneous_sunlit_fraction_pct ?? null,
+        sunlight_duration_days: durationDays,
+        duration_days: durationDays,
+        duration: durationDays,
+        sunlight_duration_hours: ilRaw.sunlight_duration_remaining_hours ?? null,
+        earth_visibility: earthLosText,
+        earth_visibility_state: commStatus,
+        earth_comm_los: earthLosText,
+        earth_visibility_pct: ilRaw.earth_visibility_pct ?? null,
+        next_sunset: nextSunsetText,
+        next_sunset_iso: ilRaw.next_sunset_iso ?? null,
+        sunset_time: ilRaw.next_sunset_iso ?? null,
+        psr: ilRaw.is_permanently_shadowed_region ?? false,
+        psr_nearby: ilRaw.is_permanently_shadowed_region ?? false,
+        has_psr: ilRaw.is_permanently_shadowed_region ?? false,
+        source: ilRaw.source_attribution ?? ilRaw.source ?? null,
+      }
       : null;
 
     // Map embedded suitability score if available
@@ -550,8 +550,15 @@ export const api = {
           latitude: h.latitude,
           longitude: h.longitude,
           diameter_m: h.estimated_size_m ?? (h.radius_m ? h.radius_m * 2 : null),
+          size_m: h.estimated_size_m ?? null,
           confidence: h.confidence_score ?? h.confidence ?? null,
           severity: h.severity ?? "medium",
+          source: h.source,
+          measurement_name: h.measurement_name ?? "Feature Diameter",
+          measurement_unit: h.measurement_unit ?? "m",
+          measurement_value: h.measurement_value ?? h.estimated_size_m ?? null,
+          confidence_type: h.confidence_type ?? "model_confidence",
+          detection_method: h.detection_method ?? "YOLOv8n Polar Neural Detector",
         }));
       } else {
         craters = rawDetections
@@ -562,8 +569,14 @@ export const api = {
             latitude: body.latitude,
             longitude: body.longitude,
             diameter_m: d.estimated_size_m ?? null,
+            size_m: d.estimated_size_m ?? null,
             confidence: d.confidence ?? null,
             severity: d.severity ?? "medium",
+            measurement_name: "Feature Diameter",
+            measurement_unit: "m",
+            measurement_value: d.estimated_size_m ?? null,
+            confidence_type: "model_confidence",
+            detection_method: "YOLOv8n Polar Neural Detector",
           }));
       }
 
@@ -574,8 +587,15 @@ export const api = {
           latitude: h.latitude,
           longitude: h.longitude,
           size_m: h.estimated_size_m ?? h.diameter_m ?? null,
+          diameter_m: h.estimated_size_m ?? null,
           confidence: h.confidence_score ?? h.confidence ?? null,
           severity: h.severity ?? "medium",
+          source: h.source,
+          measurement_name: h.measurement_name ?? "Bounding Span",
+          measurement_unit: h.measurement_unit ?? "m",
+          measurement_value: h.measurement_value ?? h.estimated_size_m ?? null,
+          confidence_type: h.confidence_type ?? "model_confidence",
+          detection_method: h.detection_method ?? "YOLOv8n Polar Neural Detector",
         }));
       } else {
         rocks = rawDetections
@@ -589,8 +609,14 @@ export const api = {
             latitude: body.latitude,
             longitude: body.longitude,
             size_m: d.estimated_size_m ?? null,
+            diameter_m: d.estimated_size_m ?? null,
             confidence: d.confidence ?? null,
             severity: d.severity ?? "medium",
+            measurement_name: "Bounding Span",
+            measurement_unit: "m",
+            measurement_value: d.estimated_size_m ?? null,
+            confidence_type: "model_confidence",
+            detection_method: "YOLOv8n Polar Neural Detector",
           }));
       }
     }
@@ -608,16 +634,23 @@ export const api = {
         longitude: h.longitude,
         diameter_m: h.estimated_size_m ?? null,
         size_m: h.estimated_size_m ?? null,
-        confidence: h.confidence_score ?? 0.90,
+        confidence: h.confidence_score ?? (h.hazard_type === "escarpment" ? 1.0 : 0.85),
         severity: h.severity ?? "medium",
         source: h.source,
+        measurement_name: h.measurement_name ?? (h.hazard_type === "escarpment" ? "Peak Slope Gradient" : h.hazard_type === "surface_roughness_anomaly" ? "RMS Surface Roughness" : "Basin Diameter"),
+        measurement_unit: h.measurement_unit ?? (h.hazard_type === "escarpment" ? "deg" : "m"),
+        measurement_value: h.measurement_value ?? h.estimated_size_m ?? null,
+        confidence_type: h.confidence_type ?? (h.hazard_type === "escarpment" ? "deterministic_gradient" : "heuristic_indicator"),
+        detection_method: h.detection_method ?? (h.hazard_type === "escarpment" ? "DEM Horn 8-Neighbor Slope Gradient" : h.hazard_type === "surface_roughness_anomaly" ? "DEM RMS Height Deviation" : "DEM Laplacian Curvature"),
+        feature_extent_m: h.feature_extent_m ?? null,
+        cell_count: h.cell_count ?? null,
       }));
 
     const limitations: string[] = Array.isArray(raw.limitations)
       ? raw.limitations
       : typeof raw.limitations === "string" && raw.limitations.length > 0
-      ? [raw.limitations]
-      : [];
+        ? [raw.limitations]
+        : [];
 
     const warnings: string[] = Array.isArray(raw.warnings) ? raw.warnings : [];
 
@@ -628,6 +661,8 @@ export const api = {
       radius_m: raw.radius_meters ?? raw.radius_m ?? body.radius_m,
       status: raw.status ?? "success",
       optical_status: raw.optical_status ?? (opticalRan ? "success" : "not_available"),
+      optical_provenance_state: raw.optical_provenance_state ?? (opticalRan ? "exact_frame_processed" : "unavailable"),
+      dem_provenance_state: raw.dem_provenance_state ?? "measured_lola_dem",
       source_product_id: raw.source_product_id ?? null,
       source_resolution_m: raw.source_resolution_m ?? null,
       coverage_zone: raw.coverage_zone ?? "core",
@@ -670,37 +705,37 @@ export const api = {
         typeof s.elevation === "object" && s.elevation !== null
           ? s.elevation
           : {
-              mean_m: s.elevation_m ?? null,
-              mean: s.elevation_m ?? null,
-              value: s.elevation_m ?? null,
-            },
+            mean_m: s.elevation_m ?? null,
+            mean: s.elevation_m ?? null,
+            value: s.elevation_m ?? null,
+          },
       mean_slope_deg: s.mean_slope_deg ?? null,
       slope:
         typeof s.slope === "object" && s.slope !== null
           ? s.slope
           : {
-              mean_deg: s.mean_slope_deg ?? null,
-              mean: s.mean_slope_deg ?? null,
-              value: s.mean_slope_deg ?? null,
-              max_deg: s.max_slope_deg ?? null,
-            },
+            mean_deg: s.mean_slope_deg ?? null,
+            mean: s.mean_slope_deg ?? null,
+            value: s.mean_slope_deg ?? null,
+            max_deg: s.max_slope_deg ?? null,
+          },
       roughness:
         typeof s.roughness === "object" && s.roughness !== null
           ? s.roughness
           : {
-              rms_m: s.roughness_m ?? null,
-              rms: s.roughness_m ?? null,
-            },
+            rms_m: s.roughness_m ?? null,
+            rms: s.roughness_m ?? null,
+          },
       illumination_pct: s.illumination_pct ?? null,
       illumination:
         typeof s.illumination === "object" && s.illumination !== null
           ? s.illumination
           : {
-              sunlight_percent: s.illumination_pct ?? null,
-              sunlit_percent: s.illumination_pct ?? null,
-              illumination_percent: s.illumination_pct ?? null,
-              value: s.illumination_pct ?? null,
-            },
+            sunlight_percent: s.illumination_pct ?? null,
+            sunlit_percent: s.illumination_pct ?? null,
+            illumination_percent: s.illumination_pct ?? null,
+            value: s.illumination_pct ?? null,
+          },
     }));
 
     return {
@@ -819,6 +854,102 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ analysis_id: analysisId, format: "pdf" }),
     });
+    return await res.blob();
+  },
+
+  /** Direct binary PDF download of concise 2-page summary from POST /api/reports/comparison */
+  downloadComparisonSummaryPdf: async (
+    siteIds: string[],
+    missionProfile: string = "crewed_artemis_class",
+    customWeights?: Record<string, number>
+  ): Promise<Blob> => {
+    if (activeMode === "mock") {
+      return new Blob(["%PDF-1.4 Mock Lunar Landing Site Comparison Summary"], {
+        type: "application/pdf",
+      });
+    }
+    const res = await fetchRaw("/api/reports/comparison", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        site_ids: siteIds,
+        mission_profile: missionProfile,
+        custom_weights: customWeights,
+        format: "pdf",
+        summary_only: true,
+      }),
+    });
+    if (!res.ok) {
+      let errMsg = `Server returned status ${res.status}`;
+      try {
+        const errJson = await res.json();
+        if (errJson.detail) {
+          errMsg = typeof errJson.detail === "string" ? errJson.detail : JSON.stringify(errJson.detail);
+        }
+      } catch {
+        // Fallback
+      }
+      throw new Error(errMsg);
+    }
+    return await res.blob();
+  },
+
+  /** AI comparative explanation and trade-off synthesis from POST /api/ai/compare */
+  explainComparison: async (
+    siteIds: string[],
+    missionProfile: string = "crewed_artemis_class"
+  ): Promise<ExplanationResponse> => {
+    const raw = await request<any>(
+      "/api/ai/compare",
+      () => mock.explainAnalysis("comparison"),
+      post({ site_ids: siteIds, mission_profile: missionProfile })
+    );
+    return {
+      ...raw,
+      analysis_id: raw.analysis_id ?? `CMP-${siteIds.length}SITES`,
+      explanation: raw.explanation ?? raw.summary ?? raw.executive_summary,
+      summary: raw.summary ?? raw.explanation ?? raw.executive_summary,
+      positive_factors: raw.positive_factors ?? [],
+      risk_factors: raw.risk_factors ?? [],
+      limitations: raw.limitations ?? [],
+      model: raw.model ?? raw.model_origin ?? "Grounded Comparative Explainer",
+      generated_at: raw.generated_at ?? new Date().toISOString(),
+    };
+  },
+
+  /** Direct binary PDF download for multi-site comparison from POST /api/reports/comparison */
+  downloadComparisonPdf: async (
+    siteIds: string[],
+    missionProfile: string = "crewed_artemis_class",
+    customWeights?: Record<string, number>
+  ): Promise<Blob> => {
+    if (activeMode === "mock") {
+      return new Blob(["%PDF-1.4 Mock Lunar Landing Site Comparison Report"], {
+        type: "application/pdf",
+      });
+    }
+    const res = await fetchRaw("/api/reports/comparison", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        site_ids: siteIds,
+        mission_profile: missionProfile,
+        custom_weights: customWeights,
+        format: "pdf",
+      }),
+    });
+    if (!res.ok) {
+      let errMsg = `Server returned status ${res.status}`;
+      try {
+        const errJson = await res.json();
+        if (errJson.detail) {
+          errMsg = typeof errJson.detail === "string" ? errJson.detail : JSON.stringify(errJson.detail);
+        }
+      } catch {
+        // Fallback to HTTP status text
+      }
+      throw new Error(errMsg);
+    }
     return await res.blob();
   },
 
@@ -1036,6 +1167,9 @@ export const api = {
           product_id: "LOLA_SHDR_80M",
           crs: "ESRI:104903",
           disclaimer: "Mock terrain relief.",
+          source_tier: "Tier 0 (Calibrated Sample Baseline)",
+          has_high_res: false,
+          coverage_level: "core",
         };
       },
       post(req)

@@ -1,0 +1,12 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Explicit binary files
+*.pdf binary
+*.tif binary
+*.TIF binary
+*.pt binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary

@@ -20,8 +20,12 @@ export default function CesiumLunarViewer({
   markers = [],
 }: CesiumLunarViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<any>(null);
+  const ellipsoidRef = useRef<any>(null);
+  const cesiumModuleRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initNonce, setInitNonce] = useState(0);
 
   useEffect(() => {
     let viewer: any = null;
@@ -34,11 +38,13 @@ export default function CesiumLunarViewer({
 
         // Dynamically import Cesium to preserve fast initial page loads
         const Cesium = await import("cesium");
+        cesiumModuleRef.current = Cesium;
 
         if (destroyed || !containerRef.current) return;
 
         // Lunar Ellipsoid: R = 1,737,400 meters
         const moonEllipsoid = new Cesium.Ellipsoid(1737400.0, 1737400.0, 1737400.0);
+        ellipsoidRef.current = moonEllipsoid;
 
         // Prevent Cesium Ion network calls for Earth assets
         if (Cesium.Ion) {
@@ -63,6 +69,7 @@ export default function CesiumLunarViewer({
           navigationHelpButton: false,
           fullscreenButton: false,
         });
+        viewerRef.current = viewer;
 
         // Load local NASA LROC mosaic on lunar ellipsoid
         try {
@@ -82,17 +89,19 @@ export default function CesiumLunarViewer({
           viewer.bottomContainer.style.display = "none";
         }
 
-        // Configure atmospheric & lighting realism
-        viewer.scene.globe.enableLighting = true;
-        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#171717");
+        // Ambient visibility: disable solar shadowing so South Pole is not in pitch-black eclipse
+        viewer.scene.globe.enableLighting = false;
+        viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#222222");
         viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#090909");
 
-        // Focus South Pole: 90°S, 0°E, altitude ~1,200 km
+        // Focus Initial Target / South Pole
+        const targetLat = selected?.lat ?? -85.0;
+        const targetLon = selected?.lon ?? 0.0;
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(
-            0.0,
-            -85.0,
-            1200000.0,
+            targetLon,
+            targetLat,
+            1000000.0,
             moonEllipsoid
           ),
           orientation: {
@@ -100,7 +109,7 @@ export default function CesiumLunarViewer({
             pitch: Cesium.Math.toRadians(-90.0),
             roll: 0.0,
           },
-          duration: 1.5,
+          duration: 1.2,
         });
 
         // Add candidate site pins
@@ -159,8 +168,36 @@ export default function CesiumLunarViewer({
       if (viewer && !viewer.isDestroyed()) {
         viewer.destroy();
       }
+      viewerRef.current = null;
     };
-  }, []);
+  }, [initNonce]);
+
+  // Synchronize Cesium camera with active coordinate selection
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const ellipsoid = ellipsoidRef.current;
+    const Cesium = cesiumModuleRef.current;
+    if (!viewer || !ellipsoid || !Cesium || !selected || viewer.isDestroyed()) return;
+
+    try {
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(
+          selected.lon,
+          selected.lat,
+          600000.0,
+          ellipsoid
+        ),
+        orientation: {
+          heading: Cesium.Math.toRadians(0.0),
+          pitch: Cesium.Math.toRadians(-90.0),
+          roll: 0.0,
+        },
+        duration: 1.0,
+      });
+    } catch {
+      /* camera fly error handled gracefully */
+    }
+  }, [selected?.lat, selected?.lon]);
 
   return (
     <div className={`relative overflow-hidden bg-space ${className}`}>
@@ -184,6 +221,15 @@ export default function CesiumLunarViewer({
             <p className="mt-3 text-[11px] text-muted font-mono">
               The Three.js polar graticule mode remains active and fully functional.
             </p>
+            <button
+              className="btn-primary mt-4 !px-4 !py-2 !text-xs cursor-pointer"
+              onClick={() => {
+                setError(null);
+                setInitNonce((n) => n + 1);
+              }}
+            >
+              Retry Cesium Initialization
+            </button>
           </div>
         </div>
       )}

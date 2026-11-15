@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import type { CompareSite } from "@/types";
+import type { CompareSite, ExplanationResponse } from "@/types";
+import { api } from "@/services/api";
+import AIExplanation from "./AIExplanation";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
 import DataUnavailable from "./DataUnavailable";
 import { fmtCoord, fmtNum, pickNumber } from "@/utils/format";
-import { AlertIcon, CheckIcon, ScaleIcon } from "./icons";
+import { AlertIcon, CheckIcon, DocIcon, DownloadIcon, ScaleIcon, SparkIcon } from "./icons";
 
 interface MetricRow {
   label: string;
@@ -92,6 +94,13 @@ export default function SiteComparison() {
   } = useApp();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingSummaryPdf, setDownloadingSummaryPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [explaining, setExplaining] = useState(false);
+  const [explanation, setExplanation] = useState<ExplanationResponse | null>(null);
+  const [explanationError, setExplanationError] = useState<string | null>(null);
+  const [showJsonDossier, setShowJsonDossier] = useState(false);
 
   const toggle = (id: string) =>
     setSelectedIds((prev) =>
@@ -100,6 +109,87 @@ export default function SiteComparison() {
 
   const selectAll = () => setSelectedIds(sites.map((s) => s.site_id));
   const clearAll = () => setSelectedIds([]);
+
+  const handleCompareAll = () => {
+    const allIds = sites.map((s) => s.site_id);
+    setSelectedIds(allIds);
+    void compare(allIds);
+  };
+
+  const handleExplainComparison = async () => {
+    if (rows.length < 2 || explaining) return;
+    setExplaining(true);
+    setExplanationError(null);
+    try {
+      const siteIds = rows.map((r) => r.site_id);
+      const res = await api.explainComparison(siteIds);
+      setExplanation(res);
+    } catch (err: any) {
+      setExplanationError(err?.message || "Failed to synthesize comparative AI mission briefing");
+    } finally {
+      setExplaining(false);
+    }
+  };
+
+  const handleDownloadSummaryPdf = async () => {
+    if (rows.length < 2 || downloadingSummaryPdf) return;
+    setDownloadingSummaryPdf(true);
+    setPdfError(null);
+    try {
+      const siteIds = rows.map((r) => r.site_id);
+      const blob = await api.downloadComparisonSummaryPdf(siteIds);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const today = new Date().toISOString().split("T")[0];
+      a.download = `MoonScape_Comparison_Summary_${today}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (err: any) {
+      setPdfError(err?.message || "Failed to generate comparison summary PDF");
+    } finally {
+      setDownloadingSummaryPdf(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (rows.length < 2 || downloadingPdf) return;
+    setDownloadingPdf(true);
+    setPdfError(null);
+    try {
+      const siteIds = rows.map((r) => r.site_id);
+      const blob = await api.downloadComparisonPdf(siteIds);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const today = new Date().toISOString().split("T")[0];
+      a.download = `MoonScape_Comparison_${today}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (err: any) {
+      setPdfError(err?.message || "Failed to generate and download comparison PDF report");
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadJson = () => {
+    if (!comparison) return;
+    const blob = new Blob([JSON.stringify(comparison, null, 2)], { type: "application/json" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const today = new Date().toISOString().split("T")[0];
+    a.download = `moonscape_comparison_${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+  };
 
   const rows: CompareSite[] = (() => {
     if (!comparison) return [];
@@ -144,6 +234,14 @@ export default function SiteComparison() {
                   onClick={selectAll}
                 >
                   Select All ({sites.length})
+                </button>
+                <button
+                  type="button"
+                  className="chip cursor-pointer transition-colors hover:border-ink/60 hover:text-ink font-medium"
+                  onClick={handleCompareAll}
+                  disabled={sites.length < 2 || compareStatus === "loading"}
+                >
+                  Compare All Sites ({sites.length})
                 </button>
                 {selectedIds.length > 0 && (
                   <button
@@ -191,8 +289,8 @@ export default function SiteComparison() {
                   onClick={() => toggle(s.site_id)}
                   type="button"
                   className={`group relative rounded border p-4 text-left transition-all ${active
-                      ? "border-ink/60 bg-white/5 shadow-[0_0_20px_-6px_rgba(255,255,255,0.12)]"
-                      : "border-divider bg-transparent hover:border-white/30 hover:bg-elevated/40"
+                    ? "border-ink/60 bg-white/5 shadow-[0_0_20px_-6px_rgba(255,255,255,0.12)]"
+                    : "border-divider bg-transparent hover:border-white/30 hover:bg-elevated/40"
                     }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -201,8 +299,8 @@ export default function SiteComparison() {
                     </span>
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${active
-                          ? "border-ink bg-ink text-space"
-                          : "border-divider text-transparent group-hover:border-white/40"
+                        ? "border-ink bg-ink text-space"
+                        : "border-divider text-transparent group-hover:border-white/40"
                         }`}
                     >
                       <CheckIcon className="h-3.5 w-3.5" />
@@ -247,15 +345,82 @@ export default function SiteComparison() {
                 Comparative Site Analysis
               </h2>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="chip font-mono">POST /api/sites/compare</span>
               {comparison?.compared_at && (
                 <span className="chip font-mono">
                   {String(comparison.compared_at)}
                 </span>
               )}
+              <button
+                type="button"
+                className="btn-primary !px-3.5 !py-2 !text-xs flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+                onClick={handleExplainComparison}
+                disabled={explaining || rows.length < 2}
+                title="Synthesize AI comparative mission briefing and trade-off assessment"
+              >
+                {explaining ? (
+                  <span className="spinner !h-3.5 !w-3.5" />
+                ) : (
+                  <SparkIcon className="h-3.5 w-3.5" />
+                )}
+                <span>{explaining ? "Synthesizing AI…" : "Generate AI Summary"}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-secondary !px-3.5 !py-2 !text-xs flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+                onClick={handleDownloadSummaryPdf}
+                disabled={downloadingSummaryPdf || rows.length < 2}
+                title="Download concise 2-page executive summary PDF"
+              >
+                {downloadingSummaryPdf ? (
+                  <span className="spinner !h-3.5 !w-3.5" />
+                ) : (
+                  <DownloadIcon className="h-3.5 w-3.5" />
+                )}
+                <span>{downloadingSummaryPdf ? "Generating Summary…" : "Download Summary PDF"}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-secondary !px-3.5 !py-2 !text-xs flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf || rows.length < 2}
+                title="Download comprehensive 10-page comparison PDF report"
+              >
+                {downloadingPdf ? (
+                  <span className="spinner !h-3.5 !w-3.5" />
+                ) : (
+                  <DownloadIcon className="h-3.5 w-3.5" />
+                )}
+                <span>{downloadingPdf ? "Generating PDF…" : "Download Full PDF"}</span>
+              </button>
+              <button
+                type="button"
+                className="btn-ghost !px-3 !py-2 !text-xs flex items-center gap-1.5 cursor-pointer"
+                onClick={() => window.print()}
+                title="Print or export current view"
+              >
+                <DocIcon className="h-3.5 w-3.5" />
+                <span>Print</span>
+              </button>
             </div>
           </div>
+
+          {pdfError && (
+            <div className="flex items-center justify-between rounded border border-bad/30 bg-bad/10 px-4 py-2.5 text-xs text-bad">
+              <div className="flex items-center gap-2">
+                <AlertIcon className="h-4 w-4 shrink-0" />
+                <span>{pdfError}</span>
+              </div>
+              <button
+                type="button"
+                className="text-muted hover:text-ink text-xs underline ml-4 cursor-pointer"
+                onClick={() => setPdfError(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* Side-by-side Table with Visual Bars */}
           <div className="panel overflow-hidden p-0">
@@ -325,8 +490,8 @@ export default function SiteComparison() {
                                     <div className="mt-1.5 h-1 w-28 overflow-hidden rounded bg-elevated">
                                       <div
                                         className={`h-full rounded ${isBest
-                                            ? "bg-gradient-to-r from-[#888888] to-[#F1F1EF]"
-                                            : "bg-muted/40"
+                                          ? "bg-gradient-to-r from-[#888888] to-[#F1F1EF]"
+                                          : "bg-muted/40"
                                           }`}
                                         style={{ width: `${pct}%` }}
                                       />
@@ -352,6 +517,106 @@ export default function SiteComparison() {
                 suitability scores and advantage flags reflect relative model metrics and do not
                 constitute landing safety certification or guarantee mission success.
               </p>
+            </div>
+          </div>
+
+          {/* ================= Section 1: AI Comparative Explanation ================= */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="kicker">Mission Debrief</span>
+                <h3 className="font-display text-lg font-semibold text-ink">
+                  Comparative AI Mission Synthesis
+                </h3>
+              </div>
+              {!explanation && (
+                <button
+                  type="button"
+                  className="btn-ghost !px-3 !py-1.5 !text-xs flex items-center gap-1.5 cursor-pointer"
+                  onClick={handleExplainComparison}
+                  disabled={explaining || rows.length < 2}
+                >
+                  <SparkIcon className="h-3.5 w-3.5 text-ink" />
+                  Generate Briefing
+                </button>
+              )}
+            </div>
+
+            <AIExplanation
+              explanation={explanation}
+              status={explaining ? "loading" : explanation ? "ready" : "idle"}
+              error={explanationError}
+              onRetry={handleExplainComparison}
+            />
+
+            {!explanation && !explaining && !explanationError && (
+              <div className="panel p-6 text-center text-xs text-muted">
+                No comparative narrative synthesized yet. Click “Generate AI Summary” above to compile a grounded trade-off briefing.
+              </div>
+            )}
+          </div>
+
+          {/* ================= Section 2: Technical JSON Comparison Dossier ================= */}
+          <div className="panel p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-divider pb-4">
+              <div>
+                <span className="kicker">Telemetry Export</span>
+                <h3 className="font-display text-base font-semibold text-ink">
+                  Full Technical Comparative JSON Dossier
+                </h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="chip font-mono">CMP-{rows.length}SITES</span>
+                <button
+                  type="button"
+                  className="btn-ghost !px-3 !py-1.5 !text-xs cursor-pointer"
+                  onClick={() => setShowJsonDossier((prev) => !prev)}
+                >
+                  {showJsonDossier ? "Hide Raw JSON" : "Inspect Raw JSON"}
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary !px-3.5 !py-1.5 !text-xs flex items-center gap-1.5 cursor-pointer"
+                  onClick={handleDownloadJson}
+                >
+                  <DownloadIcon className="h-3.5 w-3.5" />
+                  Download JSON
+                </button>
+              </div>
+            </div>
+
+            {showJsonDossier && (
+              <pre className="mt-4 max-h-96 overflow-auto rounded-lg border border-divider bg-space/80 p-4 font-mono text-xs leading-relaxed text-slate-200">
+                {JSON.stringify(comparison, null, 2)}
+              </pre>
+            )}
+          </div>
+
+          {/* ================= Section 3: Data Provenance & Sensor Heritage ================= */}
+          <div className="panel p-6">
+            <span className="kicker mb-2 block">Data Provenance &amp; Sensor Heritage</span>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded border border-divider/60 bg-elevated/30 p-3.5">
+                <h4 className="font-display text-xs font-semibold text-ink">LRO LOLA DEM</h4>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                  Lunar Orbiter Laser Altimeter SHDR 80m profiles providing topographic elevation,
+                  Horn (1981) 3x3 slope gradients, and 15m RMS surface roughness.
+                </p>
+              </div>
+              <div className="rounded border border-divider/60 bg-elevated/30 p-3.5">
+                <h4 className="font-display text-xs font-semibold text-ink">LRO LROC NAC</h4>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                  Narrow Angle Camera high-resolution optical imagery for surface crater and boulder
+                  hazard detection inferred via fine-tuned YOLOv8n polar weights.
+                </p>
+              </div>
+              <div className="rounded border border-divider/60 bg-elevated/30 p-3.5">
+                <h4 className="font-display text-xs font-semibold text-ink">Solar &amp; Comms Models</h4>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                  JPL Horizons DE430/SPICE orbital kernels calculating synodic sunlight exposure,
+                  surface darkness intervals, and Direct-to-Earth line-of-sight visibility.
+                </p>
+              </div>
             </div>
           </div>
         </div>

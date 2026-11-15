@@ -47,9 +47,21 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
 
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    // Camera starts slightly pulled back for cinematic entry
-    camera.position.set(0, 0, 4.2);
+    const MOON_RADIUS = 1.0;
+    const FOV = 40;
+    const TAN_HALF_FOV = Math.tan((FOV / 2) * (Math.PI / 180));
+    // Moon occupies ~72% of the limiting viewport dimension, leaving comfortable margin
+    const calculateTargetZ = (w: number, h: number) => {
+      const aspect = w / Math.max(h, 1);
+      const baseZ = MOON_RADIUS / (0.72 * TAN_HALF_FOV);
+      return baseZ / Math.min(aspect, 1.0);
+    };
+
+    let targetCameraZ = calculateTargetZ(width, height);
+
+    const camera = new THREE.PerspectiveCamera(FOV, width / Math.max(height, 1), 0.1, 100);
+    // Camera starts slightly pulled back for smooth cinematic entry glide
+    camera.position.set(0, 0, targetCameraZ * 1.25);
 
     let renderer: THREE.WebGLRenderer | null = null;
     try {
@@ -58,10 +70,16 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
         alpha: true,
         powerPreference: "high-performance",
       });
+      renderer.setClearColor(0x000000, 0); // Strict zero-alpha clear color to blend into deep space
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
+      renderer.domElement.style.display = "block";
+      renderer.domElement.style.width = "100%";
+      renderer.domElement.style.height = "100%";
+      renderer.domElement.style.outline = "none";
+      renderer.domElement.style.border = "none";
       container.appendChild(renderer.domElement);
     } catch (e) {
       console.warn("Failed to create WebGLRenderer:", e);
@@ -70,8 +88,8 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
     }
 
     // 3. Moon Sphere Geometry & Material
-    // Segment density 64x64 offers smooth silhouette at low GPU cost
-    const geometry = new THREE.SphereGeometry(1.4, 64, 64);
+    // Segment density 96x96 delivers a pristine, perfectly smooth circular silhouette
+    const geometry = new THREE.SphereGeometry(MOON_RADIUS, 96, 96);
 
     // Initial placeholder grayscale canvas texture for progressive loading
     const placeholderCanvas = document.createElement("canvas");
@@ -153,7 +171,6 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
     );
 
     // 6. Interaction & Parallax State
-    let targetCameraZ = 3.4; // Target resting camera position
     let targetRotX = 0.08;
     let targetRotY = -0.45;
     let isDragging = false;
@@ -175,11 +192,11 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
         targetRotX += dragVelocity.y;
         previousPointerPosition = { x: e.clientX, y: e.clientY };
       } else {
-        // Gentle mouse parallax when idle
+        // Gentle mouse parallax when idle (clamped to never push Moon towards boundary)
         const normX = (e.clientX / window.innerWidth - 0.5) * 2;
         const normY = (e.clientY / window.innerHeight - 0.5) * 2;
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, normX * 0.15, 0.04);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, -normY * 0.10, 0.04);
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, normX * 0.12, 0.04);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, -normY * 0.08, 0.04);
       }
     };
 
@@ -192,17 +209,20 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
 
-    // Handle Resize
+    // Responsive camera framing and resize observer
     const handleResize = () => {
       if (!container || !renderer) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
+      camera.aspect = w / Math.max(h, 1);
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      targetCameraZ = calculateTargetZ(w, h);
     };
 
     window.addEventListener("resize", handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     // 7. Animation Loop with Camera Glide
     let animationFrameId: number;
@@ -241,6 +261,7 @@ export default function CinematicMoon({ className = "" }: CinematicMoonProps) {
     // 8. Clean Disposal on Unmount
     return () => {
       cancelAnimationFrame(animationFrameId);
+      resizeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
       domElement.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointermove", handlePointerMove);

@@ -132,3 +132,6 @@ class TerrainMeshResponse(BaseModel):
     product_id: str
     crs: str
     disclaimer: str
+    source_tier: Optional[str] = Field(None, description="Active DEM source tier (e.g. Tier 2 5m, Tier 1 80m, Tier 0 sample)")
+    has_high_res: Optional[bool] = Field(False, description="Whether authentic 5m regional high-resolution DEM is active")
+    coverage_level: Optional[str] = Field("core", description="Exploration coverage classification ('core', 'extended', 'context')")

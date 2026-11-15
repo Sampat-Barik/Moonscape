@@ -78,6 +78,15 @@ export interface HazardItem {
   size_m?: number | null;
   depth_m?: number | null;
   confidence?: number | null;
+  severity?: string;
+  source?: string;
+  measurement_name?: string | null;
+  measurement_unit?: string | null;
+  measurement_value?: number | null;
+  confidence_type?: string | null;
+  detection_method?: string | null;
+  feature_extent_m?: number | null;
+  cell_count?: number | null;
   [key: string]: unknown;
 }
 
@@ -87,6 +96,8 @@ export interface HazardDetection {
   radius_m?: number;
   status?: string;
   optical_status?: string;
+  optical_provenance_state?: string | null;
+  dem_provenance_state?: string | null;
   source_product_id?: string | null;
   source_resolution_m?: number | null;
   coverage_zone?: string;
@@ -451,4 +462,7 @@ export interface TerrainMeshResponse {
   product_id: string;
   crs: string;
   disclaimer: string;
+  source_tier?: string;
+  has_high_res?: boolean;
+  coverage_level?: string;
 }

@@ -359,7 +359,7 @@ class TerrainService:
         # Validate coordinate
         is_valid, _ = coordinate_manager.validate_coordinates(lat, lon)
         if not is_valid or not coordinate_manager.is_in_analysis_region(lat):
-            cx, cy = coordinate_manager.to_polar_stereographic(lat, lon)
+            cx, cy = coordinate_manager.to_polar_stereographic(lat, lon) if is_valid else (0.0, 0.0)
             empty_grid = [[0.0] * grid_size for _ in range(grid_size)]
             return TerrainMeshResponse(
                 status="outside_polar_zone",
@@ -379,11 +379,15 @@ class TerrainService:
                 dataset_name=LOLA_DATASET_NAME,
                 product_id=LOLA_PRODUCT_ID,
                 crs="ESRI:104903 (Lunar South Polar Stereographic)",
-                disclaimer="Coordinates outside supported lunar South Pole region (80°S-90°S).",
+                disclaimer="Coordinates outside supported lunar South Pole exploration region (-90° to -70°).",
+                source_tier="None",
+                has_high_res=False,
+                coverage_level="outside",
             )
 
         cx, cy = coordinate_manager.to_polar_stereographic(lat, lon)
         win = nasa_data_manager.get_spatial_window(lat, lon, radius_m)
+        cov_level = coordinate_manager.get_coverage_zone(lat)
 
         if win is None or win.elevation_data is None or win.elevation_data.size == 0:
             pt_elev, _, _ = dem_service.get_elevation_at_point(lat, lon)
@@ -409,14 +413,20 @@ class TerrainService:
                 product_id=LOLA_PRODUCT_ID,
                 crs="ESRI:104903",
                 disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
+                source_tier="Tier 0 (Calibrated Sample Baseline)",
+                has_high_res=False,
+                coverage_level=cov_level,
             )
 
         elev = win.elevation_data.astype(np.float32).copy()
-        nodata_mask = (elev <= -30000.0) | (elev == LOLA_NODATA_VALUE) | np.isnan(elev)
+        nodata_mask = (elev <= -30000.0) | (elev == LOLA_NODATA_VALUE) | np.isnan(elev) | np.isinf(elev)
 
+        status_flag = "ready"
         if np.all(nodata_mask):
-            base_elev = 0.0
+            pt_elev, _, _ = dem_service.get_elevation_at_point(lat, lon)
+            base_elev = float(pt_elev if pt_elev is not None else 0.0)
             elev.fill(base_elev)
+            status_flag = "nodata_window"
         elif np.any(nodata_mask):
             valid_mean = float(np.mean(elev[~nodata_mask]))
             elev[nodata_mask] = valid_mean
@@ -424,11 +434,12 @@ class TerrainService:
         # Calculate slope if not already present
         if win.slope_data is not None and win.slope_data.shape == elev.shape:
             slope = win.slope_data.astype(np.float32).copy()
-            slope_nodata = (slope < 0) | np.isnan(slope)
+            slope_nodata = (slope < 0) | np.isnan(slope) | np.isinf(slope)
             if np.any(slope_nodata):
                 slope[slope_nodata] = 0.0
         else:
             slope, _ = horn_slope_and_aspect(elev, win.dx_meters, win.dy_meters)
+            slope = np.nan_to_num(slope, nan=0.0, posinf=90.0, neginf=0.0)
 
         # Resample to grid_size x grid_size
         r_in, c_in = elev.shape
@@ -438,9 +449,12 @@ class TerrainService:
         resampled_elev = scipy.ndimage.zoom(elev, (zoom_r, zoom_c), order=1)
         resampled_slope = scipy.ndimage.zoom(slope, (zoom_r, zoom_c), order=1)
 
-        # Ensure exact shape
+        # Ensure exact shape and clean finite numbers
         resampled_elev = resampled_elev[:grid_size, :grid_size]
         resampled_slope = resampled_slope[:grid_size, :grid_size]
+        mean_fallback = float(np.nanmean(elev)) if not np.isnan(np.nanmean(elev)) else 0.0
+        resampled_elev = np.nan_to_num(resampled_elev, nan=mean_fallback, posinf=mean_fallback, neginf=mean_fallback)
+        resampled_slope = np.nan_to_num(resampled_slope, nan=0.0, posinf=90.0, neginf=0.0)
 
         min_e = float(np.min(resampled_elev))
         max_e = float(np.max(resampled_elev))
@@ -448,8 +462,10 @@ class TerrainService:
         relief = float(max_e - min_e)
         eff_res = (radius_m * 2.0) / grid_size
 
+        has_high_res = bool(win.source_tier and ("Tier 2" in win.source_tier or "5m" in win.source_tier))
+
         return TerrainMeshResponse(
-            status="ready",
+            status=status_flag,
             latitude=lat,
             longitude=lon,
             radius_m=radius_m,
@@ -467,6 +483,9 @@ class TerrainService:
             product_id=win.product_id,
             crs=win.crs,
             disclaimer=SCIENTIFIC_SAFETY_DISCLAIMER,
+            source_tier=win.source_tier or "Tier 0 (Calibrated Sample Baseline)",
+            has_high_res=has_high_res,
+            coverage_level=cov_level,
         )
 
 

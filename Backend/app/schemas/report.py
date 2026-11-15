@@ -1,7 +1,7 @@
 """Schemas for mission landing-site evaluation report generation (Phase 8)."""
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from app.core.constants import SCIENTIFIC_SAFETY_DISCLAIMER
 
 
@@ -10,10 +10,15 @@ class ReportGenerateRequest(BaseModel):
 
     analysis_id: Optional[str] = Field(None, description="Identifier of completed analysis (e.g. 'analysis_001')")
     site_id: Optional[str] = Field(None, description="Target site slug identifier from catalog")
+    site_ids: Optional[List[str]] = Field(None, description="List of site IDs for multi-site comparative report (min 2)")
+    custom_weights: Optional[Dict[str, float]] = Field(None, description="Custom criteria weight overrides for comparison")
+    weights: Optional[Dict[str, float]] = Field(None, description="Alias for custom_weights")
+    mission_profile: Optional[str] = Field("crewed_artemis_class", description="Mission profile preset for scoring weights")
     mission_title: Optional[str] = Field("Moonscape Lunar Landing Site Scientific Assessment", description="Mission or report title")
     include_ai_narrative: bool = Field(True, description="Whether to include synthesized AI scientific explanation")
     format: Optional[str] = Field(None, description="Desired report format: 'json', 'pdf', 'markdown', or 'html'")
     output_format: Optional[str] = Field(None, description="Alias for 'format'")
+    summary_only: bool = Field(False, description="Whether to compile a concise 2-page executive summary PDF instead of full dossier")
 
     @model_validator(mode="before")
     @classmethod
@@ -25,13 +30,74 @@ class ReportGenerateRequest(BaseModel):
                 raise ValueError(f"Unsupported report format '{fmt}'. Allowed formats are: {sorted(allowed)}.")
             data["format"] = fmt
             data["output_format"] = fmt
+            if "weights" in data and "custom_weights" not in data:
+                data["custom_weights"] = data["weights"]
         return data
 
     @model_validator(mode="after")
     def validate_target(self) -> "ReportGenerateRequest":
+        if self.site_ids is not None:
+            if len(self.site_ids) < 2:
+                raise ValueError("Comparison report requires at least two distinct landing sites.")
+            if len(self.site_ids) != len(set(self.site_ids)):
+                raise ValueError("Duplicate site IDs found in comparison request. All site IDs must be unique.")
+            return self
         if not self.analysis_id and not self.site_id:
-            raise ValueError("Either 'analysis_id' or 'site_id' must be specified to generate a report.")
+            raise ValueError("Either 'analysis_id', 'site_id', or 'site_ids' must be specified to generate a report.")
         return self
+
+
+class ComparisonReportRequest(BaseModel):
+    """Payload to generate a comprehensive multi-site comparative assessment report."""
+
+    site_ids: List[str] = Field(..., min_length=2, description="List of candidate site IDs to compare (minimum 2)")
+    mission_profile: Optional[str] = Field("crewed_artemis_class", description="Mission profile preset for scoring weights")
+    custom_weights: Optional[Dict[str, float]] = Field(None, description="Custom criteria weight overrides")
+    weights: Optional[Dict[str, float]] = Field(None, description="Alias for custom_weights")
+    mission_title: Optional[str] = Field(
+        "MoonScape Lunar South Pole Comparative Landing Site Assessment",
+        description="Title printed on cover and header",
+    )
+    format: Optional[str] = Field("pdf", description="Report format: 'pdf', 'json', 'markdown', or 'html'")
+    output_format: Optional[str] = Field(None, description="Alias for 'format'")
+    summary_only: bool = Field(False, description="Whether to compile a concise 2-page executive summary PDF instead of full dossier")
+
+    @field_validator("site_ids")
+    @classmethod
+    def validate_site_ids(cls, v: List[str]) -> List[str]:
+        if not v or len(v) < 2:
+            raise ValueError("Comparison report requires at least two distinct landing sites.")
+        if len(v) != len(set(v)):
+            raise ValueError("Duplicate site IDs found in comparison request. All site IDs must be unique.")
+        return v
+
+    @model_validator(mode="before")
+    @classmethod
+    def reconcile_format(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            fmt = (data.get("format") or data.get("output_format") or "pdf").lower()
+            allowed = {"json", "pdf", "markdown", "html"}
+            if fmt not in allowed:
+                raise ValueError(f"Unsupported report format '{fmt}'. Allowed formats are: {sorted(allowed)}.")
+            data["format"] = fmt
+            data["output_format"] = fmt
+            if "weights" in data and "custom_weights" not in data:
+                data["custom_weights"] = data["weights"]
+        return data
+
+
+class ComparisonReportResponse(BaseModel):
+    """Metadata response for comparative evaluation report."""
+
+    report_id: str
+    generated_at: str
+    site_count: int
+    site_ids: List[str]
+    mission_profile: str
+    highest_ranked_site: Optional[str] = None
+    rankings: List[Dict[str, Any]] = Field(default_factory=list)
+    format: str = "pdf"
+    disclaimer: str = SCIENTIFIC_SAFETY_DISCLAIMER
 
 
 # ---------------------------------------------------------------------------

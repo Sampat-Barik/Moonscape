@@ -25,11 +25,13 @@ from app.schemas.hazard import (
 )
 
 APOLLO_DOMAIN_LIMITATION = (
-    "CRITICAL SCIENTIFIC NOTICE: Models trained exclusively on Apollo surface photography "
-    "(equatorial/mid-latitude, sun elevation > 15 deg) are INVALIDATED for orbital South Pole "
-    "landing corridors due to extreme grazing-angle illumination (< 1.5 deg), severe elongated "
-    "shadows, permanently shadowed regions (PSRs), and polar stereographic distortion. "
-    "Current status: Ground-truth validation required against high-resolution LROC NAC and LOLA polar datasets."
+    "CRITICAL SCIENTIFIC NOTICE: Orbital Polar Observation Domain. Apollo equatorial surface photography "
+    "(sun elevation > 15 deg, astronaut eye-level view) is invalid for orbital polar nadir crater/boulder mapping. "
+    "The MoonScape YOLOv8n detector is trained and evaluated exclusively on authentic NASA LROC NAC and ISRO "
+    "Chandrayaan-2 OHRC polar orbital nadir frames under grazing solar incidence (78°–84.5°). Optical hazard detection "
+    "operates only within illuminated zones and is invalidated inside Permanently Shadowed Regions (PSRs) where "
+    "LiDAR DEM altimetry and radar backscatter must be used. Outputs are preliminary decision-support assessments "
+    "and do not constitute certified autonomous flight clearance."
 )
 
 

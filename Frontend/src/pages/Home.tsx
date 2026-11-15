@@ -122,8 +122,8 @@ function HeroSection({ navigate }: { navigate: (r: Route) => void }) {
           transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           className="relative flex items-center justify-center lg:col-span-6 xl:col-span-7 h-[420px] sm:h-[540px] lg:h-[680px] xl:h-[760px]"
         >
-          {/* Subtle Ambient Radial Highlight behind the Moon */}
-          <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.06)_0%,transparent_65%)]" />
+          {/* Seamless Deep-Space Ambient Radial Glow behind the Moon */}
+          <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(closest-side_at_50%_50%,rgba(255,255,255,0.035)_0%,rgba(255,255,255,0.01)_50%,transparent_100%)]" />
 
           {/* Three.js Interactive Moon Globe */}
           <div className="relative z-10 h-full w-full">

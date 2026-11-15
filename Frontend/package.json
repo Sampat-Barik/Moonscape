@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/unit.test.mjs tests/scientific_workflow.test.mjs tests/dashboard_workflow.test.mjs"
+    "test": "node --test tests/unit.test.mjs tests/scientific_workflow.test.mjs tests/dashboard_workflow.test.mjs tests/visual_regression.test.mjs"
   },
   "dependencies": {
     "@types/three": "^0.187.0",

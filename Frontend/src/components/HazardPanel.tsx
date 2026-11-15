@@ -6,7 +6,28 @@ import DataUnavailable from "./DataUnavailable";
 import { fmtCoord, fmtNum, pickString } from "@/utils/format";
 import { AlertIcon, ShieldIcon } from "./icons";
 
-function ConfidenceBar({ value }: { value: number | null }) {
+function ConfidenceCell({ item }: { item: HazardItem }) {
+  const confType = item.confidence_type;
+  if (confType === "deterministic_gradient") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded bg-surface/80 px-2 py-0.5 font-mono text-[11px] text-slate-300 border border-divider">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        Deterministic DEM
+      </span>
+    );
+  }
+  if (confType === "heuristic_indicator") {
+    const val = typeof item.confidence === "number" ? item.confidence : null;
+    const pct = val !== null ? Math.round(val * 100) : null;
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded bg-surface/80 px-2 py-0.5 font-mono text-[11px] text-slate-300 border border-divider">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+        Heuristic Index{pct !== null ? `: ${pct}%` : ""}
+      </span>
+    );
+  }
+
+  const value = typeof item.confidence === "number" ? item.confidence : null;
   if (value === null || value === undefined) {
     return <span className="text-warn text-[11px]">uncalibrated</span>;
   }
@@ -19,7 +40,7 @@ function ConfidenceBar({ value }: { value: number | null }) {
           style={{ width: `${pct}%` }}
         />
       </span>
-      <span className="font-mono text-[11px] text-slate-300">{fmtNum(pct, 0)}%</span>
+      <span className="font-mono text-[11px] text-slate-300">{fmtNum(pct, 0)}% (ML)</span>
     </span>
   );
 }
@@ -60,7 +81,7 @@ function ItemTable({
                     {c.label}
                   </th>
                 ))}
-                <th className="px-3 py-2 font-medium">Confidence</th>
+                <th className="px-3 py-2 font-medium">Method / Confidence</th>
               </tr>
             </thead>
             <tbody>
@@ -73,7 +94,7 @@ function ItemTable({
                     </td>
                   ))}
                   <td className="px-3 py-2">
-                    <ConfidenceBar value={typeof it.confidence === "number" ? it.confidence : null} />
+                    <ConfidenceCell item={it} />
                   </td>
                 </tr>
               ))}
@@ -260,8 +281,8 @@ export default function HazardPanel({
           items={craters}
           emptyMessage="Optical scan completed: zero craters satisfying detection confidence threshold."
           columns={[
-            { label: "Lat", render: (i) => (typeof i.latitude === "number" ? fmtNum(i.latitude, 3) : "n/a") },
-            { label: "Lon", render: (i) => (typeof i.longitude === "number" ? fmtNum(i.longitude, 3) : "n/a") },
+            { label: "Lat", render: (i) => (typeof i.latitude === "number" ? fmtNum(i.latitude, 4) : "n/a") },
+            { label: "Lon", render: (i) => (typeof i.longitude === "number" ? fmtNum(i.longitude, 4) : "n/a") },
             {
               label: "Diameter (m)",
               render: (i) => {
@@ -279,8 +300,8 @@ export default function HazardPanel({
           items={rocks}
           emptyMessage="Optical scan completed: zero boulders satisfying detection confidence threshold."
           columns={[
-            { label: "Lat", render: (i) => (typeof i.latitude === "number" ? fmtNum(i.latitude, 3) : "n/a") },
-            { label: "Lon", render: (i) => (typeof i.longitude === "number" ? fmtNum(i.longitude, 3) : "n/a") },
+            { label: "Lat", render: (i) => (typeof i.latitude === "number" ? fmtNum(i.latitude, 4) : "n/a") },
+            { label: "Lon", render: (i) => (typeof i.longitude === "number" ? fmtNum(i.longitude, 4) : "n/a") },
             {
               label: "Est. Size (m)",
               render: (i) => {
@@ -302,11 +323,25 @@ export default function HazardPanel({
           emptyMessage="No steep escarpments or extreme roughness anomalies in evaluated radius."
           columns={[
             { label: "Type", render: (i) => (i.type ? String(i.type).replace(/_/g, " ") : "hazard") },
-            { label: "Lat", render: (i) => (typeof i.latitude === "number" ? fmtNum(i.latitude, 3) : "n/a") },
-            { label: "Lon", render: (i) => (typeof i.longitude === "number" ? fmtNum(i.longitude, 3) : "n/a") },
+            { label: "Lat", render: (i) => (typeof i.latitude === "number" ? fmtNum(i.latitude, 4) : "n/a") },
+            { label: "Lon", render: (i) => (typeof i.longitude === "number" ? fmtNum(i.longitude, 4) : "n/a") },
             {
-              label: "Param Value",
-              render: (i) => (typeof i.size_m === "number" && i.size_m > 0 ? fmtNum(i.size_m, 1) : "n/a"),
+              label: "Parameter & Unit",
+              render: (i) => {
+                if (typeof i.measurement_value === "number") {
+                  const unit = i.measurement_unit === "deg" ? "°" : ` ${i.measurement_unit ?? "m"}`;
+                  const name = i.measurement_name ? ` (${i.measurement_name})` : "";
+                  return `${fmtNum(i.measurement_value, 1)}${unit}${name}`;
+                }
+                if (typeof i.size_m === "number" && i.size_m > 0) {
+                  return `${fmtNum(i.size_m, 1)} m`;
+                }
+                return "n/a";
+              },
+            },
+            {
+              label: "Footprint",
+              render: (i) => (typeof i.feature_extent_m === "number" ? `${fmtNum(i.feature_extent_m, 0)} m span` : (i.cell_count ? `${i.cell_count} cells` : "—")),
             },
             { label: "Severity", render: (i) => (typeof i.severity === "string" ? i.severity : "medium") },
           ]}
@@ -342,9 +377,11 @@ export default function HazardPanel({
           </div>
           <div className="rounded border border-divider bg-surface/40 p-3">
             <span className="text-muted block text-[11px]">Detection Engine</span>
-            <span className="font-mono text-ink mt-0.5 block truncate" title={model}>{model}</span>
+            <span className="font-mono text-ink mt-0.5 block truncate" title={model}>
+              {opticalStatus === "success" ? "YOLOv8n Polar Neural Detector" : "DEM Morphological Engine"}
+            </span>
             <span className="text-[11px] text-muted mt-1 block">
-              YOLOv8n PyTorch / ONNX Engine
+              {opticalStatus === "success" ? "PyTorch/ONNX Online · Optical Frame Processed" : "Optical Offline · DEM Morphology Active"}
             </span>
           </div>
         </div>

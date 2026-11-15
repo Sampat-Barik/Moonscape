@@ -30,15 +30,57 @@ import {
 } from "@/components/icons";
 
 /* ---------------------------------------------------------------------------
- * CANDIDATE SITE PRESETS
+ * CANDIDATE SITE PRESETS (VERIFIED NASA ARTEMIS COORDINATES)
  * ------------------------------------------------------------------------- */
 const QUICK_PRESETS = [
-  { label: "Connecting Ridge", lat: -89.42, lon: 34.0, siteId: "site-01", description: "Artemis III Site 01 (5m DEM available)" },
-  { label: "Shackleton Rim", lat: -89.90, lon: 0.0, siteId: "site-02", description: "Connecting Ridge peak with high illumination" },
-  { label: "Faustini Rim", lat: -87.20, lon: 80.0, siteId: "site-03", description: "Promising volatile trap proximal ridge" },
-  { label: "Malapert Massif", lat: -86.50, lon: 0.0, siteId: "site-04", description: "Direct-to-Earth communications peak" },
-  { label: "South Pole Peak", lat: -90.00, lon: 0.0, siteId: "site-05", description: "Geometric lunar South Pole origin" },
-  { label: "de Gerlache Rim", lat: -88.50, lon: 270.0, siteId: "site-06", description: "High elevation massif between Shackleton & de Gerlache" },
+  {
+    label: "Connecting Ridge",
+    lat: -89.44,
+    lon: 222.50,
+    siteId: "shackleton_connecting_ridge",
+    description: "Artemis III Site 01 (Verified 5m DEM available)",
+    hasHighRes: true,
+  },
+  {
+    label: "Shackleton Rim",
+    lat: -89.90,
+    lon: 0.0,
+    siteId: "shackleton_rim",
+    description: "Connecting Ridge peak with persistent solar illumination",
+    hasHighRes: false,
+  },
+  {
+    label: "Faustini Rim",
+    lat: -87.10,
+    lon: 77.00,
+    siteId: "faustini_rim_a",
+    description: "Faustini Rim A candidate site adjacent to cold volatile traps",
+    hasHighRes: false,
+  },
+  {
+    label: "Malapert Massif",
+    lat: -84.90,
+    lon: 12.90,
+    siteId: "malapert_mountain",
+    description: "Malapert Mountain (Alpha) peak for continuous direct Earth communication",
+    hasHighRes: false,
+  },
+  {
+    label: "South Pole Peak",
+    lat: -90.00,
+    lon: 0.0,
+    siteId: "south_pole_peak",
+    description: "Geometric lunar South Pole origin (90.00°S, 0.00°E)",
+    hasHighRes: false,
+  },
+  {
+    label: "de Gerlache Rim",
+    lat: -88.50,
+    lon: 271.70,
+    siteId: "de_gerlache_rim_2",
+    description: "de Gerlache Rim 2 massif between Shackleton & de Gerlache",
+    hasHighRes: false,
+  },
 ];
 
 const RADIUS_OPTIONS = [250, 500, 1000, 2000];
@@ -189,7 +231,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
   const attribution = mapConfig ? pickString(mapConfig, ["attribution", "tile_attribution", "credits"]) : null;
 
   return (
-    <div className="relative flex flex-1 flex-col h-[calc(100vh-4rem)] overflow-hidden bg-space text-ink select-none">
+    <div className="relative flex flex-1 flex-col h-full overflow-hidden bg-space text-ink select-none">
       {/* ===================================================================
        * LEVEL 2 — LUNAR EXPLORER DEDICATED TOOLBAR
        * Sits immediately below Level 1 Global Navigation, dedicated horizontal bar.
@@ -234,7 +276,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
             value={viewMode}
             onChange={(val) => {
               setViewMode(val);
-              if (val === "terrain" && !terrainMesh) {
+              if (val === "terrain") {
                 void fetchTerrainMesh(selection);
               }
             }}
@@ -432,9 +474,9 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
             size="sm"
             onClick={() => setFocusNonce((n) => n + 1)}
             icon={<TargetIcon className="h-3.5 w-3.5 text-muted" />}
-            title="Reset camera focus to South Pole (89.44°S, 222.5°E)"
+            title="Reset camera focus and zoom to South Pole (89.44°S, 222.5°E)"
           >
-            <span className="hidden lg:inline">South Pole</span>
+            <span className="hidden lg:inline">Reset View</span>
           </Button>
 
           {/* Sidebar Toggle Button */}
@@ -456,9 +498,9 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
        * LEVEL 3 — MAIN WORKSPACE
        * Split into Left (Large 3D Viewport) and Right (Mission Control Sidebar)
        * =================================================================== */}
-      <div className="relative flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden min-h-0">
         {/* ==================== 3D VIEWPORT CONTAINER ==================== */}
-        <div className="relative flex-1 overflow-hidden bg-space">
+        <div className="relative flex-1 overflow-hidden min-w-0 min-h-0 bg-space">
           {viewMode === "global" ? (
             <LunarMap
               className="h-full w-full"
@@ -540,7 +582,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
 
         {/* ==================== RIGHT MISSION CONTROL SIDEBAR ==================== */}
         <aside
-          className={`flex flex-col border-l border-divider/80 bg-[#151515] transition-all duration-300 z-30 shrink-0 ${
+          className={`flex flex-col border-l border-divider/80 bg-[#151515] transition-all duration-300 z-30 shrink-0 h-full overflow-hidden ${
             sidebarOpen
               ? "fixed sm:relative inset-x-0 bottom-0 top-[116px] sm:top-0 sm:inset-auto sm:right-0 w-full sm:w-[360px] lg:w-[380px] translate-x-0 shadow-2xl"
               : "w-0 opacity-0 overflow-hidden pointer-events-none translate-x-full"
@@ -766,12 +808,16 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                     <button
                       key={p.label}
                       onClick={() => {
-                        setSelection({
+                        const newSel = {
                           ...selection,
                           latitude: p.lat,
                           longitude: p.lon,
-                        });
+                        };
+                        setSelection(newSel);
                         setFocusSite({ lat: p.lat, lon: p.lon, nonce: Date.now() });
+                        if (viewMode === "terrain") {
+                          void fetchTerrainMesh(newSel);
+                        }
                       }}
                       title={p.description}
                       className={`p-2.5 rounded border text-left transition-all cursor-pointer ${
@@ -780,9 +826,16 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                           : "border-divider/50 bg-surface/50 text-muted hover:text-ink hover:border-divider"
                       }`}
                     >
-                      <span className="block font-display text-xs font-semibold text-ink truncate">
-                        {p.label}
-                      </span>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="block font-display text-xs font-semibold text-ink truncate">
+                          {p.label}
+                        </span>
+                        {p.hasHighRes ? (
+                          <span className="text-[9px] font-mono text-good font-semibold">5m DEM</span>
+                        ) : (
+                          <span className="text-[9px] font-mono text-muted/60">LOLA</span>
+                        )}
+                      </div>
                       <span className="block font-mono text-[10px] text-muted/70 mt-0.5">
                         {p.lat.toFixed(2)}°, {p.lon.toFixed(0)}°
                       </span>
@@ -790,6 +843,48 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                   );
                 })}
               </div>
+
+              {sites.length > 0 && (
+                <div className="pt-2 border-t border-divider/40">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted">
+                      NASA Candidate Catalog ({sites.length})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                    {sites.map((s) => {
+                      const isCatActive =
+                        Math.abs(s.latitude - selection.latitude) < 0.05 &&
+                        Math.abs(s.longitude - selection.longitude) < 0.05;
+                      return (
+                        <button
+                          key={s.site_id}
+                          onClick={() => {
+                            const newSel = {
+                              ...selection,
+                              latitude: s.latitude,
+                              longitude: s.longitude,
+                            };
+                            setSelection(newSel);
+                            setFocusSite({ lat: s.latitude, lon: s.longitude, nonce: Date.now() });
+                            if (viewMode === "terrain") {
+                              void fetchTerrainMesh(newSel);
+                            }
+                          }}
+                          className={`p-1.5 rounded border text-left text-[11px] truncate cursor-pointer transition-colors ${
+                            isCatActive
+                              ? "bg-elevated border-ink text-ink font-semibold"
+                              : "border-divider/40 bg-surface/30 text-muted hover:text-ink hover:border-divider"
+                          }`}
+                          title={`${s.name} (${s.latitude}°, ${s.longitude}°)`}
+                        >
+                          <span className="truncate block font-mono text-[10px]">{s.name ?? s.site_id}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* -----------------------------------------------------------
@@ -861,7 +956,7 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                       className="w-full mt-2 text-xs"
                       onClick={() => {
                         setViewMode("terrain");
-                        if (!terrainMesh) void fetchTerrainMesh(selection);
+                        void fetchTerrainMesh(selection);
                       }}
                       icon={<MountainIcon className="h-3.5 w-3.5 text-muted" />}
                     >

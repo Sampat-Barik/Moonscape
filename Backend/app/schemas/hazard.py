@@ -32,6 +32,7 @@ class DetectionItem(BaseModel):
 class HazardItem(BaseModel):
     """An individual identified or predicted topographic hazard feature (Phase 1 compatibility)."""
 
+    id: Optional[str] = Field(None, description="Stable unique identifier for the hazard feature (e.g. 'ESC-01', 'ROUGH-01')")
     hazard_type: str = Field(..., description="'crater', 'boulder', 'escarpment', or 'permanent_shadow'")
     latitude: float
     longitude: float
@@ -39,6 +40,13 @@ class HazardItem(BaseModel):
     severity: str = Field(..., description="'low', 'medium', 'high', 'critical'")
     confidence_score: float = Field(..., ge=0.0, le=1.0, description="Confidence metric from detector/model")
     source: str = Field(..., description="Detection origin: 'LOLA_DEM_curvature', 'LROC_optical', or 'heuristic_model'")
+    measurement_name: Optional[str] = Field(None, description="Physical metric name (e.g. 'Peak Slope Gradient', 'RMS Surface Roughness', 'Basin Diameter')")
+    measurement_unit: Optional[str] = Field(None, description="Physical units (e.g. 'deg', 'm')")
+    measurement_value: Optional[float] = Field(None, description="Numerical measurement in specified units")
+    confidence_type: Optional[str] = Field(None, description="Confidence origin: 'model_confidence', 'deterministic_gradient', 'heuristic_indicator'")
+    detection_method: Optional[str] = Field(None, description="Algorithmic or ML method used for detection")
+    feature_extent_m: Optional[float] = Field(None, description="Spatial span or footprint of the feature in meters")
+    cell_count: Optional[int] = Field(None, description="Raster cell count for contiguous terrain features")
 
 
 class HazardPredictRequest(BaseModel):
@@ -128,6 +136,8 @@ class HazardPredictResponse(BaseModel):
     source_product_id: Optional[str] = Field(None, description="NASA or ISRO source observation product ID")
     source_resolution_m: Optional[float] = Field(None, description="Resolution of evaluated source image in meters per pixel")
     optical_status: Optional[str] = Field(None, description="'success', 'not_available', 'outside_coverage', 'error'")
+    optical_provenance_state: Optional[str] = Field(None, description="'exact_frame_processed', 'proximity_frame_cataloged', 'catalog_reference_only', 'unavailable'")
+    dem_provenance_state: Optional[str] = Field(None, description="'measured_lola_dem', 'calibrated_sample_baseline', 'unavailable'")
     coverage_zone: Optional[str] = Field("core", description="'core', 'extended', 'context', 'outside', 'invalid'")
     model_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Metadata dictionary")
     disclaimer: Optional[str] = Field(None, description="Scientific safety disclaimer")
