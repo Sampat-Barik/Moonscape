@@ -100,11 +100,16 @@ export default function Dashboard({ navigate }: { navigate: (r: Route) => void }
           <div className="panel mx-auto mt-8 max-w-md p-6 text-left">
             <span className="kicker mb-4 block">Coordinates</span>
             <CoordinateSelector value={selection} onChange={setSelection} />
+            {!(selection.latitude <= -80 && selection.latitude >= -90) && (
+              <p className="mt-2 text-xs text-warn">
+                Selected latitude ({selection.latitude}°) is outside the supported lunar South Pole analysis region (80°S–90°S).
+              </p>
+            )}
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 className="btn-primary flex-1 justify-center"
                 onClick={() => void runAnalysis(selection)}
-                disabled={analysisStatus === "loading"}
+                disabled={analysisStatus === "loading" || !(selection.latitude <= -80 && selection.latitude >= -90)}
               >
                 {analysisStatus === "loading" ? <span className="spinner" /> : <RocketIcon className="h-5 w-5" />}
                 Run analysis

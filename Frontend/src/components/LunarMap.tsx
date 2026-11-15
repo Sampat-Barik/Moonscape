@@ -376,13 +376,22 @@ export default function LunarMap(props: LunarMapProps) {
         -((e.clientY - rect.top) / rect.height) * 2 + 1
       );
       raycaster.setFromCamera(ndc, camera);
-      const targets: THREE.Object3D[] = [moon, ...markerGroup.children];
-      const hits = raycaster.intersectObjects(targets, false);
+      group.updateMatrixWorld(true);
+
+      // Check site markers first (if user clicked directly on a known site marker)
+      const siteMarkers = markerGroup.children.filter((c) => Boolean(c.userData.latlon));
+      if (siteMarkers.length) {
+        const markerHits = raycaster.intersectObjects(siteMarkers, false);
+        if (markerHits.length > 0) {
+          const fromSprite = markerHits[0].object.userData.latlon as { lat: number; lon: number } | undefined;
+          if (fromSprite) return fromSprite;
+        }
+      }
+
+      // Intersect lunar sphere mesh directly (avoids sprite billboard offset distortion)
+      const hits = raycaster.intersectObject(moon, false);
       if (!hits.length) return null;
-      const hit = hits[0];
-      const fromSprite = hit.object.userData.latlon as { lat: number; lon: number } | undefined;
-      if (fromSprite) return fromSprite;
-      const p = group.worldToLocal(hit.point.clone());
+      const p = group.worldToLocal(hits[0].point.clone());
       return vec3ToLatLon(p);
     };
 
@@ -405,8 +414,9 @@ export default function LunarMap(props: LunarMapProps) {
         if (anim && moved > 4) anim = null;
         velX = dx * 0.005;
         velY = dy * 0.005;
-        group.rotation.y += velX;
-        group.rotation.x = THREE.MathUtils.clamp(group.rotation.x + velY, -1.2, 1.2);
+        const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), velX);
+        const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), velY);
+        group.quaternion.premultiply(qy).premultiply(qx);
       }
     };
     const onPointerUp = (e: PointerEvent) => {
@@ -496,7 +506,10 @@ export default function LunarMap(props: LunarMapProps) {
       const dt = Math.min((now - prev) / 1000, 0.05);
       prev = now;
       const t = now * 0.001;
-      if (propsRef.current.autoRotate && !down) group.rotation.y += dt * 0.06;
+      if (propsRef.current.autoRotate && !down) {
+        const qAuto = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dt * 0.06);
+        group.quaternion.premultiply(qAuto);
+      }
 
       // Update solar lighting azimuth for time-based diurnal cycle simulation
       if (typeof propsRef.current.sunAngle === "number") {
@@ -505,9 +518,10 @@ export default function LunarMap(props: LunarMapProps) {
       }
 
       // Apply smooth damping when released
-      if (!down && !anim) {
-        group.rotation.y += velX;
-        group.rotation.x = THREE.MathUtils.clamp(group.rotation.x + velY, -1.2, 1.2);
+      if (!down && !anim && (Math.abs(velX) > 1e-5 || Math.abs(velY) > 1e-5)) {
+        const qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), velX);
+        const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), velY);
+        group.quaternion.premultiply(qy).premultiply(qx);
         velX *= 0.92;
         velY *= 0.92;
       }

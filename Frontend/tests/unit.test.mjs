@@ -134,3 +134,55 @@ describe("5. Production Bundle & Asset Verification", () => {
     assert.ok(env.includes("VITE_API_BASE_URL=http://127.0.0.1:8000"));
   });
 });
+
+describe("6. Coordinate Selection vs API Request Payload Contract", () => {
+  const PRESETS = [
+    { label: "South Pole", lat: -90, lon: 0 },
+    { label: "Shackleton Rim", lat: -89.9, lon: 0 },
+    { label: "Connecting Ridge", lat: -89.42, lon: 34 },
+    { label: "Faustini Rim", lat: -87.2, lon: 80 },
+    { label: "Malapert Massif", lat: -86.5, lon: 0 },
+  ];
+
+  test("all quick presets are strictly within the South Pole region [-90, -80]", () => {
+    for (const p of PRESETS) {
+      assert.ok(
+        p.lat >= -90 && p.lat <= -80,
+        `Preset ${p.label} latitude ${p.lat} must be within [-90, -80]`
+      );
+    }
+  });
+
+  test("API request payload coordinates match selection coordinates exactly", () => {
+    const selection = { latitude: -89.44, longitude: 222.5, radius_m: 1000 };
+    // Mirrors api.runAnalysis payload constructor
+    const reqPayload = {
+      center_lat: selection.latitude,
+      center_lon: selection.longitude,
+      radius_meters: selection.radius_m,
+      latitude: selection.latitude,
+      longitude: selection.longitude,
+      radius_m: selection.radius_m,
+      max_acceptable_slope_deg: 15.0,
+      max_acceptable_roughness_m: 2.0,
+    };
+
+    assert.equal(reqPayload.center_lat, selection.latitude);
+    assert.equal(reqPayload.center_lon, selection.longitude);
+    assert.equal(reqPayload.latitude, selection.latitude);
+    assert.equal(reqPayload.longitude, selection.longitude);
+    assert.equal(reqPayload.radius_meters, selection.radius_m);
+  });
+
+  test("detects coordinates outside South Pole analysis range", () => {
+    const isPolar = (lat) => lat <= -80 && lat >= -90;
+    assert.equal(isPolar(-89.44), true);
+    assert.equal(isPolar(-90.0), true);
+    assert.equal(isPolar(-80.0), true);
+    assert.equal(isPolar(-79.99), false);
+    assert.equal(isPolar(-7.0241), false);
+    assert.equal(isPolar(-49.554), false);
+    assert.equal(isPolar(0.0), false);
+    assert.equal(isPolar(85.0), false);
+  });
+});

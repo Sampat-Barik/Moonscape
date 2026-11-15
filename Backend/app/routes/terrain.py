@@ -21,12 +21,24 @@ class TerrainQueryRequest(BaseModel):
 
 @router.get("/terrain", response_model=TerrainResponse, summary="Query terrain parameters at a specific lunar coordinate and radius")
 def get_terrain_at_point(
-    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude in degrees (-90 to 90)"),
-    lon: float = Query(..., ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)"),
-    radius_m: float = Query(50.0, ge=10.0, le=25000.0, description="Physical analysis radius in meters (default 50m)"),
+    lat: Optional[float] = Query(None, ge=-90.0, le=90.0, description="Latitude in degrees (-90 to 90)"),
+    latitude: Optional[float] = Query(None, ge=-90.0, le=90.0, description="Alias for lat"),
+    lon: Optional[float] = Query(None, ge=-180.0, le=360.0, description="Longitude in degrees (-180 to 360)"),
+    longitude: Optional[float] = Query(None, ge=-180.0, le=360.0, description="Alias for lon"),
+    radius_m: Optional[float] = Query(50.0, ge=10.0, le=25000.0, description="Physical analysis radius in meters (default 50m)"),
+    radius_meters: Optional[float] = Query(None, ge=10.0, le=25000.0, description="Alias for radius_m"),
 ) -> TerrainResponse:
     """Extracts elevation, slope, roughness, and relief summaries over requested physical radius."""
-    return terrain_service.get_point_terrain(lat=lat, lon=lon, radius_m=radius_m)
+    effective_lat = lat if lat is not None else latitude
+    effective_lon = lon if lon is not None else longitude
+    effective_radius = radius_m if radius_m is not None else (radius_meters or 50.0)
+
+    if effective_lat is None or effective_lon is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Field 'lat' (or 'latitude') and 'lon' (or 'longitude') are required."
+        )
+    return terrain_service.get_point_terrain(lat=effective_lat, lon=effective_lon, radius_m=effective_radius)
 
 
 @router.post("/terrain", response_model=TerrainResponse, summary="Query terrain parameters at a specific lunar coordinate and radius (POST)")

@@ -85,9 +85,13 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
     });
 
   const onAnalyse = async () => {
+    if (!isInAnalysisRegion) return;
     const ok = await runAnalysis(selection);
     if (ok) navigate("/dashboard");
   };
+
+  /** True when the selected coordinate falls within the backend's supported South Pole analysis region (80°S–90°S). */
+  const isInAnalysisRegion = selection.latitude <= -80 && selection.latitude >= -90;
 
   const attribution = mapConfig ? pickString(mapConfig, ["attribution", "tile_attribution", "credits"]) : null;
 
@@ -256,6 +260,26 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                   )}
                 </div>
               )}
+              {!isInAnalysisRegion && (
+                <div className="mt-3 rounded border border-warn/40 bg-warn/10 p-2.5 text-left">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-warn">
+                    <span>Outside Polar Coverage Zone</span>
+                  </div>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                    Selected latitude ({selection.latitude}°) is outside the supported lunar South Pole analysis region (80°S–90°S). Visual exploration is available, but terrain analysis requires coordinates within the polar coverage zone.
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-2 text-[11px] font-semibold text-cyan hover:underline"
+                    onClick={() => {
+                      setSelection({ ...selection, latitude: -89.44, longitude: 222.5 });
+                      setFocusNonce((n) => n + 1);
+                    }}
+                  >
+                    Reset to South Pole (89.44°S)
+                  </button>
+                </div>
+              )}
               <div className="mt-4">
                 <CoordinateSelector value={selection} onChange={setSelection} showPresets={false} />
               </div>
@@ -270,7 +294,8 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
                 <button
                   className="btn-primary flex-1 !px-3 !py-2 !text-xs"
                   onClick={() => void onAnalyse()}
-                  disabled={analysisStatus === "loading"}
+                  disabled={analysisStatus === "loading" || !isInAnalysisRegion}
+                  title={!isInAnalysisRegion ? "Latitude must be between 80°S and 90°S for analysis" : undefined}
                 >
                   {analysisStatus === "loading" ? (
                     <span className="spinner !h-4 !w-4" />
@@ -435,7 +460,8 @@ export default function Explorer({ navigate }: { navigate: (r: Route) => void })
             <button
               className="btn-primary w-full justify-center"
               onClick={() => void onAnalyse()}
-              disabled={analysisStatus === "loading"}
+              disabled={analysisStatus === "loading" || !isInAnalysisRegion}
+              title={!isInAnalysisRegion ? "Latitude must be between 80°S and 90°S for analysis" : undefined}
             >
               {analysisStatus === "loading" ? (
                 <span className="spinner !h-4 !w-4" />

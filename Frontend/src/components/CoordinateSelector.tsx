@@ -54,7 +54,7 @@ export default function CoordinateSelector({
         </div>
         <div>
           <label htmlFor="cs-lon" className="mb-1 block text-[11px] uppercase tracking-wider text-muted">
-            Longitude (−180…180)
+            Longitude (−180…360)
           </label>
           <input
             id="cs-lon"
@@ -62,10 +62,10 @@ export default function CoordinateSelector({
             type="number"
             step="0.01"
             min={-180}
-            max={180}
+            max={360}
             value={value.longitude}
             onChange={(e) => {
-              const n = parse(e.target.value, -180, 180);
+              const n = parse(e.target.value, -180, 360);
               if (n !== null) set({ longitude: n });
             }}
           />

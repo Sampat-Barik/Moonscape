@@ -1,7 +1,7 @@
 """Schemas for landing zone spatial analysis pipelines and lunar illumination modeling."""
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.schemas.scoring import ScoreResponse
 
@@ -17,6 +17,16 @@ class AnalysisRunRequest(BaseModel):
     roughness_kernel_size: int = Field(3, ge=3, le=15, description="Moving window kernel size for RMS roughness (default 3x3)")
     epoch_iso: Optional[str] = Field(None, description="Optional UTC ISO-8601 timestamp for instantaneous solar geometry (e.g. '2026-10-15T12:00:00Z')")
     time_period: Optional[str] = Field("annual_cycle", description="Target illumination evaluation period: 'instantaneous', 'annual_cycle', 'precession_18yr'")
+
+    @field_validator("center_lat")
+    @classmethod
+    def validate_center_lat(cls, v: float) -> float:
+        if v < -90.0 or v > -80.0:
+            raise ValueError(
+                f"Selected latitude ({v}°) is outside the supported lunar South Pole analysis region (80°S–90°S). "
+                "Visual exploration is available, but terrain analysis requires coordinates within the polar coverage zone."
+            )
+        return v
 
     @model_validator(mode="before")
     @classmethod

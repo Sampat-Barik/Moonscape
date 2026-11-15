@@ -155,6 +155,17 @@ function loadJSON<T>(key: string): T | null {
 }
 
 function errMsg(e: unknown): string {
+  if (e instanceof ApiError && e.detail) {
+    if (Array.isArray(e.detail) && e.detail.length > 0) {
+      const msgs = e.detail.map((d: any) => {
+        const field = Array.isArray(d.loc) ? d.loc.slice(1).join(".") || d.loc.join(".") : "";
+        const m = d.msg || "Invalid value";
+        return field ? `${field}: ${m}` : m;
+      });
+      return msgs.join("; ");
+    }
+    if (typeof e.detail === "string") return e.detail;
+  }
   return e instanceof Error ? e.message : String(e);
 }
 
@@ -403,6 +414,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const s = sel ?? selectionRef.current;
       setAnalysisStatus("loading");
       setAnalysisError(null);
+
+      // Pre-flight check: ensure coordinate is in the supported South Pole analysis region (-90 to -80)
+      if (s.latitude < -90 || s.latitude > -80) {
+        setAnalysisError(
+          `Selected latitude (${s.latitude}°) is outside the supported lunar South Pole analysis region (80°S–90°S). Please select a coordinate within the polar coverage zone.`
+        );
+        setAnalysisStatus("error");
+        return false;
+      }
+
       try {
         const a = await api.runAnalysis(s);
         setAnalysis(a);

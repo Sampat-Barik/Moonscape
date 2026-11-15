@@ -100,11 +100,13 @@ def test_scoring_slope_penalty() -> None:
 
 
 def test_scoring_roughness_penalty() -> None:
-    """Verifies roughness score step-downs."""
-    assert evaluate_roughness_score(0.2) == 100.0
-    assert evaluate_roughness_score(0.3) == 100.0
-    assert evaluate_roughness_score(0.5) == 75.0
-    assert evaluate_roughness_score(1.5) == 0.0
+    """Verifies roughness score step-downs against Artemis HLS limits."""
+    assert evaluate_roughness_score(0.20) == 100.0
+    assert evaluate_roughness_score(0.25) == 100.0
+    assert evaluate_roughness_score(0.30) == 94.0
+    assert evaluate_roughness_score(0.50) == 70.0
+    assert evaluate_roughness_score(1.20) == 0.0
+    assert evaluate_roughness_score(1.50) == 0.0
 
 
 def test_weighted_composite_score() -> None:
