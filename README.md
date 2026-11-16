@@ -272,3 +272,13 @@ python Backend/scripts/final_validation_report.py
    - Suitability scores (0–100) are multi-criteria screening indicators, **not landing safety certifications**.
    - Slope $> 15.0^\circ$ triggers a critical safety disqualification based on lander tip-over dynamics.
    - Missing factors are tracked via `score_coverage_pct` and are never silently assumed to be zero.
+
+---
+
+## 10. Contributors & Project Team
+
+| Contributor | Role & Responsibilities | GitHub Profile |
+| :--- | :--- | :--- |
+| **Ritam Dawn** | Lead Frontend Architect, UI/UX Design, 3D Lunar Visualizations & Client Engineering | [@RITAM-DAWN237](https://github.com/RITAM-DAWN237) |
+| **Sampat Barik** | Planetary Data Engineer, FastAPI Backend, Ephemeris Calculations & ML Scoring | [@Sampat-Barik](https://github.com/Sampat-Barik) |
+
