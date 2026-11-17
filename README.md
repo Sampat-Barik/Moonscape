@@ -279,6 +279,6 @@ python Backend/scripts/final_validation_report.py
 
 | Contributor | Role & Responsibilities | GitHub Profile |
 | :--- | :--- | :--- |
-| **Ritam Dawn** | Lead Frontend Architect, UI/UX Design, 3D Lunar Visualizations & Client Engineering | [@RITAM-DAWN237](https://github.com/RITAM-DAWN237) |
-| **Sampat Barik** | Planetary Data Engineer, FastAPI Backend, Ephemeris Calculations & ML Scoring | [@Sampat-Barik](https://github.com/Sampat-Barik) |
+| **Sampat Barik** | **Project Lead & Principal Engineer** — UI/UX design, 3D lunar visualizations, and client engineering; **sole owner of the complete backend**, including FastAPI services, planetary-data engineering, ephemeris calculations, and ML scoring | [@Sampat-Barik](https://github.com/Sampat-Barik) |
+| **Ritam Dawn** | Contributor — responsibilities to be documented separately and accurately | [@RITAM-DAWN237](https://github.com/RITAM-DAWN237) |
 
