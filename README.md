@@ -4,9 +4,18 @@
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg?logo=python&logoColor=white)](https://python.org)
 [![NASA Data](https://img.shields.io/badge/Data-NASA%20PDS%20%2F%20LOLA%20%2F%20LROC-red.svg)](https://pgda.gsfc.nasa.gov)
 [![CRS](https://img.shields.io/badge/CRS-ESRI%3A104903%20(Polar%20Stereographic)-green.svg)](https://epsg.io/104903)
-[![Tests](https://img.shields.io/badge/Tests-162%20Passed-brightgreen.svg)](https://pytest.org)
 
-Moonscape is an open-source, scientifically grounded lunar South Pole landing-site suitability and hazard analysis platform. Designed for local development on high-performance laptops (AMD Ryzen 9 / NVIDIA RTX) with authentic NASA planetary datasets, it evaluates candidate Artemis landing locations between 80°S and 90°S using multi-criteria decision analysis (MCDA), Horn (1981) geodetic slope modeling, RMS surface roughness, JPL DE421 solar ephemeris, morphological hazard detection, grounded AI explanations, and automated ReportLab PDF mission reports.
+Moonscape is an open-source platform for preliminary lunar South Pole landing-site analysis. It combines authentic NASA planetary-data sources with terrain analysis, illumination and communications simulation, hazard detection, multi-criteria decision analysis (MCDA), explainable AI outputs, and mission-report generation.
+
+> **Research prototype.** Moonscape supports exploratory mission planning and scientific analysis. It does not certify a site for flight or landing operations.
+
+## Highlights
+
+- Interactive 3D lunar explorer with coordinate selection and mission-time simulation
+- FastAPI backend for terrain, hazards, site suitability, visibility, reports, and data coverage
+- Horn (1981) slope modelling, RMS roughness, curvature-based hazard analysis, and transparent MCDA scoring
+- NASA/PDS-compatible dataset workflows with safe fallback behaviour for offline development
+- Typed React client with live-backend and deterministic demo modes
 
 ---
 
@@ -28,9 +37,9 @@ MoonScape/
 │   ├── app/
 │   │   ├── main.py                    # FastAPI entrypoint, lifespan startup, & CORS configuration
 │   │   ├── core/                      # Settings (pydantic-settings), physical constants, & logging
-│   │   ├── config/                    # Hardware resource budgets, dataset registries, & hazard limits
-│   │   ├── schemas/                   # Pydantic v2 data contracts for all 16 endpoints
-│   │   ├── routes/                    # API route definitions (11 Core + 5 Data Management)
+│   │   ├── config/                    # Dataset registries, resource settings, & hazard limits
+│   │   ├── schemas/                   # Pydantic data contracts
+│   │   ├── routes/                    # API route definitions
 │   │   └── services/                  # Business logic & scientific pipelines
 │   │       ├── terrain_analysis.py    # Multi-resolution raster window processing engine
 │   │       ├── dem_service.py         # GeoTIFF reading, spatial indexing, & bounding boxes
@@ -44,7 +53,7 @@ MoonScape/
 │   │       └── data_sources/          # Adapters (PGDA 90, PGDA 78 Site 01, PGDA 104, Diviner, LROC)
 │   ├── data/lunar/                    # Raw NASA GeoTIFFs, spatial indexes, and cache directories
 │   ├── scripts/                       # CLI downloaders, benchmark scripts, and validation runners
-│   ├── tests/                         # Comprehensive test suites (126 automated tests)
+│   ├── tests/                         # Automated backend tests
 │   ├── requirements.txt               # Pinned Python package dependencies
 │   └── pytest.ini                     # Pytest runner configuration
 │
@@ -59,26 +68,19 @@ MoonScape/
 │   ├── lunar_dataset_inventory.md     # NASA PDS product registry & metadata
 │   └── download_manifest.json         # SHA-256 checksums & NASA PDS URLs
 │
-└── Frontend/                          # Interactive client application
-    ├── index.html                     # Standalone mission control aerospace dashboard
-    ├── app.js                         # Asynchronous client controller (12-step workflow)
-    ├── style.css                      # NASA dark-theme responsive design
-    ├── api.ts                         # Fully typed TypeScript API client (AbortController timeouts)
-    ├── types.ts                       # TypeScript interfaces aligned with FastAPI backend
-    └── API_CONTRACT.md                # Shared JSON contracts and schema specifications
+└── Frontend/                          # React + TypeScript interactive client
+    ├── src/pages/                     # Home, Explorer, Dashboard, Hazards, Compare, Report
+    ├── src/components/                # Reusable UI and 3D lunar visualisation components
+    ├── src/services/api.ts             # Typed API client with timeout handling
+    ├── src/context/AppContext.tsx      # Shared mission-analysis state
+    └── public/                         # Lunar textures, 3D models, and Cesium assets
 ```
 
 ---
 
-## 2. Installation & Windows Setup
+## 2. Quick Start
 
-### Hardware Optimization Target
-- **CPU:** AMD Ryzen 9 8940HX (16 logical cores)
-- **RAM:** 16 GB (In-memory raster window cache capped at 256 MB)
-- **GPU:** NVIDIA GeForce RTX 5070 Laptop GPU (8 GB VRAM reserved for vision inference)
-- **OS:** Windows 10 / 11 64-bit with PowerShell
-
-### Setup Steps
+### Backend
 1. **Clone the repository:**
    ```powershell
    git clone https://github.com/Sampat-Barik/Moonscape.git
@@ -97,28 +99,41 @@ MoonScape/
    pip install -r Backend/requirements.txt
    ```
 
+4. **Start the API:**
+   ```powershell
+   uvicorn app.main:app --app-dir Backend --reload
+   ```
+
+   The API is available at `http://127.0.0.1:8000`; interactive documentation is at `/docs`.
+
+### Frontend
+```powershell
+cd Frontend
+npm install
+npm run dev
+```
+
+The client is served at `http://127.0.0.1:5173` by default.
+
 ---
 
 ## 3. Environment Variables
 
-Create a `Backend/.env` file (or set variables in your environment). All settings have safe defaults:
+Create `Backend/.env` only when you need to override the defaults:
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
-| `ENVIRONMENT` | string | `development` | Runtime mode (`development`, `staging`, `production`) |
 | `API_V1_STR` | string | `/api` | Base API prefix |
-| `PROJECT_NAME` | string | `Moonscape Lunar Landing API` | Title displayed in Swagger UI |
-| `DATA_ROOT_DIR` | string | `Backend/data/lunar` | Directory for raw NASA GeoTIFF rasters |
-| `CACHE_DIR` | string | `Backend/data/lunar/cache` | Directory for tiled spatial window cache |
+| `PROJECT_NAME` | string | `Moonscape Backend` | API title |
+| `DATA_MODE` | string | `live` | Prefer verified NASA data; `demo` permits synthetic fallback |
 | `CORS_ORIGINS` | list | `["http://localhost:3000", ...]` | Permitted CORS frontend origins |
-| `AI_PROVIDER` | string | `mock` | Active AI backend (`mock`, `gemini`, `openai`) |
+| `MOONSCAPE_AI_PROVIDER` | string | `auto` | AI explanation provider (`auto`, `gemini`, `openai`, `mock`) |
 | `GEMINI_API_KEY` | string | `""` | Google Gemini API key (optional) |
 | `OPENAI_API_KEY` | string | `""` | OpenAI API key (optional) |
-| `LLM_MODEL_NAME` | string | `gemini-1.5-flash` | Target model for scientific explanations |
-| `MAX_CACHE_MEMORY_MB` | int | `256` | RAM ceiling for in-memory LRU raster cache |
+| `MOONSCAPE_AI_MODEL` | string | `gemini-1.5-flash` | Target explanation model |
 
 > [!NOTE]
-> If `AI_PROVIDER` is set to `mock` or if API keys are left unset/offline, the backend automatically uses its deterministic scientific fallback engine. It will never fail or return blank explanations.
+> If an AI provider is unavailable, the backend returns deterministic scientific fallback explanations instead of blank output.
 
 ---
 
@@ -158,7 +173,7 @@ python Backend/scripts/download_nasa_data.py --dataset pgda78_site01_surf
 ### Core Analysis Endpoints
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/health` | Backend status, version, GPU telemetry, and CRS metadata |
+| `GET` | `/api/health` | Backend status, version, and CRS metadata |
 | `GET` | `/api/sites` | Catalog of Artemis candidate landing locations |
 | `GET` | `/api/sites/{site_id}` | Detailed coordinates and physical specs for a single site |
 | `GET` | `/api/map/config` | Cartographic Polar Stereographic (`ESRI:104903`) bounds and layers |
@@ -169,6 +184,8 @@ python Backend/scripts/download_nasa_data.py --dataset pgda78_site01_surf
 | `POST` | `/api/score` | Transparent multi-criteria suitability scoring (0–100 scale) |
 | `POST` | `/api/ai/explain` | Grounded scientific explanation of an existing `analysis_id` |
 | `POST` | `/api/reports/generate` | Generates 19-element JSON or downloadable binary PDF report |
+| `POST` | `/api/simulation/visibility` | Time-based solar and Earth-visibility simulation |
+| `POST` | `/api/sites/detect` | Detect candidate landing zones within a search area |
 
 ### Data Management Endpoints
 | Method | Endpoint | Description |
@@ -230,30 +247,19 @@ Invoke-WebRequest -Uri "http://localhost:8000/api/reports/generate" -Method POST
 
 ---
 
-## 8. Testing & Validation Instructions
+## 8. Testing & Validation
 
-Moonscape includes an automated test suite containing **126 tests** covering mathematical accuracy, functional contracts, edge cases, security, and performance.
+The repository includes mathematical, backend, workflow, and frontend test suites.
 
 ```powershell
-# Run all tests with verbose output
+# Run backend tests
 pytest Backend/tests/ -v
 
-# Run the Phase 10 validation suite
-pytest Backend/tests/test_final_validation.py -v
-
-# Run data access latency and memory benchmarks
-python Backend/scripts/benchmark_data_access.py
-
-# Run comprehensive validation report generator
-python Backend/scripts/final_validation_report.py
+# Run frontend validation
+cd Frontend
+npm run typecheck
+npm test
 ```
-
-### Test Coverage Summary
-- **Geodesy & Coordinates:** 100% roundtrip accuracy (< 0.001 mm error).
-- **Slope Accuracy:** 0.000° error on analytical $15.0^\circ$ tilted plane.
-- **Endpoint Latencies:** Health (8.8 ms), Terrain (14.0 ms), 1000m Analysis (41.5 ms), MCDA Scoring (3.2 ms).
-- **Memory Footprint:** Peak growth during raster windowing < 0.15 MB.
-- **Security:** Zero hardcoded API keys; path traversal defended on all routes.
 
 ---
 
@@ -275,7 +281,13 @@ python Backend/scripts/final_validation_report.py
 
 ---
 
-## 10. Contributors & Project Team
+## 10. Development Note
+
+AI-assisted tools were used selectively during implementation and debugging to accelerate routine investigation and iteration. Architecture, scientific methods, integration, and validation remain subject to human review.
+
+---
+
+## 11. Contributors & Project Team
 
 | Contributor | Role & Responsibilities | GitHub Profile |
 | :--- | :--- | :--- |
